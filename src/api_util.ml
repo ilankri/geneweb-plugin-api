@@ -1494,7 +1494,7 @@ let person_node_map conf base l =
              person = p;
            }))
          l)
-  
+
 let person_node_map_lia conf base l =
   let compute_sosa = (fun _ -> Sosa.zero) in
   (* TODO ? *)

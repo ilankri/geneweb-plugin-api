@@ -1,5 +1,3 @@
-
-
 type t = Csv.t
 
 let load_from_file ~file =
@@ -13,7 +11,7 @@ let load_from_file ~file =
        ^ " " ^ string_of_int nfield
        ^ " " ^ msg);
     []
-    
+
 (* TODO catch exceptions *)
 let of_string s =
   let in_chan = Csv.of_string ~backslash_escape:true s in
@@ -27,6 +25,6 @@ let row_of_string s =  match of_string s with
 let row_of_string_opt s = match row_of_string s with
   | []        -> None
   | _  as row -> Some row
-       
-  
+
+
 let fold_left = List.fold_left

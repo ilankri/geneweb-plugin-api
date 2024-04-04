@@ -1,4 +1,3 @@
-
 module StrSet = Set.Make (String)
 
 let escape_dquote s =
@@ -6,14 +5,14 @@ let escape_dquote s =
   |> String.concat "\\\""
 
 let quote s =  "\"" ^ escape_dquote s ^ "\""
-              
+
 let build_line =
   let rec aux s l = match l with
     | [x] -> s ^ (quote x)
     | x :: xs -> aux (s ^ (quote x) ^ ",") xs
     | [] -> s
   in fun l -> aux "" l
-            
+
 let add_opt l set = match l with
   | x :: _ when x <> "" ->
      StrSet.add (build_line l) set
@@ -90,9 +89,9 @@ let write_dico_place_set ~assets ~fname_csv ~lang =
                                       ^ lang ^ " from file: " ^ fname_csv);
 
   let csv = Api_csv.load_from_file ~file:fname_csv in
-  
+
   let data = PlacesData.empty in
-  
+
   let data =
     Api_csv.fold_left (
       fun data ->
@@ -111,9 +110,9 @@ let write_dico_place_set ~assets ~fname_csv ~lang =
           data
       ) data csv
   in
-  
+
   let generate = generate assets lang in
-  
+
   generate `town (sorted_array_of_set (PlacesData.get_towns data)) ;
   generate `area_code (sorted_array_of_set (PlacesData.get_area_codes data)) ;
   generate `county (sorted_array_of_set (PlacesData.get_counties data)) ;
