@@ -1297,7 +1297,7 @@ let pers_to_piqi_mod_person conf base p =
   let families =
     Mutil.array_to_list_map (fun x -> Int32.of_string @@ Gwdb.string_of_ifam x) (get_family p)
   in
-  let is_contemporary = !GWPARAM.is_contemporary conf base p in
+  let is_contemporary = GWPARAM.is_contemporary conf base p in
   {
     Mwrite.Person.digest = digest;
     index = index;

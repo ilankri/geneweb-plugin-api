@@ -1017,7 +1017,7 @@ let pers_to_piqi_person_light conf base p compute_sosa =
     descend = descend;
     visible_for_visitors = get_visibility conf base p;
     baseprefix = baseprefix;
-    is_contemporary = !GWPARAM.is_contemporary conf base p;
+    is_contemporary = GWPARAM.is_contemporary conf base p;
   }
 
 
@@ -1226,7 +1226,7 @@ let pers_to_piqi_person_full conf base p compute_sosa =
     parents = parents;
     families = families;
     baseprefix = baseprefix;
-    is_contemporary = !GWPARAM.is_contemporary conf base p;
+    is_contemporary = GWPARAM.is_contemporary conf base p;
   }
 
 

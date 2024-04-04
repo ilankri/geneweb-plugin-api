@@ -4,7 +4,7 @@ let load_from_file ~file =
   try
     Csv.load ~backslash_escape:true file
   with Csv.Failure (nrecord, nfield, msg) ->
-    !Geneweb.GWPARAM.syslog
+    Geneweb.GWPARAM.syslog
       `LOG_ERR
       ("failed to load csv from :" ^ file
        ^ " " ^ string_of_int nrecord

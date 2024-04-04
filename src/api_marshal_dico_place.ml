@@ -85,7 +85,7 @@ end = struct
 end
 
 let write_dico_place_set ~assets ~fname_csv ~lang =
-  !Geneweb.GWPARAM.syslog `LOG_DEBUG ("writing places files for lang "
+  Geneweb.GWPARAM.syslog `LOG_DEBUG ("writing places files for lang "
                                       ^ lang ^ " from file: " ^ fname_csv);
 
   let csv = Api_csv.load_from_file ~file:fname_csv in
@@ -104,9 +104,9 @@ let write_dico_place_set ~assets ~fname_csv ~lang =
           let data = PlacesData.add_country data [country; country_code] in
           data
         | l ->
-          !Geneweb.GWPARAM.syslog `LOG_DEBUG ("malformed line in file: " ^ fname_csv);
+          Geneweb.GWPARAM.syslog `LOG_DEBUG ("malformed line in file: " ^ fname_csv);
           let s = List.fold_left (fun s a -> s ^ "," ^ a) "" l in
-          !Geneweb.GWPARAM.syslog `LOG_DEBUG ("line is: " ^ s);
+          Geneweb.GWPARAM.syslog `LOG_DEBUG ("line is: " ^ s);
           data
       ) data csv
   in
