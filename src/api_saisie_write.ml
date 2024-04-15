@@ -590,7 +590,7 @@ let merge_dup_link conf iper txt =
   "<a href=" ^ !!(Util.commd {conf with henv})  ^ ">"
   ^ txt
   ^ "</a>"
-  
+
 let possible_family_dup conf base f1 =
   let f = foi base f1 in
   let w =
@@ -603,7 +603,7 @@ let possible_family_dup conf base f1 =
                (transl conf "click here to merge these unions" |> Utf8.capitalize_fst)
   in
   w ^ ". " ^ link
-  
+
 let possible_family_dup_homonmous conf base fam p =
   let f = foi base fam in
   let father = get_father f in
@@ -635,7 +635,7 @@ let possible_family_dup_homonmous conf base fam p =
     ^ "</a>"
   in*)
   w ^ ". " ^ link
-  
+
 let compute_warnings conf base resp =
   let get_pevent_name e = e.epers_name in
   let get_fevent_name e = e.efam_name in
@@ -968,8 +968,8 @@ let compute_modification_status' conf base ip ifam resp =
 
 let compute_modification_status conf base ip fam resp =
   let response = compute_modification_status' conf base ip fam resp in
-  Mext_write.gen_modification_status response  
-  
+  Mext_write.gen_modification_status response
+
 (**/**) (* Fonctions d'ajout de la première personne. *)
 
 
@@ -1373,7 +1373,7 @@ let compute_add_family_ok' conf base mod_family =
             c.Mwrite.Create_conflict.form <- Some `person_form2;
             raise (Api_update_util.ModErrApiConflict c)
         in
-                
+
         ifam_opt, Api_update_util.UpdateSuccess (all_wl, all_ml, all_hr)
     end
   with
@@ -1397,7 +1397,7 @@ let print_add_family_ok conf base =
   let add_family_ok = get_params conf Mext_write.parse_add_family_ok in
   let ip = Gwdb.iper_of_string @@ Int32.to_string add_family_ok.Mwrite.Add_family_ok.index_person in
   let mod_family = add_family_ok.Mwrite.Add_family_ok.family in
-  
+
   let father = mod_family.Mwrite.Family.father in
   let _fath_occ = father.Mwrite.Person.occ in
 
@@ -1430,7 +1430,7 @@ let print_add_family_ok conf base =
       ~default:(Gwdb.ifam_of_string @@ Int32.to_string mod_family.Mwrite.Family.index)
   in
 
-  
+
   let is_dummy = Gwdb.eq_iper Gwdb.dummy_iper in
   let get_infos iper =
     if is_dummy iper then None else
@@ -1439,7 +1439,7 @@ let print_add_family_ok conf base =
       let sn = Gwdb.get_surname p in
       Some (fn, sn, iper)
   in
-  
+
   let infos =
     if is_dummy ip then
       let fam = Gwdb.foi base ifam in
@@ -1453,7 +1453,7 @@ let print_add_family_ok conf base =
     | Some (fn, sn, iper) -> fn, sn, iper
     | None ->  Gwdb.empty_string, Gwdb.empty_string, ip
   in
-  
+
   let response = compute_modification_status' conf base ip ifam resp in
 
   let index_person = Some (Int32.of_string @@ Gwdb.string_of_iper ip') in
@@ -1487,7 +1487,7 @@ let print_add_family_ok conf base =
                     Mwrite.Modification_status.firstname_str;
     }
   in
-  
+
   let data = Mext_write.gen_modification_status response in
   print_result conf data
 
