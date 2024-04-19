@@ -585,10 +585,10 @@ let pers_to_piqi_simple_person conf base p =
     let birth_place =
       let birth_place = sou base (get_birth_place p) in
       if birth_place <> ""
-      then !!(Util.string_of_place conf birth_place)
+      then !!(Util.string_of_place birth_place)
       else
         let baptism_place = sou base (get_baptism_place p) in
-        !!(Util.string_of_place conf baptism_place)
+        !!(Util.string_of_place baptism_place)
     in
     let death =
       match death with
@@ -598,10 +598,10 @@ let pers_to_piqi_simple_person conf base p =
     let death_place =
       let death_place = sou base (get_death_place p) in
       if death_place <> ""
-      then !!(Util.string_of_place conf death_place)
+      then !!(Util.string_of_place death_place)
       else
         let burial_place = sou base (get_burial_place p) in
-        !!(Util.string_of_place conf burial_place)
+        !!(Util.string_of_place burial_place)
     in
     (birth, birth_place, death, death_place)
   in
@@ -717,7 +717,7 @@ let pers_to_piqi_person_search_info conf base p =
           | Some d -> Api_saisie_read.string_of_date_and_conv conf d
           | _ -> ("", "", "", "", None)
         in
-        let place = !!(Util.raw_string_of_place conf (sou base (Event.get_place evt)) |> Adef.safe) in
+        let place = !!(Util.raw_string_of_place (sou base (Event.get_place evt)) |> Adef.safe) in
         let note = !!(Notes.person_note conf base p (sou base (Event.get_note evt))) in
         let src = !!(Notes.source conf base (sou base (Event.get_src evt))) in
         let spouse =
