@@ -99,8 +99,6 @@ let load_image_ht conf =
         with _ -> ())
     images
 
-let find_image_ht name = try Hashtbl.find ht_img name with Not_found -> ""
-
 (* BIENTOT DEPRECATED *)
 let string_of_prec_dmy d =
   let s =
@@ -120,64 +118,6 @@ let string_of_prec_dmy d =
 let string_of_date = function
     Dgreg (d, _) -> string_of_prec_dmy d
   | Dtext t -> "(" ^ t ^ ")"
-
-
-(* Lecture et écriture des dates, directement empruntées à gwcomp/gwu *)
-
-let string_of_dmy d =
-  let soy y = if y = 0 then "-0" else string_of_int y in
-  let prec =
-    match d.prec with
-    | About -> "~"
-    | Maybe -> "?"
-    | Before -> "<"
-    | After -> ">"
-    | _ -> ""
-  in
-  let date =
-    if d.month = 0 then soy d.year
-    else if d.day = 0 then string_of_int d.month ^ "/" ^ soy d.year
-    else string_of_int d.day ^ "/" ^ string_of_int d.month ^ "/" ^ soy d.year
-  in
-  let delta =
-    match d.prec with
-    | OrYear d2 -> "|" ^ soy d2.year2
-    | YearInt d2 -> ".." ^ soy d2.year2
-    | _ -> ""
-  in
-  prec ^ date ^ delta
-
-
-(* ********************************************************************* *)
-(*  [Fonc] string_of_date2 : string -> Def.date option                   *)
-(** [Description] : Renvoie la string d'une date. Directement emprunté
-                    de gwu.
-    [Args] :
-      - date : date convertir en string
-    [Retour] :
-      - string : renvoie une date au format GeneWeb.
-    [Rem] : Non exporté en clair hors de ce module.                      *)
-(* ********************************************************************* *)
-let string_of_date2 date =
-  let spaces_to_underscore s =
-    String.init (String.length s)
-      (fun i ->
-         match s.[i] with
-         | ' ' -> '_'
-         | x -> x)
-  in
-  match date with
-  | Date.Dgreg (d, Dgregorian) -> string_of_dmy d
-  | Dgreg (d, Djulian) -> string_of_dmy (Date.convert ~from:Dgregorian ~to_:Djulian d) ^ "J"
-  | Dgreg (d, Dfrench) -> string_of_dmy (Date.convert ~from:Dgregorian ~to_:Dfrench d) ^ "F"
-  | Dgreg (d, Dhebrew) -> string_of_dmy (Date.convert ~from:Dgregorian ~to_:Dhebrew d) ^ "H"
-  | Dtext t -> Printf.sprintf "0(%s)" (spaces_to_underscore t)
-
-
-let string_of_date_option date =
-  match date with
-  | Some d -> string_of_date2 d
-  | None -> ""
 
 let title_to_piqi_title t =
   let (title_type, name) =
@@ -341,21 +281,6 @@ end
 
 include Date_converter (M)
 
-let p_publicname base p =
-  let public_name = Mutil.nominative (sou base (get_public_name p)) in
-  if public_name = "" then None
-  else Some public_name
-
-let parent_has_title conf base p =
-  match get_parents p with
-  | Some ifam ->
-      let cpl = foi base ifam in
-      let fath = pget conf base (get_father cpl) in
-      let moth = pget conf base (get_mother cpl) in
-      get_access fath <> Private && nobtit conf base fath <> [] ||
-      get_access moth <> Private && nobtit conf base moth <> []
-  | _ -> false
-
 
 (* ********************************************************************* *)
 (*  [Fonc] date_included : dmy -> dmy -> dmy -> bool                     *)
@@ -409,49 +334,6 @@ let date_included d d1 d2 =
       0
 
 (**/**) (* Divers filtres possibles. *)
-
-(* ********************************************************************* *)
-(*  [Fonc] reduce_to_sosa : person list -> person list                   *)
-(** [Description] : Renvoie la liste des personnes ayant un numéro sosa.
-    [Args] :
-      - l    : liste de personnes
-    [Retour] :
-      - person list : Retourne la liste des personnes avec un sosa.
-    [Rem] : Non exporté en clair hors de ce module.                      *)
-(* ********************************************************************* *)
-let reduce_to_sosa compute_sosa l =
-  let rec loop l accu =
-    match l with
-    | [] -> accu
-    | p :: l ->
-        let sosa = compute_sosa p in
-        if Sosa.gt sosa Sosa.zero then loop l (p :: accu)
-        else loop l accu
-  in loop l []
-
-
-(* ********************************************************************* *)
-(*  [Fonc] reduce_to_recent : config -> person list -> person list       *)
-(** [Description] : Renvoie la liste des contemporains.
-    [Args] :
-      - conf : configuration de la base
-      - l    : liste de personnes
-    [Retour] :
-      - person list : Retourne la liste des contemporains.
-    [Rem] : Non exporté en clair hors de ce module.                      *)
-(* ********************************************************************* *)
-let reduce_to_recent conf l =
-  let tmp_conf = {(conf) with private_years = max 85 conf.private_years} in
-  let rec loop l accu =
-    match l with
-    | [] -> accu
-    | p :: l ->
-        if Util.is_old_person tmp_conf (gen_person_of_person p) then
-          loop l accu
-        else
-          loop l (p :: accu)
-  in loop l []
-
 
 (** [get_visibility conf base p] is the visibility of [p] as defined by geneanet's rules.
     - [`visibility_public] if [p] is fully visible for a visitor
@@ -1321,72 +1203,6 @@ let fam_to_piqi_family conf base ifam =
   }
 
 
-(* *********************************************************************** *)
-(*  [Fonc] fam_to_piqi_family_link : config -> base -> ifam -> Full_family *)
-(** [Description] :
-    [Args] :
-      - conf  : configuration de la base
-      - base  : base de donnÃ©e
-      - ifam  : ifam
-    [Retour] :
-      -
-    [Rem] : Non exportÃ© en clair hors de ce module.                        *)
-(* *********************************************************************** *)
-let fam_to_piqi_family_link base (ifath, imoth) ifam fam =
-  let gen_f = Util.string_gen_family base (gen_family_of_family fam) in
-  let index = (Int32.of_string @@ Gwdb.string_of_ifam ifam) in
-  let fsources = None in
-  let marriage =
-    match Date.od_of_cdate gen_f.marriage with
-    | Some d -> Some (string_of_date d)
-    | _ -> None
-  in
-  let marriage_place = Some gen_f.marriage_place in
-  let marriage_src = Some gen_f.marriage_src in
-  let marriage_type =
-    match gen_f.relation with
-    | Married -> `married
-    | NotMarried -> `not_married
-    | Engaged -> `engaged
-    | NoSexesCheckNotMarried -> `no_sexes_check_not_married
-    | NoMention -> `no_mention
-    | NoSexesCheckMarried -> `no_sexes_check_married
-    | MarriageBann -> `marriage_bann
-    | MarriageContract -> `marriage_contract
-    | MarriageLicense -> `marriage_license
-    | Pacs -> `pacs
-    | Residence -> `residence
-  in
-  let (divorce_type, divorce_date) =
-    match gen_f.divorce with
-    | NotDivorced -> (`not_divorced, None)
-    | Divorced cod ->
-        (match Date.od_of_cdate cod with
-         | Some d -> (`divorced, Some (string_of_date d))
-         | _ -> (`divorced, None))
-    | Separated -> (`separated, None)
-  in
-  let witnesses = [] in
-  let father = Int32.of_string @@ Gwdb.string_of_iper ifath in
-  let mother = Int32.of_string @@ Gwdb.string_of_iper imoth in
-  (* TODO ? *)
-  let children = [] in
-  {
-    M.Full_family.fsources = fsources;
-    marriage_date = marriage;
-    marriage_place = marriage_place;
-    marriage_src = marriage_src;
-    marriage_type = marriage_type;
-    divorce_type = divorce_type;
-    divorce_date = divorce_date;
-    witnesses = witnesses;
-    father = father;
-    mother = mother;
-    children = children;
-    index = index;
-  }
-
-
 (**/**) (* Fonctions de conversion *)
 
 let data_person p =
@@ -1486,34 +1302,6 @@ let person_node_map conf base l =
       (List.rev_map
          (fun p ->
            let id = Int64.of_string @@ Gwdb.string_of_iper (get_iper p) in
-           let p =
-             pers_to_piqi_person_light conf base p compute_sosa
-           in
-           M.Node.({
-             id = id;
-             person = p;
-           }))
-         l)
-
-let person_node_map_lia conf base l =
-  let compute_sosa = (fun _ -> Sosa.zero) in
-  (* TODO ? *)
-  if p_getenvbin conf.env "full_infos" = Some "1" then
-    PFull
-      (List.rev_map
-         (fun (id, p) ->
-           let p =
-             pers_to_piqi_person_full conf base p compute_sosa
-           in
-           M.Full_node.({
-             id = id;
-             person = p;
-           }))
-         l)
-  else
-    PLight
-      (List.rev_map
-         (fun (id, p) ->
            let p =
              pers_to_piqi_person_light conf base p compute_sosa
            in

@@ -90,53 +90,6 @@ module Date
         dmy2 = None;
         text = Some txt;
       }
-
-  let date_of_piqi_date date =
-    match date.M.Date.text with
-    | Some txt -> Dtext txt
-    | _ ->
-      let cal =
-        match date.M.Date.cal with
-        | Some `julian -> Djulian
-        | Some `french -> Dfrench
-        | Some `hebrew -> Dhebrew
-        | _ -> Dgregorian
-      in
-      let prec =
-        match date.M.Date.prec with
-        | Some `about -> About
-        | Some `maybe -> Maybe
-        | Some `before -> Before
-        | Some `after -> After
-        | Some `oryear ->
-          (match date.M.Date.dmy2 with
-           | Some dmy ->
-             let y = Int32.to_int dmy.M.Dmy.year in
-             let dmy2 = {day2 = 0; month2 = 0; year2 = y; delta2 = 0} in
-             OrYear dmy2
-           | None -> OrYear {day2 = 0; month2 = 0; year2 = 0; delta2 = 0} (* erreur*))
-        | Some `yearint ->
-          (match date.M.Date.dmy2 with
-           | Some dmy ->
-             let y = Int32.to_int dmy.M.Dmy.year in
-             let dmy2 = {day2 = 0; month2 = 0; year2 = y; delta2 = 0} in
-             YearInt dmy2
-           | None -> YearInt {day2 = 0; month2 = 0; year2 = 0; delta2 = 0} (* erreur*))
-        | _ -> Sure
-      in
-      let dmy =
-        match date.M.Date.dmy with
-        | Some dmy ->
-          let day = Int32.to_int dmy.M.Dmy.day in
-          let month = Int32.to_int dmy.M.Dmy.month in
-          let year = Int32.to_int dmy.M.Dmy.year in
-          let delta = Int32.to_int dmy.M.Dmy.delta in
-          {day = day; month = month; year = year; prec = prec; delta = delta}
-        | None -> (* erreur*)
-          {day = 0; month = 0; year = 0; prec = Sure; delta = 0}
-      in
-      Dgreg (dmy, cal)
-
 end
 
 module Filter
@@ -235,16 +188,6 @@ module ReferencePerson
 
   let empty_reference_person =
     { M.Reference_person.n = "" ; p = "" ; oc = 0l }
-
-
-  let piqi_ref_person_to_person base ref_person =
-    let sn = ref_person.M.Reference_person.n in
-    let fn = ref_person.M.Reference_person.p in
-    let occ = ref_person.M.Reference_person.oc in
-    match Gwdb.person_of_key base fn sn (Int32.to_int occ) with
-    | Some ip -> Some (Gwdb.poi base ip)
-    | None -> None
-
 end
 
 let print_result conf data =

@@ -1012,66 +1012,6 @@ let get_events_witnesses conf base p base_prefix _gen_p p_auth pers_to_piqi even
         )
       events_witnesses
 
-(* ********************************************************************* *)
-(*  [Fonc] fam_to_piqi_family : config -> base -> ifam -> Family         *)
-(** [Description] : Retourne à partir d'une ifam (gwdb) une Family
-                    (piqi app) dont tous les champs sont complétés.
-    [Args] :
-      - conf  : configuration de la base
-      - base  : base de donnée
-      - ifam  : ifam
-    [Retour] :
-      - Family : Retourne une famille dont tous les champs sont complétés.
-    [Rem] : Non exporté en clair hors de ce module.                      *)
-(* ********************************************************************* *)
-let fam_to_piqi_family conf base p ifam =
-  let base_prefix = conf.command in
-  let spouse_to_piqi conf base p base_prefix =
-      pers_to_piqi_simple_person conf base p base_prefix
-  in
-  let witnesses_to_piqi conf base p wkind wnote base_prefix =
-    let p = pers_to_piqi_simple_person conf base p base_prefix in
-    let wkind = Api_util.piqi_of_witness_kind wkind in
-    simple_witness_constructor wkind p wnote
-  in
-  let child_to_piqi conf base p base_prefix =
-      pers_to_piqi_simple_person conf base p base_prefix
-  in
-  let family_constructor index spouse marriage_date marriage_date_long marriage_date_raw marriage_date_conv marriage_date_conv_long marriage_cal
-       marriage_date_text marriage_place marriage_src marriage_type divorce_type divorce_date divorce_date_long divorce_date_raw divorce_date_conv
-       divorce_date_conv_long divorce_cal witnesses notes fsources children =
-    {
-      Mread.Family.index = index;
-      spouse = spouse;
-      marriage_date = if marriage_date = "" then None else Some marriage_date;
-      marriage_date_long = if marriage_date_long = "" then None else Some marriage_date_long;
-      marriage_date_raw = if marriage_date_raw = "" then None else Some marriage_date_raw;
-      marriage_date_conv =
-        if marriage_date_conv = "" then None else Some marriage_date_conv;
-      marriage_date_conv_long =
-        if marriage_date_conv_long = "" then None else Some marriage_date_conv_long;
-      marriage_date_cal = marriage_cal;
-      marriage_date_text = if marriage_date_text = "" then None else Some marriage_date_text;
-      marriage_place = if marriage_place = "" then None else Some marriage_place;
-      marriage_src = if marriage_src = "" then None else Some marriage_src;
-      marriage_type = marriage_type;
-      divorce_type = divorce_type;
-      divorce_date = if divorce_date = "" then None else Some divorce_date;
-      divorce_date_long = if divorce_date_long = "" then None else Some divorce_date_long;
-      divorce_date_raw = if divorce_date_raw = "" then None else Some divorce_date_raw;
-      divorce_date_conv =
-        if divorce_date_conv = "" then None else Some divorce_date_conv;
-      divorce_date_conv_long =
-        if divorce_date_conv_long = "" then None else Some divorce_date_conv_long;
-      divorce_date_cal = divorce_cal;
-      witnesses = witnesses;
-      notes = if notes = "" then None else Some notes;
-      fsources = if fsources = "" then None else Some fsources;
-      children = children;
-    }
-  in
-  get_family_piqi base conf ifam p base_prefix spouse_to_piqi witnesses_to_piqi child_to_piqi family_constructor
-
 let fill_birth_place p_auth gen_p =
   if p_auth then !!(Util.string_of_place gen_p.birth_place) else ""
 
@@ -1454,11 +1394,6 @@ let fill_burial_text conf p p_auth =
 
 let fill_cremation_text conf p p_auth =
   !!(Perso.get_cremation_text conf p p_auth)
-
-let fill_baptism_text_if_main_person_or_parent conf p p_auth is_main_person_or_father_or_mother =
-  if (is_main_person_or_father_or_mother) then
-    fill_baptism_text conf p p_auth
-  else ""
 
 let fill_burial_type p_auth gen_p =
   if p_auth then

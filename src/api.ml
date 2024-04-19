@@ -745,23 +745,6 @@ let print_all_families conf base =
   in
   print_result conf data
 
-module StringMap =
-  Map.Make
-    (struct
-      type t = string      let compare = Gutil.alphabetic_order      end)
-
-module IperSort =
-  Set.Make
-    (struct
-      type t = string * string       let compare (sn1, fn1) (sn2, fn2) =
-        let cmp = compare sn1 sn2 in
-        if cmp = 0 then compare fn1 fn2
-        else cmp(*
-        let cmp = Gutil.alphabetic_order sn1 sn2 in
-        if cmp = 0 then Gutil.alphabetic_order fn1 fn2
-        else cmp*)
-     end)
-
 let name_frequency conf base =
   let params = get_params conf Mext.parse_name_frequency_params in
   let opt d = function Some x -> Int32.to_int x | None -> d in
