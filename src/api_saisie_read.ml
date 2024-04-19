@@ -516,10 +516,10 @@ let pers_to_piqi_simple_person conf base p base_prefix =
         in
         let birth_place =
           let birth_place = sou base (get_birth_place p) in
-          if birth_place <> "" then Util.string_of_place conf birth_place
+          if birth_place <> "" then Util.string_of_place birth_place
           else
             let baptism_place = sou base (get_baptism_place p) in
-            Util.string_of_place conf baptism_place
+            Util.string_of_place baptism_place
         in
         let death =
           match death_date with
@@ -533,10 +533,10 @@ let pers_to_piqi_simple_person conf base p base_prefix =
         in
         let death_place =
           let death_place = sou base (get_death_place p) in
-          if death_place <> "" then Util.string_of_place conf death_place
+          if death_place <> "" then Util.string_of_place death_place
           else
             let burial_place = sou base (get_burial_place p) in
-            Util.string_of_place conf burial_place
+            Util.string_of_place burial_place
         in
         (birth, birth_raw, !!birth_place, death, death_raw, !!death_place)
       else ("", "", "", "", "", "")
@@ -607,7 +607,7 @@ let fam_to_piqi_family_link conf base (ifath : Gwdb.iper) imoth sp ifam fam base
   in
   let marriage_date_text = !!(Perso.get_marriage_date_text conf fam p_auth) in
   let marriage_place =
-    if m_auth then !!(Util.string_of_place conf gen_f.marriage_place) else ""
+    if m_auth then !!(Util.string_of_place gen_f.marriage_place) else ""
   in
   let marriage_src =
     if m_auth then !!(Notes.source conf base gen_f.marriage_src) else ""
@@ -710,7 +710,7 @@ let fill_events conf base p base_prefix p_auth pers_to_piqi witness_constructor 
             (date, date_long, date_conv, date_conv_long, date_cal, string_of_date_raw conf d)
           | _ -> ("", "", "", "", None, "")
         in
-        let place = !!(Util.string_of_place conf (sou base place)) in
+        let place = !!(Util.string_of_place (sou base place)) in
         let note =
           if not conf.no_note
           then !!(Notes.person_note conf base p (sou base note))
@@ -813,7 +813,7 @@ let get_family_piqi base conf ifam p base_prefix spouse_to_piqi witnesses_to_piq
   in
   let marriage_date_text = !!(Perso.get_marriage_date_text conf fam p_auth) in
   let marriage_place =
-    if m_auth then !!(Util.string_of_place conf gen_f.marriage_place) else ""
+    if m_auth then !!(Util.string_of_place gen_f.marriage_place) else ""
   in
   let marriage_src =
     if m_auth then !!(Notes.source conf base gen_f.marriage_src) else ""
@@ -1072,14 +1072,14 @@ let fam_to_piqi_family conf base p ifam =
   in
   get_family_piqi base conf ifam p base_prefix spouse_to_piqi witnesses_to_piqi child_to_piqi family_constructor
 
-let fill_birth_place conf p_auth gen_p =
-  if p_auth then !!(Util.string_of_place conf gen_p.birth_place) else ""
+let fill_birth_place p_auth gen_p =
+  if p_auth then !!(Util.string_of_place gen_p.birth_place) else ""
 
-let fill_baptism_place conf p_auth gen_p =
-  if p_auth then !!(Util.string_of_place conf gen_p.baptism_place) else ""
+let fill_baptism_place p_auth gen_p =
+  if p_auth then !!(Util.string_of_place gen_p.baptism_place) else ""
 
-let fill_death_place conf p_auth gen_p =
-  if p_auth then !!(Util.string_of_place conf gen_p.death_place) else ""
+let fill_death_place p_auth gen_p =
+  if p_auth then !!(Util.string_of_place gen_p.death_place) else ""
 
 let fill_birth_src conf base p_auth gen_p =
   if p_auth then !!(Notes.source conf base gen_p.birth_src) else ""
@@ -1093,8 +1093,8 @@ let fill_death_src conf base p_auth gen_p =
 let fill_baptism_src conf base p_auth gen_p =
   if p_auth then !!(Notes.source conf base gen_p.baptism_src) else ""
 
-let fill_burial_place conf p_auth gen_p =
-  if p_auth then !!(Util.string_of_place conf gen_p.burial_place) else ""
+let fill_burial_place p_auth gen_p =
+  if p_auth then !!(Util.string_of_place gen_p.burial_place) else ""
 
 let fill_death conf p_auth gen_p =
   match (p_auth, gen_p.death) with
@@ -1550,23 +1550,23 @@ let pers_to_piqi_person conf base p base_prefix is_main_person =
       birth_date = transform_empty_string_to_None birth_date;
       birth_date_conv = transform_empty_string_to_None birth_date_conv;
       birth_date_cal = birth_cal;
-      birth_place = transform_empty_string_to_None (fill_birth_place conf p_auth gen_p);
+      birth_place = transform_empty_string_to_None (fill_birth_place p_auth gen_p);
       birth_src = transform_empty_string_to_None (fill_birth_src conf base p_auth gen_p);
       baptism_date = transform_empty_string_to_None baptism_date;
       baptism_date_conv = transform_empty_string_to_None baptism_date_conv;
       baptism_date_cal = baptism_cal;
-      baptism_place = transform_empty_string_to_None (fill_baptism_place conf p_auth gen_p);
+      baptism_place = transform_empty_string_to_None (fill_baptism_place p_auth gen_p);
       baptism_src = transform_empty_string_to_None baptism_src;
       death_date = transform_empty_string_to_None death_date;
       death_date_conv = transform_empty_string_to_None death_date_conv;
       death_date_cal = death_cal;
-      death_place = transform_empty_string_to_None (fill_death_place conf p_auth gen_p);
+      death_place = transform_empty_string_to_None (fill_death_place p_auth gen_p);
       death_src = transform_empty_string_to_None death_src;
       death_type = death_type;
       burial_date = transform_empty_string_to_None burial_date;
       burial_date_conv = transform_empty_string_to_None burial_date_conv;
       burial_date_cal = burial_cal;
-      burial_place = transform_empty_string_to_None (fill_burial_place conf p_auth gen_p);
+      burial_place = transform_empty_string_to_None (fill_burial_place p_auth gen_p);
       burial_src = transform_empty_string_to_None burial_src;
       occupation = transform_empty_string_to_None (fill_occupation conf base p_auth gen_p);
       notes = transform_empty_string_to_None (fill_notes conf base p p_auth is_main_person gen_p);
@@ -1688,14 +1688,14 @@ let rec pers_to_piqi_fiche_person conf base p base_prefix is_main_person nb_asc 
 
         aliases = if return_simple_attributes && not simple_graph_info then fill_aliases p_auth gen_p else [];
         baptism_src = transform_empty_string_to_None baptism_src;
-        birth_place = transform_empty_string_to_None (fill_birth_place conf p_auth gen_p);
+        birth_place = transform_empty_string_to_None (fill_birth_place p_auth gen_p);
         birth_src = transform_empty_string_to_None birth_src;
-        burial_place = transform_empty_string_to_None (fill_burial_place conf p_auth gen_p);
+        burial_place = transform_empty_string_to_None (fill_burial_place p_auth gen_p);
         burial_src = transform_empty_string_to_None burial_src;
         death_date = transform_empty_string_to_None death_date;
         death_date_conv = transform_empty_string_to_None death_date_conv;
         death_date_cal = death_cal;
-        death_place = transform_empty_string_to_None (fill_death_place conf p_auth gen_p);
+        death_place = transform_empty_string_to_None (fill_death_place p_auth gen_p);
         death_src = transform_empty_string_to_None death_src;
         death_type = death_type;
         index = fill_index conf p p_auth;
@@ -1708,7 +1708,7 @@ let rec pers_to_piqi_fiche_person conf base p base_prefix is_main_person nb_asc 
         public_name = fill_publicname p_auth gen_p;
 
         (* Fields only filled for the main person. *)
-        baptism_place = if is_main_person then transform_empty_string_to_None (fill_baptism_place conf p_auth gen_p) else None;
+        baptism_place = if is_main_person then transform_empty_string_to_None (fill_baptism_place p_auth gen_p) else None;
         firstname_aliases = if is_main_person && not simple_graph_info then fill_firstname_aliases p_auth gen_p else [];
         has_sources = has_sources;
         notes = if is_main_person && not simple_graph_info then transform_empty_string_to_None (fill_notes conf base p p_auth is_main_person gen_p) else None;
