@@ -1,5 +1,3 @@
-open Def
-
 type ('a, 'b) pb_person =
   | PLight of 'a
   | PFull of 'b
@@ -13,31 +11,4 @@ type filters =
     date_birth : (Date.dmy * Date.dmy * bool) option;
     date_death : (Date.dmy * Date.dmy * bool) option;
   }
-;;
-
-module PlaceSetAutoComplete =
-  Set.Make
-    (struct
-      type t = Def.place ;;
-      let compare p1 p2 =
-        if compare p1.town p2.town = 0 then
-          if compare p1.township p2.township = 0 then
-            if compare p1.canton p2.canton = 0 then
-              if compare p1.district p2.district = 0 then
-                if compare p1.county p2.county = 0 then
-                  if compare p1.region p2.region = 0 then
-                    if compare p1.country p2.country = 0 then
-                      compare p1.other p2.other
-                    else compare p1.country p2.country
-                  else compare p1.region p2.region
-                else compare p1.county p2.county
-              else compare p1.district p2.district
-            else compare p1.canton p2.canton
-          else compare p1.township p2.township
-        else compare p1.town p2.town;;
-     end)
-;;
-
-type cache_type =
-  | Cache_place of (Def.place list)
 ;;
