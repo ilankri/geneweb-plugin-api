@@ -94,8 +94,6 @@ let () =
       , aux @@ w_base @@ Api.print_info_base)
     ; ( "API_INFO_IND"
       , aux @@ w_base @@ Api.print_info_ind)
-    ; ( "API_IMAGE"
-      , aux @@ w_base @@ Api.print_img)
     ; ( "API_IMAGE_ALL"
       , aux @@ w_base @@ Api.print_img_all)
     ; ( "API_IMAGE_PERSON"
@@ -118,8 +116,6 @@ let () =
       , aux @@ w_base @@ Api.print_ref_person_from_ip)
     ; ( "API_SEARCH"
       , aux @@ w_base @@ Api_search.print_search)
-    ; ( "API_GRAPH_TREE"
-      , aux @@ w_base @@ Api_saisie_read.print_graph_tree)
     ; ( "API_GRAPH_TREE_V2"
       , aux @@ w_base @@ Api_saisie_read.print_graph_tree)
     ; ( "API_PERSON_TREE"
@@ -170,8 +166,6 @@ let () =
       , aux @@ wiz @@ w_lock @@ w_base @@ Api_saisie_write.print_del_fam_ok)
     ; ( "API_DEL_PERSON_OK"
       , aux @@ wiz @@ w_lock @@ w_base @@ Api_saisie_write.print_del_ind_ok)
-    ; ( "API_NAME_FREQUENCY"
-      , aux @@ w_base @@ Api.name_frequency)
     ; ( "API_PERSON_WARNINGS"
       , aux @@ w_base @@ Api.print_person_warnings)
     ; ( "API_STATS"

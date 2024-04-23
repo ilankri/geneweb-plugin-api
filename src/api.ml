@@ -507,43 +507,6 @@ let print_max_ancestors =
   print_result conf data
 
 
-(**/**) (* API_IMAGE *)
-
-let print_img conf base =
-  let filters = get_filters conf in
-  let aux fp fl =
-    let () = SosaCache.build_sosa_ht conf base in
-    let () = load_image_ht conf in
-    let list =
-      Gwdb.Collection.fold begin fun acc p ->
-        match Image.get_portrait conf base p with
-        | Some src -> fp p (Image.src_to_string src) :: acc
-        | None -> acc
-      end [] (Gwdb.persons base)
-    in
-    if filters.nb_results then
-      let len = M.Internal_int32.({value = Int32.of_int (List.length list)}) in
-      let data = Mext.gen_internal_int32 len in
-      print_result conf data
-    else
-      print_result conf (fl list)
-  in
-  let compute_sosa = Api_util.compute_sosa conf base false in
-  if p_getenvbin conf.env "full_infos" = Some "1" then
-    aux
-      (fun p img ->
-         let p = pers_to_piqi_person_full conf base p compute_sosa in
-         M.Full_image.({person = p; img }))
-      (fun list ->
-         Mext.gen_list_full_images @@ M.List_full_images.({images = list}) )
-  else
-    aux
-      (fun p img ->
-         let p = pers_to_piqi_person_light conf base p compute_sosa in
-         M.Image.({person = p; img}))
-      (fun list ->
-         Mext.gen_list_images @@ M.List_images.({list_images = list}) )
-
 (**/**) (* API_IMAGE_ALL *)
 
 let print_img_all conf base =
@@ -744,32 +707,3 @@ let print_all_families conf base =
       Mext.gen_list_full_families list
   in
   print_result conf data
-
-let name_frequency conf base =
-  let params = get_params conf Mext.parse_name_frequency_params in
-  let opt d = function Some x -> Int32.to_int x | None -> d in
-  let from_ = opt 0 params.M.Name_frequency_params.from in
-  let to_ = opt max_int params.M.Name_frequency_params.to_ in
-  let sn = params.M.Name_frequency_params.type_ = `last_name in
-  let () = load_strings_array base in
-  let list, len = Alln.select_names conf base sn "" max_int in
-  let () = clear_strings_array base in
-  let list = match list with Specify _ -> assert false | Result list -> list in
-  let list =
-    List.sort begin fun (_, x1, c1) (_, x2, c2) ->
-      match compare c2 c1 with 0 -> Gutil.alphabetic_order x1 x2 | x -> x
-    end list
-  in
-  let list =
-    if from_ <> 0 || to_ <> max_int
-    then Mutil.list_slice from_ to_ list
-    else list
-  in
-  let list =
-    List.map begin fun (key, name, count) ->
-      M.Name_frequency_result.{ key ; count = Int32.of_int count ; name }
-    end list
-  in
-  M.Name_frequency_result_list.({ result = list ; total = Int32.of_int len })
-  |> Mext.gen_name_frequency_result_list
-  |> print_result conf

@@ -8,7 +8,6 @@ val print_find_sosa : Geneweb.Config.config -> Gwdb.base -> unit
 val print_last_modified_persons : Geneweb.Config.config -> Gwdb.base -> unit
 val print_last_visited_persons : Geneweb.Config.config -> Gwdb.base -> unit
 val print_max_ancestors : Geneweb.Config.config -> Gwdb.base -> unit
-val print_img : Geneweb.Config.config -> Gwdb.base -> unit
 val print_img_all : Geneweb.Config.config -> Gwdb.base -> unit
 val print_img_person : Geneweb.Config.config -> Gwdb.base -> unit
 val print_updt_image : Geneweb.Config.config -> Gwdb.base -> unit
@@ -16,4 +15,3 @@ val print_base_warnings : Geneweb.Config.config -> Gwdb.base -> unit
 val print_person_warnings : Geneweb.Config.config -> Gwdb.base -> unit
 val print_all_persons : Geneweb.Config.config -> Gwdb.base -> unit
 val print_all_families : Geneweb.Config.config -> Gwdb.base -> unit
-val name_frequency : Geneweb.Config.config -> Gwdb.base -> unit
