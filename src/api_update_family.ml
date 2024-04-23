@@ -322,7 +322,7 @@ let print_add conf base mod_f mod_fath mod_moth =
 
               let ifath = get_father fam in
               let imoth = get_mother fam in
-              
+
               let father = poi base ifath in
               let mother = poi base imoth in
 
@@ -330,13 +330,13 @@ let print_add conf base mod_f mod_fath mod_moth =
               mod_fath.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ifath;
 
               let fath_occ = get_occ father in
-              
+
               mod_fath.Mwrite.Person.occ <-
                 if fath_occ = 0 then None else Some (Int32.of_int fath_occ);
               mod_moth.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper imoth;
 
               let moth_occ = get_occ mother in
-              
+
               mod_moth.Mwrite.Person.occ <-
                 if moth_occ = 0 then None else Some (Int32.of_int moth_occ);
               let digest_father =
