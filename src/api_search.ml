@@ -484,27 +484,6 @@ let select_start_with_auto_complete base mode max_res ini =
   let l = StrSet.elements s in
   List.sort Gutil.alphabetic_order l
 
-let select_all_auto_complete _ base get_field max_res ini =
-  let find p x = kmp x (sou base (get_field p)) in
-  let ini = aux_ini ini in
-  let string_set = ref StrSet.empty in
-  let nb_res = ref 0 in
-  Gwdb.Collection.fold_until (fun () -> !nb_res < max_res) begin fun () p ->
-      if List.for_all (fun s -> find p s) ini
-      then
-        begin
-        string_set := StrSet.add (sou base (get_field p)) !string_set;
-        incr nb_res;
-        end
-  end () (Gwdb.persons base) ;
-  List.sort Gutil.alphabetic_order (StrSet.elements !string_set)
-
-let get_field mode =
-  match mode with
-  | `lastname -> get_surname
-  | `firstname -> get_first_name
-  | _ -> failwith "get_field"
-
 type dico = string array
 
 let dico_fname assets lang k =
@@ -657,31 +636,6 @@ let search_auto_complete assets conf base mode place_mode max n =
     if Name.lower n = "" then []
     else ( load_strings_array base
          ; select_start_with_auto_complete base mode max n )
-
-let select_both_link_person base ini_n ini_p max_res =
-  let find_sn p x = kmp x (sou base (get_surname p)) in
-  let find_fn p x = kmp x (sou base (get_first_name p)) in
-  let ini_n = Util.name_key base ini_n in
-  let ini_n = aux_ini ini_n in
-  let ini_n = List.filter (fun s -> s <> "") ini_n in
-  (* choper dans code varenv la variable qui dit que c'est + *)
-  let ini_p = aux_ini ini_p in
-  fst @@ Gwdb.Collection.fold_until (fun (_, n) -> n < max_res) begin fun (list, n) p ->
-    if List.for_all (fun s -> find_sn p s) ini_n then
-      if List.for_all (fun s -> find_fn p s) ini_p then
-        (get_iper p :: list, n + 1)
-      else (list, n)
-    else (list, n)
-  end ([], 0) (Gwdb.persons base)
-
-let select_link_person base get_field max_res ini =
-  let find p x = kmp x (sou base (get_field p)) in
-  let ini = aux_ini ini in
-  fst @@ Gwdb.Collection.fold_until (fun (_, n) -> n < max_res) begin fun (list, n) p ->
-      if List.for_all (fun s -> find p s) ini
-      then (get_iper p :: list, n + 1)
-      else (list, n)
-  end ([], 0) (Gwdb.persons base)
 
 let search_person_list base surname first_name =
   let _ = load_strings_array base in
