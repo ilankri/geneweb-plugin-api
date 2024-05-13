@@ -811,7 +811,9 @@ let get_family_piqi base conf ifam p base_prefix spouse_to_piqi witnesses_to_piq
       (marriage_date, marriage_date_long, marriage_date_conv, marriage_date_conv_long, marriage_cal, string_of_date_raw conf d)
     | _ -> ("", "", "", "", None, "")
   in
-  let marriage_date_text = !!(Perso.get_marriage_date_text conf fam p_auth) in
+  let marriage_date_text =
+    if m_auth then !!(Perso.get_marriage_date_text conf fam p_auth) else ""
+  in
   let marriage_place =
     if m_auth then !!(Util.string_of_place gen_f.marriage_place) else ""
   in
