@@ -1,14 +1,28 @@
 module Mwrite = Api_saisie_write_piqi
 
+type created_person = {
+  n : string;
+  p : string;
+  oc : int32
+}
+
 type update_base_status =
   | UpdateSuccess of
       Geneweb.CheckItem.base_warning list
       * Geneweb.CheckItem.base_misc list
       * (unit -> unit) list
+      * created_person option
   | UpdateError of Geneweb.Update.update_error
   | UpdateErrorConflict of Api_saisie_write_piqi.Create_conflict.t
 
 exception ModErrApiConflict of Api_saisie_write_piqi.Create_conflict.t
+
+val created_person_of_person :
+  Gwdb.base ->
+  (Gwdb.iper, Gwdb.iper, Gwdb.istr) Def.gen_person ->
+  created_person
+
+val created_person : n:string -> p:string -> oc:Int32.t -> created_person
 
 val api_find_free_occ : Gwdb.base -> string -> string -> int
 
