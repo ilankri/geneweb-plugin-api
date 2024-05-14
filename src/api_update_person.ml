@@ -166,6 +166,8 @@ let reconstitute_person conf base mod_p
   let fn_rparents mod_p =
     List.fold_right begin fun r accu ->
       match r.Mwrite.Relation_parent.person with
+      | None -> accu
+      | Some person when person.lastname = "?" && person.firstname = "?" -> accu
       | Some person ->
         let r_type =
           match r.Mwrite.Relation_parent.rpt_type with
@@ -190,7 +192,6 @@ let reconstitute_person conf base mod_p
             r_moth = r_moth; r_sources = r_sources }
         in
         r :: accu
-      | None -> accu
     end mod_p.Mwrite.Person.rparents []
   in
   let fn_pevt_witnesses evt =
