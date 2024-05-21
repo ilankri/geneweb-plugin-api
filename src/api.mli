@@ -15,3 +15,4 @@ val print_base_warnings : Geneweb.Config.config -> Gwdb.base -> unit
 val print_person_warnings : Geneweb.Config.config -> Gwdb.base -> unit
 val print_all_persons : Geneweb.Config.config -> Gwdb.base -> unit
 val print_all_families : Geneweb.Config.config -> Gwdb.base -> unit
+val history : Geneweb.Config.config -> Gwdb.base -> unit

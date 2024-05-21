@@ -707,3 +707,126 @@ let print_all_families conf base =
       Mext.gen_list_full_families list
   in
   print_result conf data
+
+
+module HistoryApi = struct
+  let time_of_string s =
+    try
+      Scanf.sscanf s "%i-%i-%i %i:%i:%i"
+        (fun year month day hour minute second ->
+           {M.Time.year = Int32.of_int year;
+            month = Int32.of_int month;
+            day = Int32.of_int day;
+            hour = Int32.of_int hour;
+            minute = Int32.of_int minute;
+            second = Int32.of_int second})
+    with Scanf.Scan_failure _ ->
+      {M.Time.year = Int32.of_int 0;
+       month = Int32.of_int 0;
+       day = Int32.of_int 0;
+       hour = Int32.of_int 0;
+       minute = Int32.of_int 0;
+       second = Int32.of_int 0}
+
+  let action_of_string = function
+    | "ap" -> `person_added
+    | "mp" -> `person_modified
+    | "dp" -> `person_deleted
+    | "fp" -> `person_merged
+    | "si" -> `image_received
+    | "di" -> `image_deleted
+    | "af" -> `family_added
+    | "mf" -> `family_modified
+    | "df" -> `family_deleted
+    | "if" -> `family_inverted
+    | "ff" -> `family_merged
+    | "cn" -> `changed_children_names
+    | "aa" -> `parents_added
+    | "mn" -> `notes_modified
+    | "cp" -> `place_modified
+    | "cs" -> `source_modified
+    | "co" -> `occupation_modified
+    | s -> raise (Invalid_argument s)
+
+  let person_of_key base s =
+    let year_of_date = function
+      | Adef.Cdate (Dgreg (dmy, _cal)) -> Some (Int32.of_int dmy.year)
+      | _ -> None
+    in
+    let date_of_death = function
+      | Def.Death (_, cdate) -> cdate
+      | _ -> Adef.Cnone
+    in
+    match Gutil.person_of_string_key base s with
+    | Some ip ->
+      let pers = Gwdb.poi base ip in
+      let firstname = Gwdb.sou base (Gwdb.get_surname pers) in
+      let lastname = Gwdb.sou base (Gwdb.get_first_name pers) in
+      let oc = Int32.of_int (Gwdb.get_occ pers) in
+      let n = Name.lower lastname in
+      let p = Name.lower firstname in
+      let birth_year = year_of_date (Gwdb.get_birth pers) in
+      let death_year = year_of_date (date_of_death (Gwdb.get_death pers)) in
+      Some {
+        M.History_person.n;
+        p;
+        oc;
+        firstname;
+        lastname;
+        birth_year;
+        death_year;
+      }
+    | None -> None
+
+  let history_entry _conf base time user action keyo =
+    let time = time_of_string time in
+    let action = action_of_string action in
+    let person = Option.join (Option.map (person_of_key base) keyo) in
+    {
+      M.History_entry.modification_type = action;
+      time;
+      editor = user;
+      person;
+    }
+
+  let history_list conf base page elements_per_page =
+    let f ~time ~user ~action ~keyo =
+      time, user, action, keyo
+    in
+    let entries = Geneweb.History.map_history conf base f in
+    let sublist l pos len =
+      let rec ntail l n = match l with
+        | _ :: l when n > 0 -> ntail l (n - 1)
+        | _ :: l when n = 0 -> l
+        | _ -> l
+      in
+      let nhd l n =
+        let rec aux res l n =
+          match l with
+          | x :: l when n > 0 -> aux (x :: res) l (n - 1)
+          | _ :: _ when n = 0 -> res
+          | _ -> res
+        in List.rev (aux [] l n)
+      in
+      nhd (ntail l pos) len
+    in
+    let elts = List.length entries in
+    let ipage = Int32.to_int page in
+    let elements_per_page = Int32.to_int elements_per_page in
+    let page_max = Int32.of_int (elts / elements_per_page) in
+    let entries =
+      sublist entries
+        ((ipage - 1) * elements_per_page)
+        elements_per_page
+      |> List.map (fun (time, user, action, keyo) ->
+          history_entry conf base time user action keyo)
+    in
+    Mext.gen_history {M.History.entries; page; page_max;}
+end
+
+let history conf base =
+  let params = get_params conf Mext.parse_history_request in
+  let page = params.M.History_request.page in
+  let elements_per_page = params.M.History_request.elements_per_page in
+  let data = HistoryApi.history_list conf base page elements_per_page in
+  print_result conf data

@@ -759,3 +759,59 @@ message Error {
   required Code code = 998;
   optional string message = 999;
 }
+
+enum ModificationType {
+    PERSON_ADDED = 1;
+    PERSON_MODIFIED = 2;
+    PERSON_DELETED = 3;
+    PERSON_MERGED = 4;
+    IMAGE_RECEIVED = 5;
+    IMAGE_DELETED = 6;
+    FAMILY_ADDED = 7;
+    FAMILY_MODIFIED = 8;
+    FAMILY_DELETED = 9;
+    FAMILY_INVERTED = 10;
+    FAMILY_MERGED = 11;
+    CHANGED_CHILDREN_NAMES = 12;
+    PARENTS_ADDED = 13;
+    NOTES_MODIFIED = 14;
+    PLACE_MODIFIED = 15;
+    SOURCE_MODIFIED = 16;
+    OCCUPATION_MODIFIED = 17;
+}
+
+message Time {
+    required int32 year = 1;
+    required int32 month = 2;
+    required int32 day = 3;
+    required int32 hour = 4;
+    required int32 minute = 5;
+    required int32 second = 6;
+}
+message HistoryRequest {
+    required int32 page = 1;
+    required int32 elements_per_page = 2;
+}
+
+message HistoryPerson {
+    required string n = 1;
+    required string p = 2;
+    required int32 oc = 3;
+    required string firstname = 4;
+    required string lastname = 5;
+    optional int32 birth_year = 6;
+    optional int32 death_year = 7;
+}
+
+message HistoryEntry {
+    required ModificationType modification_type = 1;
+    required Time time = 2;
+    required string editor = 3;
+    optional HistoryPerson person = 4;
+}
+
+message History {
+    repeated HistoryEntry entries = 1;
+    required int32 page = 2;
+    required int32 page_max = 3;
+}
