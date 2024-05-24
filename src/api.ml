@@ -797,28 +797,12 @@ module HistoryApi = struct
       time, user, action, keyo
     in
     let entries = Geneweb.History.map_history conf f in
-    let sublist l pos len =
-      let rec ntail l n = match l with
-        | _ :: l when n > 0 -> ntail l (n - 1)
-        | _ :: l when n = 0 -> l
-        | _ -> l
-      in
-      let nhd l n =
-        let rec aux res l n =
-          match l with
-          | x :: l when n > 0 -> aux (x :: res) l (n - 1)
-          | _ :: _ when n = 0 -> res
-          | _ -> res
-        in List.rev (aux [] l n)
-      in
-      nhd (ntail l pos) len
-    in
     let elts = List.length entries in
     let ipage = Int32.to_int page in
     let elements_per_page = Int32.to_int elements_per_page in
     let page_max = Int32.of_int (elts / elements_per_page) in
     let entries =
-      sublist entries
+      Ext_list.sublist entries
         ((ipage - 1) * elements_per_page)
         elements_per_page
       |> List.map (fun (time, user, action, keyo) ->
