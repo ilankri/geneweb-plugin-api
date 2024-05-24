@@ -764,8 +764,8 @@ module HistoryApi = struct
     match Gutil.person_of_string_key base s with
     | Some ip ->
       let pers = Gwdb.poi base ip in
-      let firstname = Gwdb.sou base (Gwdb.get_surname pers) in
-      let lastname = Gwdb.sou base (Gwdb.get_first_name pers) in
+      let lastname = Gwdb.sou base (Gwdb.get_surname pers) in
+      let firstname = Gwdb.sou base (Gwdb.get_first_name pers) in
       let oc = Int32.of_int (Gwdb.get_occ pers) in
       let n = Name.lower lastname in
       let p = Name.lower firstname in
