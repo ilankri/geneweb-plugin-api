@@ -778,7 +778,7 @@ module HistoryApi = struct
       }
     | None -> None
 
-  let history_entry _conf base time user action keyo =
+  let history_entry base time user action keyo =
     let time = time_of_string time in
     let action = action_of_string action in
     let person = Option.join (Option.map (person_of_key base) keyo) in
@@ -819,7 +819,7 @@ module HistoryApi = struct
         ((ipage - 1) * elements_per_page)
         elements_per_page
       |> List.map (fun (time, user, action, keyo) ->
-          history_entry conf base time user action keyo)
+          history_entry base time user action keyo)
     in
     Mext.gen_history {M.History.entries; page; page_max;}
 end
