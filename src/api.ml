@@ -721,12 +721,12 @@ module HistoryApi = struct
             minute = Int32.of_int minute;
             second = Int32.of_int second})
     with Scanf.Scan_failure _ ->
-      {M.Time.year = Int32.of_int 0;
-       month = Int32.of_int 0;
-       day = Int32.of_int 0;
-       hour = Int32.of_int 0;
-       minute = Int32.of_int 0;
-       second = Int32.of_int 0}
+      {M.Time.year = Int32.zero;
+       month = Int32.zero;
+       day = Int32.zero;
+       hour = Int32.zero;
+       minute = Int32.zero;
+       second = Int32.zero}
 
   let action_of_string = function
     | "ap" -> `person_added
