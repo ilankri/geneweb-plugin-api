@@ -824,7 +824,7 @@ module HistoryApi = struct
       |> List.map (fun (time, user, action, keyo) ->
           history_entry base time user action keyo)
     in
-    Mext.gen_history {M.History.entries; page; page_max;}
+    Mext.gen_history {M.History.entries; page; page_max}
 end
 
 let history conf base =
