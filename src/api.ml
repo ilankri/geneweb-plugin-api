@@ -751,11 +751,15 @@ module HistoryApi = struct
   let person_of_key base s =
     let year_of_date = function
       | Adef.Cdate (Dgreg (dmy, _cal)) -> Some (Int32.of_int dmy.year)
-      | _ -> None
+      | Cdate (Dtext _) | Cnone | Cgregorian _ | Cjulian _ | Cfrench _
+        | Chebrew _ | Ctext _ ->
+         None
     in
     let date_of_death = function
       | Def.Death (_, cdate) -> cdate
-      | _ -> Adef.Cnone
+      | NotDead | DeadYoung | DeadDontKnowWhen | DontKnowIfDead
+        | OfCourseDead ->
+         Adef.Cnone
     in
     match Gutil.person_of_string_key base s with
     | Some ip ->
