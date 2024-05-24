@@ -793,7 +793,7 @@ module HistoryApi = struct
     let f ~time ~user ~action ~keyo =
       time, user, action, keyo
     in
-    let entries = Geneweb.History.map_history conf base f in
+    let entries = Geneweb.History.map_history conf f in
     let sublist l pos len =
       let rec ntail l n = match l with
         | _ :: l when n > 0 -> ntail l (n - 1)
