@@ -761,8 +761,7 @@ module HistoryApi = struct
         | OfCourseDead ->
          Adef.Cnone
     in
-    match Gutil.person_of_string_key base s with
-    | Some ip ->
+    Option.map (fun ip ->
       let pers = Gwdb.poi base ip in
       let lastname = Gwdb.sou base (Gwdb.get_surname pers) in
       let firstname = Gwdb.sou base (Gwdb.get_first_name pers) in
@@ -771,7 +770,7 @@ module HistoryApi = struct
       let p = Name.lower firstname in
       let birth_year = year_of_date (Gwdb.get_birth pers) in
       let death_year = year_of_date (date_of_death (Gwdb.get_death pers)) in
-      Some {
+      {
         M.History_person.n;
         p;
         oc;
@@ -780,7 +779,7 @@ module HistoryApi = struct
         birth_year;
         death_year;
       }
-    | None -> None
+    ) (Gutil.person_of_string_key base s)
 
   let history_entry base time user action keyo =
     let time = time_of_string time in
