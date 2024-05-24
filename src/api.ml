@@ -784,7 +784,7 @@ module HistoryApi = struct
   let history_entry base time user action keyo =
     let time = time_of_string time in
     let action = action_of_string action in
-    let person = Option.join (Option.map (person_of_key base) keyo) in
+    let person = Option.bind keyo (person_of_key base) in
     {
       M.History_entry.modification_type = action;
       time;
