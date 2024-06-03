@@ -97,6 +97,9 @@ let created_person_of_person base pers =
 
 let created_person ~n ~p ~oc = {n; p; oc}
 
+let created_person_is_unnamed cp =
+  cp.n = "?" && cp.p = "?"
+
 type update_base_status =
   | UpdateSuccess of CheckItem.base_warning list * CheckItem.base_misc list * (unit -> unit) list * created_person option
   | UpdateError of Update.update_error

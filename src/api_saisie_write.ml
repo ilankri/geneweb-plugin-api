@@ -1938,10 +1938,12 @@ let print_add_parents_ok conf base =
         let (all_wl, all_ml, all_hr, cp_fath) = aux mod_father `person_form1 (all_wl, all_ml, all_hr) in
         let (all_wl, all_ml, all_hr, cp_moth) = aux mod_mother `person_form2 (all_wl, all_ml, all_hr) in
         let cp = match cp_fath, cp_moth with
-          | Some _, Some {Api_update_util.n = nmoth; p = pmoth; oc = _ocmoth} when nmoth = "?" && pmoth = "?" -> cp_fath
-          | Some {n = nfath; p = pfath; oc = _ocfath}, Some _ when nfath = "?" && pfath = "?" -> cp_moth
-          | Some _, None -> cp_fath
-          | None, Some _ -> cp_moth
+          | Some cp, _ when
+              mod_father.Mwrite.Person.create_link <> `link
+              && not (Api_update_util.created_person_is_unnamed cp) -> cp_fath
+          | _, Some cp when
+              mod_mother.Mwrite.Person.create_link <> `link
+            && not (Api_update_util.created_person_is_unnamed cp) -> cp_moth
           | _ -> None
         in
         let all_wl = match existing_fam with

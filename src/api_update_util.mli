@@ -24,6 +24,8 @@ val created_person_of_person :
 
 val created_person : n:string -> p:string -> oc:Int32.t -> created_person
 
+val created_person_is_unnamed : created_person -> bool
+
 val api_find_free_occ : Gwdb.base -> string -> string -> int
 
 val check_person_conflict :
