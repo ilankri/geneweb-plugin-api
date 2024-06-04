@@ -389,6 +389,12 @@ message CreateConflict {
   required string firstname = 8;
 }
 
+message CreatedPerson {
+  required string n = 1;
+  required string p = 2;
+  required int32 oc = 3;
+}
+
 message ModificationStatus {
   required bool is_base_updated = 1;
   repeated string base_warnings = 2;
@@ -403,6 +409,7 @@ message ModificationStatus {
   optional string firstname_str = 10;
   optional string n = 11;
   optional string p = 12;
+  optional CreatedPerson created_person = 14;
 }
 
 

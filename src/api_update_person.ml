@@ -265,7 +265,8 @@ let print_add conf base mod_p =
         let wl = UpdateIndOk.all_checks_person base p a u in
         let changed = U_Add_person (Util.string_gen_person base p) in
         let hr = [(fun () -> History.record conf base changed "ap")] in
-        Api_update_util.UpdateSuccess (wl, [], hr)
+        let created_person = Api_update_util.created_person_of_person base p in
+        Api_update_util.UpdateSuccess (wl, [], hr, Some created_person)
   with
   | Update.ModErr s -> Api_update_util.UpdateError s
   | Api_update_util.ModErrApiConflict c -> Api_update_util.UpdateErrorConflict c
@@ -352,7 +353,8 @@ let print_mod ?(no_check_name = false) ?(fexclude = []) conf base mod_p =
              Update.delete_topological_sort_v conf base
            else ())]
       in
-      Api_update_util.UpdateSuccess (wl, [], hr)
+      let created_person = Api_update_util.created_person_of_person base p in
+      Api_update_util.UpdateSuccess (wl, [], hr, Some created_person)
     end
   in
   print_mod_aux conf base no_check_name mod_p callback
@@ -417,7 +419,7 @@ let print_add_nobase conf mod_p =
     (* on le fait plus haut, pour savoir si c'est un oubli ou si l'on   *)
     (* ne connait pas la personne.                                      *)
     (* On n'appelle pas CheckItem car ils ne sont pas révélateurs *)
-    Api_update_util.UpdateSuccess ([], [], [])
+    Api_update_util.UpdateSuccess ([], [], [], None)
   with
   | Update.ModErr s -> Api_update_util.UpdateError s
   | Api_update_util.ModErrApiConflict c -> Api_update_util.UpdateErrorConflict c

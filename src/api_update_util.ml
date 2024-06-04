@@ -82,8 +82,26 @@ let api_find_free_occ base fn sn =
    => On ne renvoie en fait qu'une seule string qui est
       directement traduite du côté GeneWeb.
 *)
+
+type created_person = {
+  n : string;
+  p : string;
+  oc : int32
+}
+
+let created_person_of_person base pers =
+  let n = Gwdb.sou base pers.surname in
+  let p = Gwdb.sou base pers.first_name in
+  let oc = Int32.of_int pers.occ in
+  {n; p; oc}
+
+let created_person ~n ~p ~oc = {n; p; oc}
+
+let created_person_is_unnamed cp =
+  cp.n = "?" && cp.p = "?"
+
 type update_base_status =
-  | UpdateSuccess of CheckItem.base_warning list * CheckItem.base_misc list * (unit -> unit) list
+  | UpdateSuccess of CheckItem.base_warning list * CheckItem.base_misc list * (unit -> unit) list * created_person option
   | UpdateError of Update.update_error
   | UpdateErrorConflict of Mwrite.Create_conflict.t
 
