@@ -1,5 +1,3 @@
-module GWD = Gwd_lib
-
 let ns = "api"
 
 let friend fn conf base =
@@ -26,7 +24,7 @@ let wiz fn conf base =
     Plugin_api_lib.Api_util.print_error conf `unauthorized ""
 
 let w_lock =
-  GWD.Request.w_lock
+  Gwd_lib.Request.w_lock
     ~onerror:(fun conf _ ->
         let err = Geneweb.Update.string_of_error conf Geneweb.Update.UERR_locked_base in
         Plugin_api_lib.Api_util.print_error conf `conflict (err : Adef.safe_string :> string)
@@ -37,10 +35,10 @@ let w_base =
     if conf.Geneweb.Config.bname = "" then Plugin_api_lib.Api_util.print_error conf `bad_request ""
     else Plugin_api_lib.Api_util.print_error conf `not_found ""
   in
-  GWD.Request.w_base ~none
+  Gwd_lib.Request.w_base ~none
 
 let () =
-  let assets = !GWD.GwdPlugin.assets in
+  let assets = !Gwd_lib.GwdPlugin.assets in
   let aux dico_type s lang =
     let e k =
       match Plugin_api_lib.Api_search.dico_fname ~assets ~lang ~data_type:k with
@@ -72,7 +70,7 @@ let () =
   let aux'' fn _assets conf (_base : string option) =
     fn { conf with Geneweb.Config.api_mode = true } ; true
   in
-  GWD.GwdPlugin.register ~ns
+  Gwd_lib.GwdPlugin.register ~ns
     [ ( "API_ADD_FIRST_FAM"
       , aux @@ fun conf _ -> Plugin_api_lib.Api_saisie_write.print_add_first_fam conf)
     ; ( "API_ALL_PERSONS"
