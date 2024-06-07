@@ -1,5 +1,3 @@
-let ns = "api"
-
 let friend fn conf base =
   if conf.Geneweb.Config.wizard || conf.Geneweb.Config.friend
   then fn conf base
@@ -70,7 +68,7 @@ let () =
   let aux'' fn _assets conf (_base : string option) =
     fn { conf with Geneweb.Config.api_mode = true } ; true
   in
-  Gwd_lib.GwdPlugin.register ~ns
+  Gwd_lib.GwdPlugin.register ~ns:"api"
     [ ( "API_ADD_FIRST_FAM"
       , aux @@ fun conf _ -> Plugin_api_lib.Api_saisie_write.print_add_first_fam conf)
     ; ( "API_ALL_PERSONS"
