@@ -1,7 +1,3 @@
-module Mwrite = Api_saisie_write_piqi
-module Mext_write = Api_saisie_write_piqi_ext
-module Mext = Api_piqi_ext
-
 (**/**) (* Fonctions pour l'auto-completion. *)
 
 
@@ -18,11 +14,11 @@ module Mext = Api_piqi_ext
 (* ************************************************************************ *)
 
 let print_auto_complete assets conf base =
-  let params = Api_util.get_params conf Mext_write.parse_auto_complete in
-  let s = params.Mwrite.Auto_complete.input in
-  let max_res = Int32.to_int params.Mwrite.Auto_complete.limit in
-  let mode = params.Mwrite.Auto_complete.field in
-  let place_mode = params.Mwrite.Auto_complete.place_field in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_auto_complete in
+  let s = params.Api_saisie_write_piqi.Auto_complete.input in
+  let max_res = Int32.to_int params.Api_saisie_write_piqi.Auto_complete.limit in
+  let mode = params.Api_saisie_write_piqi.Auto_complete.field in
+  let place_mode = params.Api_saisie_write_piqi.Auto_complete.place_field in
   let list =
     if Gwdb.nb_of_persons base > 100000 then
       let cache = Api_saisie_autocomplete.get_list_from_cache conf base mode max_res s in
@@ -31,8 +27,8 @@ let print_auto_complete assets conf base =
     else
       Api_search.search_auto_complete assets conf base mode place_mode max_res s
   in
-  let result = { Mwrite.Auto_complete_result. result = list } in
-  let data = Mext_write.gen_auto_complete_result result in
+  let result = { Api_saisie_write_piqi.Auto_complete_result. result = list } in
+  let data = Api_saisie_write_piqi_ext.gen_auto_complete_result result in
   Api_util.print_result conf data
 
 
@@ -47,10 +43,10 @@ let print_auto_complete assets conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_person_search_list conf base =
-  let params = Api_util.get_params conf Mext_write.parse_person_search_list_params in
-  let surname = params.Mwrite.Person_search_list_params.lastname in
-  let first_name = params.Mwrite.Person_search_list_params.firstname in
-  let max_res = Int32.to_int params.Mwrite.Person_search_list_params.limit in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_person_search_list_params in
+  let surname = params.Api_saisie_write_piqi.Person_search_list_params.lastname in
+  let first_name = params.Api_saisie_write_piqi.Person_search_list_params.firstname in
+  let max_res = Int32.to_int params.Api_saisie_write_piqi.Person_search_list_params.limit in
   let list =
     Api_search.search_person_list base surname first_name
   in
@@ -89,8 +85,8 @@ let print_person_search_list conf base =
         Api_update_util.pers_to_piqi_person_search conf base p)
       list
   in
-  let result = Mwrite.Person_search_list.({ persons = list; }) in
-  let data = Mext_write.gen_person_search_list result in
+  let result = Api_saisie_write_piqi.Person_search_list.({ persons = list; }) in
+  let data = Api_saisie_write_piqi_ext.gen_person_search_list result in
   Api_util.print_result conf data
 
 
@@ -105,11 +101,11 @@ let print_person_search_list conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_person_search_info conf base =
-  let params = Api_util.get_params conf Mext_write.parse_index_person in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Mwrite.Index_person.index in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person.index in
   let p = Gwdb.poi base ip in
   let pers = Api_update_util.pers_to_piqi_person_search_info conf base p in
-  let data = Mext_write.gen_person_search_info pers in
+  let data = Api_saisie_write_piqi_ext.gen_person_search_info pers in
   Api_util.print_result conf data
 
 
@@ -143,10 +139,10 @@ let print_config conf =
           | `hebrew ->
               (cal, Geneweb.Util.transl_nth conf "gregorian/julian/french/hebrew" 3)
         in
-        Mwrite.Transl_calendar.({pos = pos; sval = sval;}))
+        Api_saisie_write_piqi.Transl_calendar.({pos = pos; sval = sval;}))
       [ `gregorian; `julian; `french; `hebrew ]
   in
-  let transl_cal = Mwrite.Config_transl_calendar.({msg = transl_cal;}) in
+  let transl_cal = Api_saisie_write_piqi.Config_transl_calendar.({msg = transl_cal;}) in
   let transl_wit =
     List.map (fun wk ->
         let pos = Api_util.piqi_of_witness_kind wk in
@@ -154,10 +150,10 @@ let print_config conf =
           let open Api_util in
           !! (Api_util.translate_witness conf wk)
         in
-        Mwrite.Transl_witness_type.({pos = pos; sval = sval;}))
+        Api_saisie_write_piqi.Transl_witness_type.({pos = pos; sval = sval;}))
       Api_util.witness_kinds
   in
-  let transl_wit = Mwrite.Config_transl_witness_type.({msg = transl_wit;}) in
+  let transl_wit = Api_saisie_write_piqi.Config_transl_witness_type.({msg = transl_wit;}) in
   let transl_prec =
     List.map
       (fun prec ->
@@ -171,10 +167,10 @@ let print_config conf =
           | `oryear -> (prec, Geneweb.Util.transl conf "or")
           | `yearint -> (prec, Geneweb.Util.transl conf "between (date)")
         in
-        Mwrite.Transl_precision.({pos = pos; sval = sval;}))
+        Api_saisie_write_piqi.Transl_precision.({pos = pos; sval = sval;}))
       [ `sure; `about; `maybe; `before; `after; `oryear; `yearint ]
   in
-  let transl_prec = Mwrite.Config_transl_precision.({msg = transl_prec;}) in
+  let transl_prec = Api_saisie_write_piqi.Config_transl_precision.({msg = transl_prec;}) in
   let transl_death =
     List.map
       (fun death ->
@@ -187,10 +183,10 @@ let print_config conf =
           | `of_course_dead -> (death, Geneweb.Util.transl conf "of course dead")
           | _ -> failwith "transl_death"
         in
-        Mwrite.Transl_death_type.({pos = pos; sval = sval;}))
+        Api_saisie_write_piqi.Transl_death_type.({pos = pos; sval = sval;}))
       [ `not_dead; `dead; `dead_young; `dont_know_if_dead; `of_course_dead ]
   in
-  let transl_death = Mwrite.Config_transl_death_type.({msg = transl_death;}) in
+  let transl_death = Api_saisie_write_piqi.Config_transl_death_type.({msg = transl_death;}) in
   let transl_rel =
     List.map
       (fun rel ->
@@ -217,7 +213,7 @@ let print_config conf =
           | `rpt_foster_parent_mother ->
               (rel, Geneweb.Util.transl_nth conf "foster father/foster mother/foster parents" 1)
         in
-        Mwrite.Transl_relation_parent_type.({pos = pos; sval = sval;}))
+        Api_saisie_write_piqi.Transl_relation_parent_type.({pos = pos; sval = sval;}))
       [ `rpt_adoption_father; `rpt_adoption_mother;
         `rpt_recognition_father; `rpt_recognition_mother;
         `rpt_candidate_parent_father; `rpt_candidate_parent_mother;
@@ -225,7 +221,7 @@ let print_config conf =
         `rpt_foster_parent_father; `rpt_foster_parent_mother ]
   in
   let transl_rel =
-    Mwrite.Config_transl_relation_parent_type.({msg = transl_rel;})
+    Api_saisie_write_piqi.Config_transl_relation_parent_type.({msg = transl_rel;})
   in
   let transl_fevent =
     List.map
@@ -235,7 +231,7 @@ let print_config conf =
           , Geneweb.Util.string_of_fevent_name_without_base conf evt )
         in
         let open Api_util in
-        Mwrite.Transl_fevent_name.({
+        Api_saisie_write_piqi.Transl_fevent_name.({
           pos = pos;
           sval = !!(sval);
         }))
@@ -245,7 +241,7 @@ let print_config conf =
         Def.Efam_MarriageLicense; Def.Efam_PACS; Def.Efam_Residence ]
   in
   let transl_fevent =
-    Mwrite.Config_transl_fevent_name.({msg = transl_fevent;})
+    Api_saisie_write_piqi.Config_transl_fevent_name.({msg = transl_fevent;})
   in
   (* On tri les évènements. Les 4 principaux en premier, *)
   (* les autres et les LDS en derniers.                  *)
@@ -257,7 +253,7 @@ let print_config conf =
           , Geneweb.Util.string_of_pevent_name_without_base conf evt )
         in
         let open Api_util in
-        Mwrite.Transl_pevent_name.({
+        Api_saisie_write_piqi.Transl_pevent_name.({
           pos = pos;
           sval = !!(sval);
         }))
@@ -271,7 +267,7 @@ let print_config conf =
           , Geneweb.Util.string_of_pevent_name_without_base conf evt )
         in
         let open Api_util in
-        Mwrite.Transl_pevent_name.({
+        Api_saisie_write_piqi.Transl_pevent_name.({
           pos = pos;
           sval = !!(sval);
         }))
@@ -292,8 +288,8 @@ let print_config conf =
     List.sort
       (fun msg1 msg2 ->
         Gutil.alphabetic_order
-          msg1.Mwrite.Transl_pevent_name.sval
-          msg2.Mwrite.Transl_pevent_name.sval)
+          msg1.Api_saisie_write_piqi.Transl_pevent_name.sval
+          msg2.Api_saisie_write_piqi.Transl_pevent_name.sval)
       transl_pevent_sec
   in
   let transl_pevent_LDS =
@@ -304,7 +300,7 @@ let print_config conf =
           , Geneweb.Util.string_of_pevent_name_without_base conf evt )
         in
         let open Api_util in
-        Mwrite.Transl_pevent_name.({
+        Api_saisie_write_piqi.Transl_pevent_name.({
           pos = pos;
           sval = !!(sval);
         }))
@@ -316,13 +312,13 @@ let print_config conf =
     List.sort
       (fun msg1 msg2 ->
         Gutil.alphabetic_order
-          msg1.Mwrite.Transl_pevent_name.sval
-          msg2.Mwrite.Transl_pevent_name.sval)
+          msg1.Api_saisie_write_piqi.Transl_pevent_name.sval
+          msg2.Api_saisie_write_piqi.Transl_pevent_name.sval)
       transl_pevent_LDS
   in
   let transl_pevent = transl_pevent_prim @ transl_pevent_sec @ transl_pevent_LDS in
   let transl_pevent =
-    Mwrite.Config_transl_pevent_name.({msg = transl_pevent;})
+    Api_saisie_write_piqi.Config_transl_pevent_name.({msg = transl_pevent;})
   in
   let transl_access =
     List.map
@@ -333,13 +329,13 @@ let print_config conf =
           | Def.Public -> (`access_public, Geneweb.Util.transl_nth conf "iftitles/public/private" 1)
           | Def.Private -> (`access_private, Geneweb.Util.transl_nth conf "iftitles/public/private" 2)
         in
-        Mwrite.Transl_access.({
+        Api_saisie_write_piqi.Transl_access.({
           pos = pos;
           sval = sval;
         }))
       [ Def.IfTitles; Def.Public; Def.Private ]
   in
-  let transl_access = Mwrite.Config_transl_access.({msg = transl_access;}) in
+  let transl_access = Api_saisie_write_piqi.Config_transl_access.({msg = transl_access;}) in
   let transl_warning =
     List.map
       (fun warn ->
@@ -354,7 +350,7 @@ let print_config conf =
           | `birth_date_after_event -> (warn, Geneweb.Util.transl conf "birth date after event")
           | `death_date_before_event -> (warn, Geneweb.Util.transl conf "death date before event")
         in
-        Mwrite.Transl_update_warning_js.({
+        Api_saisie_write_piqi.Transl_update_warning_js.({
           pos = pos;
           sval = sval;
         }))
@@ -362,7 +358,7 @@ let print_config conf =
         `empty_sex; `required_field; `birth_date_after_event;
         `death_date_before_event ]
   in
-  let transl_warning = Mwrite.Config_transl_update_warning_js.({msg = transl_warning;}) in
+  let transl_warning = Api_saisie_write_piqi.Config_transl_update_warning_js.({msg = transl_warning;}) in
   let transl_short_greg_month =
     List.map
       (fun month ->
@@ -381,14 +377,14 @@ let print_config conf =
           | `nov -> (month, Geneweb.Util.transl_nth conf "(short month)" 10)
           | `dec -> (month, Geneweb.Util.transl_nth conf "(short month)" 11)
         in
-        Mwrite.Transl_short_greg_month.({
+        Api_saisie_write_piqi.Transl_short_greg_month.({
           pos = pos;
           sval = sval;
         }))
       [ `janv; `fevr; `mars; `avr; `mai; `juin;
         `juil; `aout; `sept; `oct; `nov; `dec ]
   in
-  let transl_short_greg_month = Mwrite.Config_transl_short_greg_month.({msg = transl_short_greg_month;}) in
+  let transl_short_greg_month = Api_saisie_write_piqi.Config_transl_short_greg_month.({msg = transl_short_greg_month;}) in
   let transl_french_month =
     List.map
       (fun month ->
@@ -408,7 +404,7 @@ let print_config conf =
           | `fructidor -> (month, Geneweb.Util.transl_nth conf "(french revolution month)" 11)
           | `complementaire -> (month, Geneweb.Util.transl_nth conf "(french revolution month)" 12)
         in
-        Mwrite.Transl_french_month.({
+        Api_saisie_write_piqi.Transl_french_month.({
           pos = pos;
           sval = sval;
         }))
@@ -416,7 +412,7 @@ let print_config conf =
         `germinal; `floreal; `prairial; `messidor; `thermidor; `fructidor;
         `complementaire ]
   in
-  let transl_french_month = Mwrite.Config_transl_french_month.({msg = transl_french_month;}) in
+  let transl_french_month = Api_saisie_write_piqi.Config_transl_french_month.({msg = transl_french_month;}) in
   let transl_hebrew_month =
     List.map
       (fun month ->
@@ -436,14 +432,14 @@ let print_config conf =
           | `av -> (month, Geneweb.Util.transl_nth conf "(hebrew month)" 11)
           | `eloul -> (month, Geneweb.Util.transl_nth conf "(hebrew month)" 12)
         in
-        Mwrite.Transl_hebrew_month.({
+        Api_saisie_write_piqi.Transl_hebrew_month.({
           pos = pos;
           sval = sval;
         }))
       [ `tichri; `marhechvan; `kislev; `tevet; `chevat; `adar_1;
         `adar_2; `nissan; `iyar; `sivan; `tamouz; `av; `eloul ]
   in
-  let transl_hebrew_month = Mwrite.Config_transl_hebrew_month.({msg = transl_hebrew_month;}) in
+  let transl_hebrew_month = Api_saisie_write_piqi.Config_transl_hebrew_month.({msg = transl_hebrew_month;}) in
   let (gwf_place_format, gwf_place_format_placeholder) =
     match List.assoc_opt "places_format" conf.Geneweb.Config.base_env with
     | Some s ->
@@ -474,7 +470,7 @@ let print_config conf =
     | None -> ("", "")
   in
   let config =
-    Mwrite.Config.({
+    Api_saisie_write_piqi.Config.({
       transl_cal = transl_cal;
       transl_wit = transl_wit;
       transl_prec = transl_prec;
@@ -491,7 +487,7 @@ let print_config conf =
       gwf_place_format_placeholder = gwf_place_format_placeholder;
     })
   in
-  let data = Mext_write.gen_config config in
+  let data = Api_saisie_write_piqi_ext.gen_config config in
   Api_util.print_result conf data
 
 
@@ -563,7 +559,7 @@ let infer_death conf base p =
   Api_util.piqi_death_type_of_death (Geneweb.Update.infer_death conf base p)
 
 let empty_death_pevent () =
-  { Mwrite.Pevent.pevent_type = Some `epers_death;
+  { Api_saisie_write_piqi.Pevent.pevent_type = Some `epers_death;
     date = None;
     place = None;
     reason = None;
@@ -925,7 +921,7 @@ let compute_modification_status' conf base ip ifam resp =
   in
   let response =
     {
-      Mwrite.Modification_status.is_base_updated = is_base_updated;
+      Api_saisie_write_piqi.Modification_status.is_base_updated = is_base_updated;
       base_warnings = warnings;
       base_miscs = miscs;
       index_person = index_person;
@@ -938,7 +934,7 @@ let compute_modification_status' conf base ip ifam resp =
       firstname_str = first_name_str;
       n = sn;
       p = fn;
-      created_person = Option.map (fun cp -> Mwrite.Created_person.{
+      created_person = Option.map (fun cp -> Api_saisie_write_piqi.Created_person.{
         n = cp.Api_update_util.n;
         p = cp.p;
         oc = cp.oc;
@@ -949,7 +945,7 @@ let compute_modification_status' conf base ip ifam resp =
 
 let compute_modification_status conf base ip fam resp =
   let response = compute_modification_status' conf base ip fam resp in
-  Mext_write.gen_modification_status response
+  Api_saisie_write_piqi_ext.gen_modification_status response
 
 (**/**) (* Fonctions d'ajout de la première personne. *)
 
@@ -966,7 +962,7 @@ let compute_modification_status conf base ip fam resp =
                                                                            *)
 (* ************************************************************************ *)
 let print_add_ind_start_ok conf base =
-  let start_p = Api_util.get_params conf Mext.parse_person_start in
+  let start_p = Api_util.get_params conf Api_piqi_ext.parse_person_start in
   let mod_p =
     Api_update_util.piqi_mod_person_of_person_start conf base start_p
   in
@@ -977,10 +973,10 @@ let print_add_ind_start_ok conf base =
       Api_util.empty_reference_person
     | Api_update_util.UpdateSuccess _ ->
         Geneweb.Util.commit_patches conf base;
-        let ip = Gwdb.iper_of_string @@ Int32.to_string mod_p.Mwrite.Person.index in
+        let ip = Gwdb.iper_of_string @@ Int32.to_string mod_p.Api_saisie_write_piqi.Person.index in
         Api_util.person_to_reference_person base @@ Gwdb.poi base ip
   in
-  let data = Mext.gen_reference_person ref_p in
+  let data = Api_piqi_ext.gen_reference_person ref_p in
   Api_util.print_result conf data
 
 
@@ -999,11 +995,11 @@ let print_add_ind_start_ok conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_mod_ind conf base =
-  let params = Api_util.get_params conf Mext_write.parse_index_person in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Mwrite.Index_person.index in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person.index in
   let p = Gwdb.poi base ip in
   let mod_p = Api_update_util.pers_to_piqi_mod_person conf base p in
-  let data = Mext_write.gen_person mod_p in
+  let data = Api_saisie_write_piqi_ext.gen_person mod_p in
   Api_util.print_result conf data
 
 
@@ -1018,9 +1014,9 @@ let print_mod_ind conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_mod_ind_ok conf base =
-  let mod_p = Api_util.get_params conf Mext_write.parse_person in
+  let mod_p = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_person in
   let resp = Api_update_person.print_mod conf base mod_p in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string mod_p.Mwrite.Person.index in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string mod_p.Api_saisie_write_piqi.Person.index in
   let data = compute_modification_status conf base ip Gwdb.dummy_ifam resp in
   Api_util.print_result conf data
 
@@ -1036,9 +1032,9 @@ let print_mod_ind_ok conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_add_ind_ok conf base =
-  let mod_p = Api_util.get_params conf Mext_write.parse_person in
+  let mod_p = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_person in
   let resp = Api_update_person.print_add conf base mod_p in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string mod_p.Mwrite.Person.index in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string mod_p.Api_saisie_write_piqi.Person.index in
   let data = compute_modification_status conf base ip Gwdb.dummy_ifam resp in
   Api_util.print_result conf data
 
@@ -1081,8 +1077,8 @@ let compute_redirect_person conf base p =
         | None -> Gwdb.dummy_iper
 
 let print_del_ind_ok conf base =
-  let params = Api_util.get_params conf Mext_write.parse_index_person in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Mwrite.Index_person.index in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person.index in
   let p = Gwdb.poi base ip in
   let wl, ml, hr = Geneweb.UpdateIndOk.effective_del conf base p ; [], [], [] in (* FIXME *)
   let ip_redirect = compute_redirect_person conf base p in
@@ -1093,9 +1089,9 @@ let print_del_ind_ok conf base =
 (**/**) (* Fonctions de modification famille. *)
 
 let print_del_fam_ok conf base =
-  let params = Api_util.get_params conf Mext_write.parse_index_person_and_family in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Mwrite.Index_person_and_family.index_person in
-  let ifam = Gwdb.ifam_of_string @@ Int32.to_string params.Mwrite.Index_person_and_family.index_family in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person_and_family in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person_and_family.index_person in
+  let ifam = Gwdb.ifam_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person_and_family.index_family in
   let fam = Gwdb.foi base ifam in
   let wl, ml, hr = Geneweb.UpdateFamOk.effective_del conf base ip fam ; [], [], [] in (* FIXME *)
   let resp = Api_update_util.UpdateSuccess (wl, ml, hr, None) in
@@ -1103,15 +1099,15 @@ let print_del_fam_ok conf base =
   Api_util.print_result conf data
 
 let set_parents_fields conf base p linked created =
-  linked.Mwrite.Person.create_link <- `link;
-  created.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-  created.Mwrite.Person.access <- `access_iftitles;
-  created.Mwrite.Person.create_link <- `create_default_occ;
-  created.Mwrite.Person.digest <- "";
+  linked.Api_saisie_write_piqi.Person.create_link <- `link;
+  created.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+  created.Api_saisie_write_piqi.Person.access <- `access_iftitles;
+  created.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+  created.Api_saisie_write_piqi.Person.digest <- "";
   let death_status = infer_death conf base p in
-  created.Mwrite.Person.death_type <- death_status;
+  created.Api_saisie_write_piqi.Person.death_type <- death_status;
   begin if death_status = `of_course_dead then
-    created.Mwrite.Person.pevents <- created.Mwrite.Person.pevents @ [ empty_death_pevent () ]
+    created.Api_saisie_write_piqi.Person.pevents <- created.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ]
   end
 
 (* ************************************************************************ *)
@@ -1142,18 +1138,18 @@ let compute_add_family conf base p =
   let mother = Api_update_util.pers_to_piqi_mod_person conf base p_mother in
   (* Les index négatifs ne marchent pas ! *)
   (* Par défaut, les access sont en Private, on passe en Iftitles. *)
-  family.Mwrite.Family.index <- Int32.of_string @@ Gwdb.string_of_ifam Gwdb.dummy_ifam;
+  family.Api_saisie_write_piqi.Family.index <- Int32.of_string @@ Gwdb.string_of_ifam Gwdb.dummy_ifam;
   if adding_to_father
   then begin
-    mother.Mwrite.Person.sex <- `female ;
+    mother.Api_saisie_write_piqi.Person.sex <- `female ;
     set_parents_fields conf base p father mother
   end
   else begin
-    father.Mwrite.Person.sex <- `male;
+    father.Api_saisie_write_piqi.Person.sex <- `male;
     set_parents_fields conf base p mother father
   end ;
-  family.Mwrite.Family.father <- father;
-  family.Mwrite.Family.mother <- mother;
+  family.Api_saisie_write_piqi.Family.father <- father;
+  family.Api_saisie_write_piqi.Family.mother <- mother;
   family
 
 (* ************************************************************************ *)
@@ -1168,20 +1164,20 @@ let compute_add_family conf base p =
                                                                            *)
 (* ************************************************************************ *)
 let print_add_family conf base =
-  let params = Api_util.get_params conf Mext_write.parse_index_person in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Mwrite.Index_person.index in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person.index in
   let p = Gwdb.poi base ip in
   let surname = Gwdb.sou base (Gwdb.get_surname p) in
   let first_name = Gwdb.sou base (Gwdb.get_first_name p) in
   let family = compute_add_family conf base p in
   let add_family =
     {
-      Mwrite.Add_family.person_lastname = surname;
+      Api_saisie_write_piqi.Add_family.person_lastname = surname;
       person_firstname = first_name;
       family = family;
     }
   in
-  let data = Mext_write.gen_add_family add_family in
+  let data = Api_saisie_write_piqi_ext.gen_add_family add_family in
   Api_util.print_result conf data
 
 
@@ -1198,12 +1194,12 @@ let print_add_family conf base =
                                                                            *)
 (* ************************************************************************ *)
 let compute_add_family_ok' conf base mod_family =
-  let mod_father = mod_family.Mwrite.Family.father in
-  let mod_mother = mod_family.Mwrite.Family.mother in
-  let moth_fn = mod_mother.Mwrite.Person.firstname in
-  let moth_sn = mod_mother.Mwrite.Person.lastname in
-  mod_mother.Mwrite.Person.firstname <- moth_fn;
-  mod_mother.Mwrite.Person.lastname <- moth_sn;
+  let mod_father = mod_family.Api_saisie_write_piqi.Family.father in
+  let mod_mother = mod_family.Api_saisie_write_piqi.Family.mother in
+  let moth_fn = mod_mother.Api_saisie_write_piqi.Person.firstname in
+  let moth_sn = mod_mother.Api_saisie_write_piqi.Person.lastname in
+  mod_mother.Api_saisie_write_piqi.Person.firstname <- moth_fn;
+  mod_mother.Api_saisie_write_piqi.Person.lastname <- moth_sn;
   (*
      On ajoute une famille, il faut effectuer les actions suivantes :
        - modification de la personne sur laquelle on clic (pour les clés) => MOD_IND
@@ -1212,8 +1208,8 @@ let compute_add_family_ok' conf base mod_family =
   *)
   try
     begin
-      match (mod_father.Mwrite.Person.create_link,
-             mod_mother.Mwrite.Person.create_link)
+      match (mod_father.Api_saisie_write_piqi.Person.create_link,
+             mod_mother.Api_saisie_write_piqi.Person.create_link)
       with
       | (`link, (`create | `create_default_occ)) ->
         let (all_wl, all_ml, all_hr, _cp) =
@@ -1236,8 +1232,8 @@ let compute_add_family_ok' conf base mod_family =
         (* le parent créé vaut ??, donc on ne pourra JAMAIS lui   *)
         (* apporter de modifications.                             *)
         let (all_wl, all_ml, all_hr, cp) =
-          if mod_mother.Mwrite.Person.lastname = "" ||
-             mod_mother.Mwrite.Person.firstname = ""
+          if mod_mother.Api_saisie_write_piqi.Person.lastname = "" ||
+             mod_mother.Api_saisie_write_piqi.Person.firstname = ""
           then
             (all_wl, all_ml, all_hr, None)
           else
@@ -1246,7 +1242,7 @@ let compute_add_family_ok' conf base mod_family =
             | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
             | Api_update_util.UpdateErrorConflict c ->
               (* On dit que c'est le formulaire de la femme. *)
-              c.Mwrite.Create_conflict.form <- Some `person_form2;
+              c.Api_saisie_write_piqi.Create_conflict.form <- Some `person_form2;
               raise (Api_update_util.ModErrApiConflict c)
         in
         ifam_opt, Api_update_util.UpdateSuccess (all_wl, all_ml, all_hr, cp)
@@ -1257,7 +1253,7 @@ let compute_add_family_ok' conf base mod_family =
           | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
           | Api_update_util.UpdateErrorConflict c ->
             (* On dit que c'est le formulaire de la femme. *)
-            c.Mwrite.Create_conflict.form <- Some `person_form2;
+            c.Api_saisie_write_piqi.Create_conflict.form <- Some `person_form2;
             raise (Api_update_util.ModErrApiConflict c)
         in
         let ifam_opt, (all_wl, all_ml, all_hr, cp) =
@@ -1274,8 +1270,8 @@ let compute_add_family_ok' conf base mod_family =
         (* le parent créé vaut ??, donc on ne pourra JAMAIS lui   *)
         (* apporter de modifications.                             *)
         let (all_wl, all_ml, all_hr, cp) =
-          if mod_father.Mwrite.Person.lastname = ""
-          || mod_father.Mwrite.Person.firstname = ""
+          if mod_father.Api_saisie_write_piqi.Person.lastname = ""
+          || mod_father.Api_saisie_write_piqi.Person.firstname = ""
           then
             (all_wl, all_ml, all_hr, cp)
           else
@@ -1300,7 +1296,7 @@ let compute_add_family_ok' conf base mod_family =
           | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
           | Api_update_util.UpdateErrorConflict c ->
             (* On dit que c'est le formulaire de la femme. *)
-            c.Mwrite.Create_conflict.form <- Some `person_form2;
+            c.Api_saisie_write_piqi.Create_conflict.form <- Some `person_form2;
             raise (Api_update_util.ModErrApiConflict c)
         in
         let ifam_opt, (all_wl, all_ml, all_hr, cp) =
@@ -1325,8 +1321,8 @@ let compute_add_family_ok' conf base mod_family =
             raise (Api_update_util.ModErrApiConflict c)
         in
 
-        if mod_father.Mwrite.Person.lastname = "" then mod_father.Mwrite.Person.lastname <- "?";
-        if mod_father.Mwrite.Person.firstname = "" then mod_father.Mwrite.Person.firstname <- "?";
+        if mod_father.Api_saisie_write_piqi.Person.lastname = "" then mod_father.Api_saisie_write_piqi.Person.lastname <- "?";
+        if mod_father.Api_saisie_write_piqi.Person.firstname = "" then mod_father.Api_saisie_write_piqi.Person.firstname <- "?";
         let (all_wl, all_ml, all_hr, _cp) =
           match Api_update_person.print_mod conf base mod_father with
           | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
@@ -1336,15 +1332,15 @@ let compute_add_family_ok' conf base mod_family =
         in
 
 
-        if mod_mother.Mwrite.Person.lastname = "" then mod_mother.Mwrite.Person.lastname <- "?";
-        if mod_mother.Mwrite.Person.firstname = "" then mod_mother.Mwrite.Person.firstname <- "?";
+        if mod_mother.Api_saisie_write_piqi.Person.lastname = "" then mod_mother.Api_saisie_write_piqi.Person.lastname <- "?";
+        if mod_mother.Api_saisie_write_piqi.Person.firstname = "" then mod_mother.Api_saisie_write_piqi.Person.firstname <- "?";
         let (all_wl, all_ml, all_hr, cp) =
           match Api_update_person.print_mod conf base mod_mother with
           | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
           | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
           | Api_update_util.UpdateErrorConflict c ->
             (* On dit que c'est le formulaire de la femme. *)
-            c.Mwrite.Create_conflict.form <- Some `person_form2;
+            c.Api_saisie_write_piqi.Create_conflict.form <- Some `person_form2;
             raise (Api_update_util.ModErrApiConflict c)
         in
 
@@ -1368,19 +1364,19 @@ let compute_add_family_ok conf base family =
                                                                            *)
 (* ************************************************************************ *)
 let print_add_family_ok conf base =
-  let add_family_ok = Api_util.get_params conf Mext_write.parse_add_family_ok in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string add_family_ok.Mwrite.Add_family_ok.index_person in
-  let mod_family = add_family_ok.Mwrite.Add_family_ok.family in
+  let add_family_ok = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_family_ok in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string add_family_ok.Api_saisie_write_piqi.Add_family_ok.index_person in
+  let mod_family = add_family_ok.Api_saisie_write_piqi.Add_family_ok.family in
 
-  let father = mod_family.Mwrite.Family.father in
-  let _fath_occ = father.Mwrite.Person.occ in
+  let father = mod_family.Api_saisie_write_piqi.Family.father in
+  let _fath_occ = father.Api_saisie_write_piqi.Person.occ in
 
-  let mother = mod_family.Mwrite.Family.mother in
-  let _moth_occ = mother.Mwrite.Person.occ in
+  let mother = mod_family.Api_saisie_write_piqi.Family.mother in
+  let _moth_occ = mother.Api_saisie_write_piqi.Person.occ in
 
   let ifam_opt, resp = compute_add_family_ok' conf base mod_family in
   let ifam = Option.value ifam_opt
-      ~default:(Gwdb.ifam_of_string @@ Int32.to_string mod_family.Mwrite.Family.index)
+      ~default:(Gwdb.ifam_of_string @@ Int32.to_string mod_family.Api_saisie_write_piqi.Family.index)
   in
 
 
@@ -1413,35 +1409,35 @@ let print_add_family_ok conf base =
 
   let firstname =
     if Gwdb.is_empty_string fn then
-      response.Mwrite.Modification_status.firstname
+      response.Api_saisie_write_piqi.Modification_status.firstname
     else Gwdb.sou base fn
   in
   let lastname =
     if Gwdb.is_empty_string sn then
-      response.Mwrite.Modification_status.lastname
+      response.Api_saisie_write_piqi.Modification_status.lastname
     else Gwdb.sou base sn
   in
   let firstname_str =
     if Gwdb.is_empty_string fn then
-      response.Mwrite.Modification_status.firstname_str
+      response.Api_saisie_write_piqi.Modification_status.firstname_str
     else Some firstname
   in
   let lastname_str =
     if Gwdb.is_empty_string sn then
-      response.Mwrite.Modification_status.lastname_str
+      response.Api_saisie_write_piqi.Modification_status.lastname_str
     else Some lastname
   in
 
   let response =
-    { response with Mwrite.Modification_status.index_person;
-                    Mwrite.Modification_status.lastname;
-                    Mwrite.Modification_status.firstname;
-                    Mwrite.Modification_status.lastname_str;
-                    Mwrite.Modification_status.firstname_str;
+    { response with Api_saisie_write_piqi.Modification_status.index_person;
+                    Api_saisie_write_piqi.Modification_status.lastname;
+                    Api_saisie_write_piqi.Modification_status.firstname;
+                    Api_saisie_write_piqi.Modification_status.lastname_str;
+                    Api_saisie_write_piqi.Modification_status.firstname_str;
     }
   in
 
-  let data = Mext_write.gen_modification_status response in
+  let data = Api_saisie_write_piqi_ext.gen_modification_status response in
   Api_util.print_result conf data
 
 
@@ -1456,8 +1452,8 @@ let print_add_family_ok conf base =
 *)
 (* ************************************************************************ *)
 let print_mod_family_request conf base =
-  let params = Api_util.get_params conf Mext_write.parse_add_child_request in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Mwrite.Add_child_request.index in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_child_request in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Add_child_request.index in
   let p = Gwdb.poi base ip in
   let spouses =
     Array.fold_right
@@ -1485,7 +1481,7 @@ let print_mod_family_request conf base =
          in
          let family_spouse =
            {
-             Mwrite.Family_spouse.index_family;
+             Api_saisie_write_piqi.Family_spouse.index_family;
              index_person;
              sex;
              lastname;
@@ -1514,13 +1510,13 @@ let print_mod_family_request conf base =
       let father = Api_update_util.pers_to_piqi_mod_person conf base p_father in
       let mother = Api_update_util.pers_to_piqi_mod_person conf base p_mother in
       (* Mise à jour des parents dans la famille. *)
-      family.Mwrite.Family.father <- father ;
-      family.Mwrite.Family.mother <- mother ;
-      Some { Mwrite.Edit_family.person_lastname ; person_firstname ; family }
+      family.Api_saisie_write_piqi.Family.father <- father ;
+      family.Api_saisie_write_piqi.Family.mother <- mother ;
+      Some { Api_saisie_write_piqi.Edit_family.person_lastname ; person_firstname ; family }
   in
   Api_util.print_result conf
-    (Mext_write.gen_edit_family_request
-       { Mwrite.Edit_family_request.spouses ; first_family })
+    (Api_saisie_write_piqi_ext.gen_edit_family_request
+       { Api_saisie_write_piqi.Edit_family_request.spouses ; first_family })
 
 
 (* ************************************************************************ *)
@@ -1534,9 +1530,9 @@ let print_mod_family_request conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_mod_family conf base =
-  let params = Api_util.get_params conf Mext_write.parse_index_person_and_family in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Mwrite.Index_person_and_family.index_person in
-  let ifam = Gwdb.ifam_of_string @@ Int32.to_string params.Mwrite.Index_person_and_family.index_family in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person_and_family in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person_and_family.index_person in
+  let ifam = Gwdb.ifam_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person_and_family.index_family in
   let p = Gwdb.poi base ip in
   let fam = Gwdb.foi base ifam in
   let surname = Gwdb.sou base (Gwdb.get_surname p) in
@@ -1550,17 +1546,17 @@ let print_mod_family conf base =
   let mother = Api_update_util.pers_to_piqi_mod_person conf base p_mother in
   (* Mise à jour des parents dans la famille. *)
   let () =
-    family.Mwrite.Family.father <- father;
-    family.Mwrite.Family.mother <- mother;
+    family.Api_saisie_write_piqi.Family.father <- father;
+    family.Api_saisie_write_piqi.Family.mother <- mother;
   in
   let edit_family =
     {
-      Mwrite.Edit_family.person_lastname = surname;
+      Api_saisie_write_piqi.Edit_family.person_lastname = surname;
       person_firstname = first_name;
       family = family;
     }
   in
-  let data = Mext_write.gen_edit_family edit_family in
+  let data = Api_saisie_write_piqi_ext.gen_edit_family edit_family in
   Api_util.print_result conf data
 
 
@@ -1575,12 +1571,12 @@ let print_mod_family conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_mod_family_ok conf base =
-  let edit_family_ok = Api_util.get_params conf Mext_write.parse_edit_family_ok in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string edit_family_ok.Mwrite.Edit_family_ok.index_person in
-  let mod_family = edit_family_ok.Mwrite.Edit_family_ok.family in
-  let mod_father = mod_family.Mwrite.Family.father in
-  let mod_mother = mod_family.Mwrite.Family.mother in
-  let ifam = Gwdb.ifam_of_string @@ Int32.to_string mod_family.Mwrite.Family.index in
+  let edit_family_ok = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_edit_family_ok in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string edit_family_ok.Api_saisie_write_piqi.Edit_family_ok.index_person in
+  let mod_family = edit_family_ok.Api_saisie_write_piqi.Edit_family_ok.family in
+  let mod_father = mod_family.Api_saisie_write_piqi.Family.father in
+  let mod_mother = mod_family.Api_saisie_write_piqi.Family.mother in
+  let ifam = Gwdb.ifam_of_string @@ Int32.to_string mod_family.Api_saisie_write_piqi.Family.index in
   let fexclude = [ ifam ] in
   (*
      On modifie une famille, il faut effectuer les actions suivantes :
@@ -1592,8 +1588,8 @@ let print_mod_family_ok conf base =
     try
       begin
         let (all_wl, all_ml, all_hr, cp) =
-          if mod_father.Mwrite.Person.lastname = "?" &&
-             mod_father.Mwrite.Person.firstname = "?"
+          if mod_father.Api_saisie_write_piqi.Person.lastname = "?" &&
+             mod_father.Api_saisie_write_piqi.Person.firstname = "?"
           then
           (* TODO
             raise (Update.ModErr "PersonKey")
@@ -1605,10 +1601,10 @@ let print_mod_family_ok conf base =
             | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
             | Api_update_util.UpdateErrorConflict c -> raise (Api_update_util.ModErrApiConflict c)
         in
-        mod_family.Mwrite.Family.father.Mwrite.Person.create_link <- `link ;
+        mod_family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.create_link <- `link ;
         let (all_wl, all_ml, all_hr, _cp) =
-          if mod_mother.Mwrite.Person.lastname = "?" &&
-             mod_mother.Mwrite.Person.firstname = "?"
+          if mod_mother.Api_saisie_write_piqi.Person.lastname = "?" &&
+             mod_mother.Api_saisie_write_piqi.Person.firstname = "?"
           then
           (* TODO
             raise (Update.ModErr "PersonKey")
@@ -1620,10 +1616,10 @@ let print_mod_family_ok conf base =
             | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
             | Api_update_util.UpdateErrorConflict c ->
                 (* On dit que c'est le formulaire de la femme. *)
-                c.Mwrite.Create_conflict.form <- Some `person_form2;
+                c.Api_saisie_write_piqi.Create_conflict.form <- Some `person_form2;
                 raise (Api_update_util.ModErrApiConflict c)
         in
-        mod_family.Mwrite.Family.mother.Mwrite.Person.create_link <- `link ;
+        mod_family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.create_link <- `link ;
         let (all_wl, all_ml, all_hr, cp) =
           match Api_update_family.print_mod conf base ip mod_family with
           | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
@@ -1654,92 +1650,92 @@ let print_mod_family_ok conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_add_parents conf base =
-  let params = Api_util.get_params conf Mext_write.parse_index_person in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Mwrite.Index_person.index in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person.index in
   let p = Gwdb.poi base ip in
   let surname = Gwdb.sou base (Gwdb.get_surname p) in
   let first_name = Gwdb.sou base (Gwdb.get_first_name p) in
   let family =
     Api_update_util.piqi_empty_family conf base Gwdb.dummy_ifam
   in
-  let father = family.Mwrite.Family.father in
-  let mother = family.Mwrite.Family.mother in
+  let father = family.Api_saisie_write_piqi.Family.father in
+  let mother = family.Api_saisie_write_piqi.Family.mother in
   (* On supprime le digest car on créé un enfant *)
-  father.Mwrite.Person.digest <- "";
-  mother.Mwrite.Person.digest <- "";
+  father.Api_saisie_write_piqi.Person.digest <- "";
+  mother.Api_saisie_write_piqi.Person.digest <- "";
   (* Les index négatifs ne marchent pas ! *)
-  family.Mwrite.Family.index <- Int32.of_string @@ Gwdb.string_of_ifam Gwdb.dummy_ifam;
-  father.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-  mother.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+  family.Api_saisie_write_piqi.Family.index <- Int32.of_string @@ Gwdb.string_of_ifam Gwdb.dummy_ifam;
+  father.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+  mother.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
   (* On met à jour la famille avec l'enfant. *)
   let child = Api_update_util.pers_to_piqi_person_link conf base p in
-  family.Mwrite.Family.children <- [child];
+  family.Api_saisie_write_piqi.Family.children <- [child];
   (* On met les parents en mode Create. *)
-  father.Mwrite.Person.create_link <- `create_default_occ;
-  mother.Mwrite.Person.create_link <- `create_default_occ;
+  father.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+  mother.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
   (* On met à jour les sexes. *)
-  father.Mwrite.Person.sex <- `male;
-  mother.Mwrite.Person.sex <- `female;
+  father.Api_saisie_write_piqi.Person.sex <- `male;
+  mother.Api_saisie_write_piqi.Person.sex <- `female;
   (* On donne aux parents le death_type infere sur p
      et ajoute les évènements nécessaires. *)
   let () =
     let death_status = infer_death conf base p in
-    father.Mwrite.Person.death_type <- death_status;
-    mother.Mwrite.Person.death_type <- death_status;
+    father.Api_saisie_write_piqi.Person.death_type <- death_status;
+    mother.Api_saisie_write_piqi.Person.death_type <- death_status;
     begin if death_status = `of_course_dead then
-      father.Mwrite.Person.pevents <- father.Mwrite.Person.pevents @ [ empty_death_pevent () ];
-      mother.Mwrite.Person.pevents <- mother.Mwrite.Person.pevents @ [ empty_death_pevent () ]
+      father.Api_saisie_write_piqi.Person.pevents <- father.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ];
+      mother.Api_saisie_write_piqi.Person.pevents <- mother.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ]
     end
   in
-  father.Mwrite.Person.lastname <- surname ;
+  father.Api_saisie_write_piqi.Person.lastname <- surname ;
   let add_parents =
     {
-      Mwrite.Add_parents.person_lastname = surname;
+      Api_saisie_write_piqi.Add_parents.person_lastname = surname;
       person_firstname = first_name;
       family = family;
     }
   in
-  let data = Mext_write.gen_add_parents add_parents in
+  let data = Api_saisie_write_piqi_ext.gen_add_parents add_parents in
   Api_util.print_result conf data
 
 let do_mod_fam_add_child_aux conf base name ip mod_c mod_f fn =
   let resp =
     try
       let child =
-        { Mwrite.Person_link.create_link = mod_c.Mwrite.Person.create_link
-        ; index = mod_c.Mwrite.Person.index
-        ; sex = mod_c.Mwrite.Person.sex
-        ; lastname = mod_c.Mwrite.Person.lastname
-        ; firstname = mod_c.Mwrite.Person.firstname
-        ; occ = mod_c.Mwrite.Person.occ
+        { Api_saisie_write_piqi.Person_link.create_link = mod_c.Api_saisie_write_piqi.Person.create_link
+        ; index = mod_c.Api_saisie_write_piqi.Person.index
+        ; sex = mod_c.Api_saisie_write_piqi.Person.sex
+        ; lastname = mod_c.Api_saisie_write_piqi.Person.lastname
+        ; firstname = mod_c.Api_saisie_write_piqi.Person.firstname
+        ; occ = mod_c.Api_saisie_write_piqi.Person.occ
         ; dates = None
         }
       in
-      mod_f.Mwrite.Family.children <- mod_f.Mwrite.Family.children @ [ child ] ;
+      mod_f.Api_saisie_write_piqi.Family.children <- mod_f.Api_saisie_write_piqi.Family.children @ [ child ] ;
       let (all_wl, all_ml, all_hr, cp) =
         match fn mod_f with
         | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (wl, ml, hr, cp)
         | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
         | Api_update_util.UpdateErrorConflict c -> raise (Api_update_util.ModErrApiConflict c)
       in
-      if (mod_c.Mwrite.Person.firstname = "?" || mod_c.Mwrite.Person.firstname = "")
-      && (mod_c.Mwrite.Person.lastname = "?" || mod_c.Mwrite.Person.lastname = "")
+      if (mod_c.Api_saisie_write_piqi.Person.firstname = "?" || mod_c.Api_saisie_write_piqi.Person.firstname = "")
+      && (mod_c.Api_saisie_write_piqi.Person.lastname = "?" || mod_c.Api_saisie_write_piqi.Person.lastname = "")
       then
         Api_update_util.UpdateSuccess (all_wl, all_ml, all_hr, cp)
       else
         let (all_wl, all_ml, all_hr, _cp) =
-          let occ = Option.fold ~none:0 ~some:Int32.to_int child.Mwrite.Person_link.occ in
-          match Gwdb.person_of_key base mod_c.Mwrite.Person.firstname mod_c.Mwrite.Person.lastname occ with
+          let occ = Option.fold ~none:0 ~some:Int32.to_int child.Api_saisie_write_piqi.Person_link.occ in
+          match Gwdb.person_of_key base mod_c.Api_saisie_write_piqi.Person.firstname mod_c.Api_saisie_write_piqi.Person.lastname occ with
           | Some ip_child ->
-            mod_c.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip_child;
-            mod_c.Mwrite.Person.occ <- child.Mwrite.Person_link.occ;
-            mod_c.Mwrite.Person.create_link <- `link ; (* child has been created already *)
+            mod_c.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip_child;
+            mod_c.Api_saisie_write_piqi.Person.occ <- child.Api_saisie_write_piqi.Person_link.occ;
+            mod_c.Api_saisie_write_piqi.Person.create_link <- `link ; (* child has been created already *)
             let digest = Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base @@ Gwdb.poi base ip_child) in
-            mod_c.Mwrite.Person.digest <- digest;
-            if mod_c.Mwrite.Person.death_type = `dont_know_if_dead
+            mod_c.Api_saisie_write_piqi.Person.digest <- digest;
+            if mod_c.Api_saisie_write_piqi.Person.death_type = `dont_know_if_dead
             then begin
-              let ifam = Gwdb.ifam_of_string @@ Int32.to_string mod_f.Mwrite.Family.index in
-              mod_c.Mwrite.Person.death_type <-
+              let ifam = Gwdb.ifam_of_string @@ Int32.to_string mod_f.Api_saisie_write_piqi.Family.index in
+              mod_c.Api_saisie_write_piqi.Person.death_type <-
                 Api_util.piqi_death_type_of_death (Geneweb.Update.infer_death_from_parents conf base @@ Gwdb.foi base ifam)
             end ;
             begin match Api_update_person.print_mod conf base mod_c with
@@ -1749,14 +1745,14 @@ let do_mod_fam_add_child_aux conf base name ip mod_c mod_f fn =
             end
           | None -> failwith name
         in
-        let occ = Option.fold ~none:Int32.zero ~some:Fun.id child.Mwrite.Person_link.occ in
+        let occ = Option.fold ~none:Int32.zero ~some:Fun.id child.Api_saisie_write_piqi.Person_link.occ in
         let cp = Some (Api_update_util.created_person ~n:child.lastname ~p:child.firstname ~oc:occ) in
         Api_update_util.UpdateSuccess (all_wl, all_ml, all_hr, cp)
     with
     | Geneweb.Update.ModErr s -> Api_update_util.UpdateError s
     | Api_update_util.ModErrApiConflict c -> Api_update_util.UpdateErrorConflict c
   in
-  let ifam = Gwdb.ifam_of_string @@ Int32.to_string mod_f.Mwrite.Family.index in
+  let ifam = Gwdb.ifam_of_string @@ Int32.to_string mod_f.Api_saisie_write_piqi.Family.index in
   let data = compute_modification_status conf base ip ifam resp in
   Api_util.print_result conf data
 
@@ -1770,21 +1766,21 @@ let do_mod_fam_add_child conf base ifam ip mod_c =
    (Api_update_family.print_mod conf base ip)
 
 let print_add_child_ok_aux conf base add_child_ok =
-  let ip = Gwdb.iper_of_string @@ Int32.to_string add_child_ok.Mwrite.Add_child_ok.index_person in
-  let mod_c = add_child_ok.Mwrite.Add_child_ok.child in
-  if add_child_ok.Mwrite.Add_child_ok.new_family then begin
+  let ip = Gwdb.iper_of_string @@ Int32.to_string add_child_ok.Api_saisie_write_piqi.Add_child_ok.index_person in
+  let mod_c = add_child_ok.Api_saisie_write_piqi.Add_child_ok.child in
+  if add_child_ok.Api_saisie_write_piqi.Add_child_ok.new_family then begin
     let p = Gwdb.poi base ip in
     let mod_f = compute_add_family conf base p in
     do_mod_fam_add_child_aux
       conf base "ErrorAddChildAndFamily" ip mod_c mod_f
       (compute_add_family_ok conf base)
   end else begin
-    let ifam = Gwdb.ifam_of_string @@ Int32.to_string add_child_ok.Mwrite.Add_child_ok.index_family in
+    let ifam = Gwdb.ifam_of_string @@ Int32.to_string add_child_ok.Api_saisie_write_piqi.Add_child_ok.index_family in
     do_mod_fam_add_child conf base ifam ip mod_c
   end
 
 let print_add_child_ok conf base =
-  let add_child_ok = Api_util.get_params conf Mext_write.parse_add_child_ok in
+  let add_child_ok = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_child_ok in
   print_add_child_ok_aux conf base add_child_ok
 
 (* ************************************************************************ *)
@@ -1798,17 +1794,17 @@ let print_add_child_ok conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_add_parents_ok conf base =
-  let add_parents_ok = Api_util.get_params conf Mext_write.parse_add_parents_ok in
-  let ip = Gwdb.iper_of_string @@ Int32.to_string add_parents_ok.Mwrite.Add_parents_ok.index_person in
-  let mod_family = add_parents_ok.Mwrite.Add_parents_ok.family in
-  let mod_father = mod_family.Mwrite.Family.father in
-  let mod_mother = mod_family.Mwrite.Family.mother in
+  let add_parents_ok = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_parents_ok in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string add_parents_ok.Api_saisie_write_piqi.Add_parents_ok.index_person in
+  let mod_family = add_parents_ok.Api_saisie_write_piqi.Add_parents_ok.family in
+  let mod_father = mod_family.Api_saisie_write_piqi.Family.father in
+  let mod_mother = mod_family.Api_saisie_write_piqi.Family.mother in
   let existing_fam =
-    if mod_father.Mwrite.Person.create_link = `link
-    && mod_mother.Mwrite.Person.create_link = `link
+    if mod_father.Api_saisie_write_piqi.Person.create_link = `link
+    && mod_mother.Api_saisie_write_piqi.Person.create_link = `link
     then
-      let ifath = Gwdb.iper_of_string @@ Int32.to_string mod_father.Mwrite.Person.index in
-      let imoth = Gwdb.iper_of_string @@ Int32.to_string mod_mother.Mwrite.Person.index in
+      let ifath = Gwdb.iper_of_string @@ Int32.to_string mod_father.Api_saisie_write_piqi.Person.index in
+      let imoth = Gwdb.iper_of_string @@ Int32.to_string mod_mother.Api_saisie_write_piqi.Person.index in
       let families = Gwdb.get_family (Gwdb.poi base ifath) in
       let len = Array.length families in
       try
@@ -1833,9 +1829,9 @@ let print_add_parents_ok conf base =
      (aka add a child instead of add parents) *)
   match existing_fam with
   | Some ifam
-    when begin match mod_family.Mwrite.Family.fevents with
+    when begin match mod_family.Api_saisie_write_piqi.Family.fevents with
       (* FIXME: really test events compatibilty instead of only handling default case *)
-        [ { Mwrite.Fevent.fevent_type = Some `efam_marriage
+        [ { Api_saisie_write_piqi.Fevent.fevent_type = Some `efam_marriage
           ; date
           ; place = None
           ; reason = None
@@ -1845,13 +1841,13 @@ let print_add_parents_ok conf base =
           ; event_perso = None
           } ] ->
         begin match date with
-          | None | Some { Mwrite.Date.dmy = (Some { Mwrite.Dmy.year = None ; _ } | None) ; text = None } -> true
+          | None | Some { Api_saisie_write_piqi.Date.dmy = (Some { Api_saisie_write_piqi.Dmy.year = None ; _ } | None) ; text = None } -> true
           | _ -> false
         end
       | _ -> false
     end ->
     let add_child_ok =
-      { Mwrite.Add_child_ok.index_person = add_parents_ok.Mwrite.Add_parents_ok.index_person
+      { Api_saisie_write_piqi.Add_child_ok.index_person = add_parents_ok.Api_saisie_write_piqi.Add_parents_ok.index_person
       ; index_family = Int32.of_string @@ Gwdb.string_of_ifam ifam
       ; new_family = false
       ; child = Api_update_util.pers_to_piqi_mod_person conf base @@ Gwdb.poi base ip
@@ -1875,29 +1871,29 @@ let print_add_parents_ok conf base =
         in
         (* Mise à jour des index et digest => fait dans Api_update_family.print_add *)
         let aux p form (all_wl, all_ml, all_hr) =
-          if p.Mwrite.Person.firstname = "" then p.Mwrite.Person.firstname <- "?" ;
-          if p.Mwrite.Person.lastname = "" then p.Mwrite.Person.lastname <- "?" ;
+          if p.Api_saisie_write_piqi.Person.firstname = "" then p.Api_saisie_write_piqi.Person.firstname <- "?" ;
+          if p.Api_saisie_write_piqi.Person.lastname = "" then p.Api_saisie_write_piqi.Person.lastname <- "?" ;
             match Api_update_person.print_mod ~no_check_name:true conf base p with
             | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
             | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
             | Api_update_util.UpdateErrorConflict c ->
-              c.Mwrite.Create_conflict.form <- Some form ;
+              c.Api_saisie_write_piqi.Create_conflict.form <- Some form ;
               raise (Api_update_util.ModErrApiConflict c)
         in
         let (all_wl, all_ml, all_hr, cp_fath) = aux mod_father `person_form1 (all_wl, all_ml, all_hr) in
         let (all_wl, all_ml, all_hr, cp_moth) = aux mod_mother `person_form2 (all_wl, all_ml, all_hr) in
         let cp = match cp_fath, cp_moth with
           | Some cp, _ when
-              mod_father.Mwrite.Person.create_link <> `link
+              mod_father.Api_saisie_write_piqi.Person.create_link <> `link
               && not (Api_update_util.created_person_is_unnamed cp) -> cp_fath
           | _, Some cp when
-              mod_mother.Mwrite.Person.create_link <> `link
+              mod_mother.Api_saisie_write_piqi.Person.create_link <> `link
             && not (Api_update_util.created_person_is_unnamed cp) -> cp_moth
           | _ -> None
         in
         let all_wl = match existing_fam with
           | Some ifam ->
-            let ifam' = Gwdb.ifam_of_string @@ Int32.to_string mod_family.Mwrite.Family.index in
+            let ifam' = Gwdb.ifam_of_string @@ Int32.to_string mod_family.Api_saisie_write_piqi.Family.index in
             Geneweb.Warning.PossibleDuplicateFam (ifam, ifam') :: all_wl
           | _ -> all_wl
         in
@@ -1926,9 +1922,9 @@ let ifam_of_i32 i = Gwdb.ifam_of_string @@ Int32.to_string i
                                                                            *)
 (* ************************************************************************ *)
 let print_add_child conf base =
-  let params = Api_util.get_params conf Mext_write.parse_add_child_request in
-  let ip = iper_of_i32 params.Mwrite.Add_child_request.index in
-  let ifam_i32_opt = params.Mwrite.Add_child_request.index_family in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_child_request in
+  let ip = iper_of_i32 params.Api_saisie_write_piqi.Add_child_request.index in
+  let ifam_i32_opt = params.Api_saisie_write_piqi.Add_child_request.index_family in
   let ifam_opt = Option.map ifam_of_i32 ifam_i32_opt in
   let p = Gwdb.poi base ip in
   let families = Gwdb.get_family p in
@@ -1958,7 +1954,7 @@ let print_add_child conf base =
          in
          let family_spouse =
            {
-             Mwrite.Family_spouse.index_family = index_family;
+             Api_saisie_write_piqi.Family_spouse.index_family = index_family;
              index_person = index_person;
              sex = sex;
              lastname = surname;
@@ -1976,17 +1972,17 @@ let print_add_child conf base =
   let empty_child = Gwdb.empty_person base Gwdb.dummy_iper in
   let child = Api_update_util.pers_to_piqi_mod_person conf base empty_child in
   (* On supprime le digest car on créé un enfant *)
-  child.Mwrite.Person.digest <- "";
+  child.Api_saisie_write_piqi.Person.digest <- "";
   (* Les index négatifs ne marchent pas ! *)
-  child.Mwrite.Person.index <- i32_of_iper Gwdb.dummy_iper;
+  child.Api_saisie_write_piqi.Person.index <- i32_of_iper Gwdb.dummy_iper;
   (* Par défaut, les access sont en Private, on passe en Iftitles. *)
-  child.Mwrite.Person.access <- `access_iftitles;
+  child.Api_saisie_write_piqi.Person.access <- `access_iftitles;
   (* On met l'enfant en mode Create. *)
-  child.Mwrite.Person.create_link <- `create_default_occ;
+  child.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
   (* On met à jour le sex *)
   let () =
-    match params.Mwrite.Add_child_request.sex with
-    | Some sex -> child.Mwrite.Person.sex <- sex
+    match params.Api_saisie_write_piqi.Add_child_request.sex with
+    | Some sex -> child.Api_saisie_write_piqi.Person.sex <- sex
     | None -> ()
   in
   (* On infere le death status de l'enfant*)
@@ -1995,9 +1991,9 @@ let print_add_child conf base =
       let death_status =
         Api_util.piqi_death_type_of_death @@
           Geneweb.Update.infer_death_from_parents conf base (Gwdb.foi base fam) in
-      child.Mwrite.Person.death_type <- death_status;
+      child.Api_saisie_write_piqi.Person.death_type <- death_status;
       begin if death_status = `of_course_dead then
-        child.Mwrite.Person.pevents <- child.Mwrite.Person.pevents @ [ empty_death_pevent () ]
+        child.Api_saisie_write_piqi.Person.pevents <- child.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ]
       end
     in
     match ifam_opt with
@@ -2011,16 +2007,16 @@ let print_add_child conf base =
   in
   (* On prend le nom du père *)
   let child_surname = infer_surname conf base p @@ Option.map Int32.to_string ifam_i32_opt in
-  child.Mwrite.Person.lastname <- child_surname;
+  child.Api_saisie_write_piqi.Person.lastname <- child_surname;
   let add_child =
-    Mwrite.Add_child.({
+    Api_saisie_write_piqi.Add_child.({
       person_lastname = surname;
       person_firstname = first_name;
       family_spouse = family_spouse;
       child = child;
     })
   in
-  let data = Mext_write.gen_add_child add_child in
+  let data = Api_saisie_write_piqi_ext.gen_add_child add_child in
   Api_util.print_result conf data
 
 (* ************************************************************************ *)
@@ -2035,35 +2031,35 @@ let print_add_child conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_add_sibling conf base =
-  let params = Api_util.get_params conf Mext_write.parse_add_sibling_request in
-  let ip = iper_of_i32 params.Mwrite.Add_sibling_request.index in
+  let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_sibling_request in
+  let ip = iper_of_i32 params.Api_saisie_write_piqi.Add_sibling_request.index in
   let p = Gwdb.poi base ip in
   let surname = Gwdb.sou base (Gwdb.get_surname p) in
   let first_name = Gwdb.sou base (Gwdb.get_first_name p) in
   let empty_sibling = Gwdb.empty_person base Gwdb.dummy_iper in
   let sibling = Api_update_util.pers_to_piqi_mod_person conf base empty_sibling in
   (* On supprime le digest car on créé un enfant *)
-  sibling.Mwrite.Person.digest <- "";
+  sibling.Api_saisie_write_piqi.Person.digest <- "";
   (* Les index négatifs ne marchent pas ! *)
-  sibling.Mwrite.Person.index <- i32_of_iper Gwdb.dummy_iper;
+  sibling.Api_saisie_write_piqi.Person.index <- i32_of_iper Gwdb.dummy_iper;
   (* Par défaut, les access sont en Private, on passe en Iftitles. *)
-  sibling.Mwrite.Person.access <- `access_iftitles;
+  sibling.Api_saisie_write_piqi.Person.access <- `access_iftitles;
   (* On met le frère/soeur en mode Create. *)
-  sibling.Mwrite.Person.create_link <- `create_default_occ;
+  sibling.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
   (* On met à jour le sex *)
-  Option.iter (fun s -> sibling.Mwrite.Person.sex <- s) params.Mwrite.Add_sibling_request.sex ;
+  Option.iter (fun s -> sibling.Api_saisie_write_piqi.Person.sex <- s) params.Api_saisie_write_piqi.Add_sibling_request.sex ;
   let fam_opt = Option.map (Gwdb.foi base) (Gwdb.get_parents p) in
   (* On infere un death_type *)
   let () =
     match fam_opt with
-    | None -> sibling.Mwrite.Person.death_type <- `not_dead
+    | None -> sibling.Api_saisie_write_piqi.Person.death_type <- `not_dead
     | Some fam ->
       let death_status =
         Api_util.piqi_death_type_of_death @@
           Geneweb.Update.infer_death_from_parents conf base fam in
-      sibling.Mwrite.Person.death_type <- death_status;
+      sibling.Api_saisie_write_piqi.Person.death_type <- death_status;
       begin if death_status = `of_course_dead then
-        sibling.Mwrite.Person.pevents <- sibling.Mwrite.Person.pevents @ [ empty_death_pevent () ] ;
+        sibling.Api_saisie_write_piqi.Person.pevents <- sibling.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ] ;
       end
   in
   (* On prend le nom du père *)
@@ -2072,15 +2068,15 @@ let print_add_sibling conf base =
     | Some father -> infer_surname conf base father None
     | None -> surname
   in
-  sibling.Mwrite.Person.lastname <- sibling_surname;
+  sibling.Api_saisie_write_piqi.Person.lastname <- sibling_surname;
   let add_sibling =
-    Mwrite.Add_sibling.({
+    Api_saisie_write_piqi.Add_sibling.({
       person_lastname = surname;
       person_firstname = first_name;
       sibling = sibling;
     })
   in
-  let data = Mext_write.gen_add_sibling add_sibling in
+  let data = Api_saisie_write_piqi_ext.gen_add_sibling add_sibling in
   Api_util.print_result conf data
 
 
@@ -2098,19 +2094,19 @@ let print_add_sibling conf base =
                                                                            *)
 (* ************************************************************************ *)
 let print_add_sibling_ok conf base =
-  let add_sibling_ok = Api_util.get_params conf Mext_write.parse_add_sibling_ok in
-  let ip = iper_of_i32 add_sibling_ok.Mwrite.Add_sibling_ok.index_person in
-  let mod_c = add_sibling_ok.Mwrite.Add_sibling_ok.sibling in
+  let add_sibling_ok = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_sibling_ok in
+  let ip = iper_of_i32 add_sibling_ok.Api_saisie_write_piqi.Add_sibling_ok.index_person in
+  let mod_c = add_sibling_ok.Api_saisie_write_piqi.Add_sibling_ok.sibling in
   let p = Gwdb.poi base ip in
   (* Le nouvel enfant à créer. *)
-  let fn = mod_c.Mwrite.Person.firstname in
-  let sn = mod_c.Mwrite.Person.lastname in
-  let occ = mod_c.Mwrite.Person.occ in
+  let fn = mod_c.Api_saisie_write_piqi.Person.firstname in
+  let sn = mod_c.Api_saisie_write_piqi.Person.lastname in
+  let occ = mod_c.Api_saisie_write_piqi.Person.occ in
   let create_sibling =
     {
-      Mwrite.Person_link.create_link = mod_c.Mwrite.Person.create_link;
-      index = mod_c.Mwrite.Person.index;
-      sex = mod_c.Mwrite.Person.sex;
+      Api_saisie_write_piqi.Person_link.create_link = mod_c.Api_saisie_write_piqi.Person.create_link;
+      index = mod_c.Api_saisie_write_piqi.Person.index;
+      sex = mod_c.Api_saisie_write_piqi.Person.sex;
       lastname = sn;
       firstname = fn;
       occ = occ; (* Directement mis à jour dans update_family *)
@@ -2133,24 +2129,24 @@ let print_add_sibling_ok conf base =
             let family =
               Api_update_util.piqi_empty_family conf base Gwdb.dummy_ifam
             in
-            let father = family.Mwrite.Family.father in
-            let mother = family.Mwrite.Family.mother in
+            let father = family.Api_saisie_write_piqi.Family.father in
+            let mother = family.Api_saisie_write_piqi.Family.mother in
             (* On supprime le digest car on créé un enfant *)
-            father.Mwrite.Person.digest <- "";
-            mother.Mwrite.Person.digest <- "";
+            father.Api_saisie_write_piqi.Person.digest <- "";
+            mother.Api_saisie_write_piqi.Person.digest <- "";
             (* Les index négatifs ne marchent pas ! *)
-            family.Mwrite.Family.index <- Int32.of_string @@ Gwdb.string_of_ifam Gwdb.dummy_ifam;
-            father.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-            mother.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+            family.Api_saisie_write_piqi.Family.index <- Int32.of_string @@ Gwdb.string_of_ifam Gwdb.dummy_ifam;
+            father.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+            mother.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
             (* On met à jour la famille avec l'enfant. *)
             let child = Api_update_util.pers_to_piqi_person_link conf base p in
-            family.Mwrite.Family.children <- [child; create_sibling];
+            family.Api_saisie_write_piqi.Family.children <- [child; create_sibling];
             (* On met les parents en mode Create. *)
-            father.Mwrite.Person.create_link <- `create_default_occ;
-            mother.Mwrite.Person.create_link <- `create_default_occ;
+            father.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+            mother.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
             (* On met à jour les sexes. *)
-            father.Mwrite.Person.sex <- `male;
-            mother.Mwrite.Person.sex <- `female;
+            father.Api_saisie_write_piqi.Person.sex <- `male;
+            mother.Api_saisie_write_piqi.Person.sex <- `female;
             (* On ajoute la famille : ADD_FAM *)
             let (all_wl, all_ml, all_hr, cp) =
               match
@@ -2158,7 +2154,7 @@ let print_add_sibling_ok conf base =
               with
               | Api_update_util.UpdateSuccess (wl, ml, hr, cp) ->
                   (* On ajoute une famille donc l'ifam est nouveau *)
-                  let () = new_ifam := Gwdb.ifam_of_string @@ Int32.to_string family.Mwrite.Family.index in
+                  let () = new_ifam := Gwdb.ifam_of_string @@ Int32.to_string family.Api_saisie_write_piqi.Family.index in
                   (wl, ml, hr, cp)
               | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
               | Api_update_util.UpdateErrorConflict c -> raise (Api_update_util.ModErrApiConflict c)
@@ -2171,18 +2167,18 @@ let print_add_sibling_ok conf base =
               (* On met à jour l'enfant et l'index ! *)
               let (all_wl, all_ml, all_hr, cp) =
                 let occ =
-                  match create_sibling.Mwrite.Person_link.occ with
+                  match create_sibling.Api_saisie_write_piqi.Person_link.occ with
                   | None -> 0
                   | Some occ -> Int32.to_int occ
                 in
                 match Gwdb.person_of_key base fn sn occ with
                 | Some ip_sibling ->
-                    mod_c.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip_sibling;
-                    mod_c.Mwrite.Person.occ <- create_sibling.Mwrite.Person_link.occ;
+                    mod_c.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip_sibling;
+                    mod_c.Api_saisie_write_piqi.Person.occ <- create_sibling.Api_saisie_write_piqi.Person_link.occ;
                     (* On calcul le digest maintenant que l'enfant est créé. *)
                     let sibling = Gwdb.poi base ip_sibling in
                     let digest = Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base sibling) in
-                    mod_c.Mwrite.Person.digest <- digest;
+                    mod_c.Api_saisie_write_piqi.Person.digest <- digest;
                     (match Api_update_person.print_mod conf base mod_c with
                     | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
                     | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
@@ -2209,8 +2205,8 @@ let print_add_sibling_ok conf base =
           Api_update_util.fam_to_piqi_mod_family conf base ifam fam
         in
         (* On ajoute le nouvel enfant. *)
-        mod_f.Mwrite.Family.children <-
-          mod_f.Mwrite.Family.children @ [create_sibling];
+        mod_f.Api_saisie_write_piqi.Family.children <-
+          mod_f.Api_saisie_write_piqi.Family.children @ [create_sibling];
         let resp =
           try
             begin
@@ -2228,18 +2224,18 @@ let print_add_sibling_ok conf base =
                 (* On met à jour l'enfant et l'index ! *)
                 let (all_wl, all_ml, all_hr, cp) =
                   let occ =
-                    match create_sibling.Mwrite.Person_link.occ with
+                    match create_sibling.Api_saisie_write_piqi.Person_link.occ with
                     | None -> 0
                     | Some occ -> Int32.to_int occ
                   in
                   match Gwdb.person_of_key base fn sn occ with
                   | Some ip_sibling ->
-                      mod_c.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip_sibling;
-                      mod_c.Mwrite.Person.occ <- create_sibling.Mwrite.Person_link.occ;
+                      mod_c.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip_sibling;
+                      mod_c.Api_saisie_write_piqi.Person.occ <- create_sibling.Api_saisie_write_piqi.Person_link.occ;
                       (* On calcul le digest maintenant que l'enfant est créé. *)
                       let sibling = Gwdb.poi base ip_sibling in
                       let digest = Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base sibling) in
-                      mod_c.Mwrite.Person.digest <- digest;
+                      mod_c.Api_saisie_write_piqi.Person.digest <- digest;
                       (match Api_update_person.print_mod conf base mod_c with
                        | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
                        | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
@@ -2264,33 +2260,33 @@ let raise_ModErr e = raise (Geneweb.Update.ModErr e)
 (** [check_input_person p] checks that every needed field of [p] is filled *)
 let check_input_person mod_p : 'unit_or_exn =
   let o =
-    match mod_p.Mwrite.Person.occ with
+    match mod_p.Api_saisie_write_piqi.Person.occ with
     | Some i -> Int32.to_int i
     | None -> 0
   in
-  let f = mod_p.Mwrite.Person.firstname in
-  let s = mod_p.Mwrite.Person.lastname in
+  let f = mod_p.Api_saisie_write_piqi.Person.firstname in
+  let s = mod_p.Api_saisie_write_piqi.Person.lastname in
   if f = "" && s = "" then
     List.fold_right begin fun evt () ->
-      match evt.Mwrite.Pevent.date with
+      match evt.Api_saisie_write_piqi.Pevent.date with
       | None -> ()
       | Some date ->
-        match date.Mwrite.Date.dmy with
+        match date.Api_saisie_write_piqi.Date.dmy with
         | None -> ()
         | Some dmy ->
-          match dmy.Mwrite.Dmy.year, dmy.Mwrite.Dmy.month, dmy.Mwrite.Dmy.day with
+          match dmy.Api_saisie_write_piqi.Dmy.year, dmy.Api_saisie_write_piqi.Dmy.month, dmy.Api_saisie_write_piqi.Dmy.day with
           | (None, None, None) -> ()
           | _ -> raise_ModErr (Geneweb.Update.UERR_unknow_person (f, s, o))
-    end mod_p.Mwrite.Person.pevents ()
+    end mod_p.Api_saisie_write_piqi.Person.pevents ()
   else if s = "" then
-    let designation = mod_p.Mwrite.Person.firstname ^ "." ^ string_of_int o ^ " ?" in
+    let designation = mod_p.Api_saisie_write_piqi.Person.firstname ^ "." ^ string_of_int o ^ " ?" in
     let designation = (Geneweb.Util.escape_html designation : Adef.escaped_string :> Adef.safe_string) in
     raise_ModErr (Geneweb.Update.UERR_missing_surname designation)
   else if f = "" then
-    let designation = "?." ^ string_of_int o ^ " " ^ mod_p.Mwrite.Person.lastname in
+    let designation = "?." ^ string_of_int o ^ " " ^ mod_p.Api_saisie_write_piqi.Person.lastname in
     let designation = (Geneweb.Util.escape_html designation : Adef.escaped_string :> Adef.safe_string) in
     raise_ModErr (Geneweb.Update.UERR_missing_first_name designation)
-  else if mod_p.Mwrite.Person.sex = `unknown then
+  else if mod_p.Api_saisie_write_piqi.Person.sex = `unknown then
     raise_ModErr (Geneweb.Update.UERR_sex_undefined (f, s, o))
 
 (* ************************************************************************ *)
@@ -2310,60 +2306,60 @@ let check_input_person mod_p : 'unit_or_exn =
                                                                            *)
 (* ************************************************************************ *)
 let compute_add_first_fam conf =
-  let add_first_fam = Api_util.get_params conf Mext_write.parse_add_first_fam in
+  let add_first_fam = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_first_fam in
 
   (* On ré-initialise un certain nombre de valeurs. *)
-  add_first_fam.Mwrite.Add_first_fam.sosa.Mwrite.Person.digest <- "";
-  add_first_fam.Mwrite.Add_first_fam.sosa.Mwrite.Person.create_link <- `create_default_occ;
-  add_first_fam.Mwrite.Add_first_fam.sosa.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-  add_first_fam.Mwrite.Add_first_fam.sosa.Mwrite.Person.occ <- None;
-  add_first_fam.Mwrite.Add_first_fam.sosa.Mwrite.Person.access <- `access_iftitles;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.sosa.Api_saisie_write_piqi.Person.digest <- "";
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.sosa.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.sosa.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.sosa.Api_saisie_write_piqi.Person.occ <- None;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.sosa.Api_saisie_write_piqi.Person.access <- `access_iftitles;
 
-  add_first_fam.Mwrite.Add_first_fam.father.Mwrite.Person.digest <- "";
-  add_first_fam.Mwrite.Add_first_fam.father.Mwrite.Person.create_link <- `create_default_occ;
-  add_first_fam.Mwrite.Add_first_fam.father.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.father.Api_saisie_write_piqi.Person.digest <- "";
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.father.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.father.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
   (* On n'autorise pas les parents de meme sexe. *)
-  add_first_fam.Mwrite.Add_first_fam.father.Mwrite.Person.sex <- `male;
-  add_first_fam.Mwrite.Add_first_fam.father.Mwrite.Person.occ <- None;
-  add_first_fam.Mwrite.Add_first_fam.father.Mwrite.Person.access <- `access_iftitles;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.father.Api_saisie_write_piqi.Person.sex <- `male;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.father.Api_saisie_write_piqi.Person.occ <- None;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.father.Api_saisie_write_piqi.Person.access <- `access_iftitles;
 
-  add_first_fam.Mwrite.Add_first_fam.mother.Mwrite.Person.digest <- "";
-  add_first_fam.Mwrite.Add_first_fam.mother.Mwrite.Person.create_link <- `create_default_occ;
-  add_first_fam.Mwrite.Add_first_fam.mother.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.mother.Api_saisie_write_piqi.Person.digest <- "";
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.mother.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.mother.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
   (* On n'autorise pas les parents de meme sexe. *)
-  add_first_fam.Mwrite.Add_first_fam.mother.Mwrite.Person.sex <- `female;
-  add_first_fam.Mwrite.Add_first_fam.mother.Mwrite.Person.occ <- None;
-  add_first_fam.Mwrite.Add_first_fam.mother.Mwrite.Person.access <- `access_iftitles;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.mother.Api_saisie_write_piqi.Person.sex <- `female;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.mother.Api_saisie_write_piqi.Person.occ <- None;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.mother.Api_saisie_write_piqi.Person.access <- `access_iftitles;
 
-  add_first_fam.Mwrite.Add_first_fam.spouse.Mwrite.Person.digest <- "";
-  add_first_fam.Mwrite.Add_first_fam.spouse.Mwrite.Person.create_link <- `create_default_occ;
-  add_first_fam.Mwrite.Add_first_fam.spouse.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-  add_first_fam.Mwrite.Add_first_fam.spouse.Mwrite.Person.occ <- None;
-  add_first_fam.Mwrite.Add_first_fam.spouse.Mwrite.Person.access <- `access_iftitles;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.spouse.Api_saisie_write_piqi.Person.digest <- "";
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.spouse.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.spouse.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.spouse.Api_saisie_write_piqi.Person.occ <- None;
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.spouse.Api_saisie_write_piqi.Person.access <- `access_iftitles;
 
   (* On strip aussi les enfants. *)
-  add_first_fam.Mwrite.Add_first_fam.children <-
+  add_first_fam.Api_saisie_write_piqi.Add_first_fam.children <-
     List.fold_right
       (fun mod_c accu ->
-        if mod_c.Mwrite.Person.lastname = "" &&
-           mod_c.Mwrite.Person.firstname = ""
+        if mod_c.Api_saisie_write_piqi.Person.lastname = "" &&
+           mod_c.Api_saisie_write_piqi.Person.firstname = ""
         then accu
         else
           begin
-            mod_c.Mwrite.Person.digest <- "";
-            mod_c.Mwrite.Person.create_link <- `create_default_occ;
-            mod_c.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-            mod_c.Mwrite.Person.occ <- None;
-            mod_c.Mwrite.Person.access <- `access_iftitles;
+            mod_c.Api_saisie_write_piqi.Person.digest <- "";
+            mod_c.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+            mod_c.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+            mod_c.Api_saisie_write_piqi.Person.occ <- None;
+            mod_c.Api_saisie_write_piqi.Person.access <- `access_iftitles;
             mod_c :: accu
           end)
-      add_first_fam.Mwrite.Add_first_fam.children [];
+      add_first_fam.Api_saisie_write_piqi.Add_first_fam.children [];
 
-  let mod_p = add_first_fam.Mwrite.Add_first_fam.sosa in
-  let mod_father = add_first_fam.Mwrite.Add_first_fam.father in
-  let mod_mother = add_first_fam.Mwrite.Add_first_fam.mother in
-  let mod_spouse = add_first_fam.Mwrite.Add_first_fam.spouse in
-  let mod_children = add_first_fam.Mwrite.Add_first_fam.children in
+  let mod_p = add_first_fam.Api_saisie_write_piqi.Add_first_fam.sosa in
+  let mod_father = add_first_fam.Api_saisie_write_piqi.Add_first_fam.father in
+  let mod_mother = add_first_fam.Api_saisie_write_piqi.Add_first_fam.mother in
+  let mod_spouse = add_first_fam.Api_saisie_write_piqi.Add_first_fam.spouse in
+  let mod_children = add_first_fam.Api_saisie_write_piqi.Add_first_fam.children in
 
   (* On vérifie toutes les erreurs de saisie possibles. *)
   (* Attention, il faut envoyer dans le même ordre que pour la saisie, *)
@@ -2435,12 +2431,12 @@ let compute_add_first_fam conf =
 *)
 let print_add_first_fam conf =
   let (add_first_fam, resp) = compute_add_first_fam conf in
-  let mod_p = add_first_fam.Mwrite.Add_first_fam.sosa in
-  let lastname = mod_p.Mwrite.Person.lastname in
-  let firstname = mod_p.Mwrite.Person.firstname in
-  let occ = mod_p.Mwrite.Person.occ in
-  let lastname_str = Some mod_p.Mwrite.Person.lastname in
-  let firstname_str = Some mod_p.Mwrite.Person.firstname in
+  let mod_p = add_first_fam.Api_saisie_write_piqi.Add_first_fam.sosa in
+  let lastname = mod_p.Api_saisie_write_piqi.Person.lastname in
+  let firstname = mod_p.Api_saisie_write_piqi.Person.firstname in
+  let occ = mod_p.Api_saisie_write_piqi.Person.occ in
+  let lastname_str = Some mod_p.Api_saisie_write_piqi.Person.lastname in
+  let firstname_str = Some mod_p.Api_saisie_write_piqi.Person.firstname in
   let n = if lastname = "" then None else Some (Name.lower lastname) in
   let p = if firstname = "" then None else Some (Name.lower firstname) in
   let index_family = None in
@@ -2452,7 +2448,7 @@ let print_add_first_fam conf =
   in
   let response =
     let open Api_util in
-    { Mwrite.Modification_status.is_base_updated
+    { Api_saisie_write_piqi.Modification_status.is_base_updated
     ; base_warnings = List.map (fun s -> !!(Geneweb.Update.string_of_error conf s)) warnings
     ; base_miscs = miscs
     ; index_person = None
@@ -2468,7 +2464,7 @@ let print_add_first_fam conf =
     ; created_person = None
     }
   in
-  let data = Mext_write.gen_modification_status response in
+  let data = Api_saisie_write_piqi_ext.gen_modification_status response in
   Api_util.print_result conf data
 
 
@@ -2488,11 +2484,11 @@ let print_add_first_fam conf =
 (* ************************************************************************ *)
 let print_add_first_fam_ok conf base =
   let (add_first_fam, _) = compute_add_first_fam conf in
-  let mod_p = add_first_fam.Mwrite.Add_first_fam.sosa in
-  let mod_father = add_first_fam.Mwrite.Add_first_fam.father in
-  let mod_mother = add_first_fam.Mwrite.Add_first_fam.mother in
-  let mod_spouse = add_first_fam.Mwrite.Add_first_fam.spouse in
-  let mod_children = add_first_fam.Mwrite.Add_first_fam.children in
+  let mod_p = add_first_fam.Api_saisie_write_piqi.Add_first_fam.sosa in
+  let mod_father = add_first_fam.Api_saisie_write_piqi.Add_first_fam.father in
+  let mod_mother = add_first_fam.Api_saisie_write_piqi.Add_first_fam.mother in
+  let mod_spouse = add_first_fam.Api_saisie_write_piqi.Add_first_fam.spouse in
+  let mod_children = add_first_fam.Api_saisie_write_piqi.Add_first_fam.children in
 
   (* Pour l'instant, on a pas d'ip. *)
   let ip = ref Gwdb.dummy_iper in
@@ -2508,57 +2504,57 @@ let print_add_first_fam_ok conf base =
           in
           (* On ré-initialise un certain nombre de valeurs, *)
           (* surtout si c'est des personnes vides.          *)
-          family.Mwrite.Family.father.Mwrite.Person.digest <- "";
-          family.Mwrite.Family.father.Mwrite.Person.create_link <- `create_default_occ;
-          family.Mwrite.Family.father.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-          family.Mwrite.Family.father.Mwrite.Person.occ <- None;
-          family.Mwrite.Family.father.Mwrite.Person.access <- `access_iftitles;
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.digest <- "";
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.occ <- None;
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.access <- `access_iftitles;
 
-          family.Mwrite.Family.mother.Mwrite.Person.digest <- "";
-          family.Mwrite.Family.mother.Mwrite.Person.create_link <- `create_default_occ;
-          family.Mwrite.Family.mother.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-          family.Mwrite.Family.mother.Mwrite.Person.occ <- None;
-          family.Mwrite.Family.mother.Mwrite.Person.access <- `access_iftitles;
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.digest <- "";
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.occ <- None;
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.access <- `access_iftitles;
 
           (* On remplace les parents. *)
-          if mod_father.Mwrite.Person.lastname = "" &&
-             mod_father.Mwrite.Person.firstname = ""
+          if mod_father.Api_saisie_write_piqi.Person.lastname = "" &&
+             mod_father.Api_saisie_write_piqi.Person.firstname = ""
           then ()
-          else family.Mwrite.Family.father <- mod_father;
-          if mod_mother.Mwrite.Person.lastname = "" &&
-             mod_mother.Mwrite.Person.firstname = ""
+          else family.Api_saisie_write_piqi.Family.father <- mod_father;
+          if mod_mother.Api_saisie_write_piqi.Person.lastname = "" &&
+             mod_mother.Api_saisie_write_piqi.Person.firstname = ""
           then ()
-          else family.Mwrite.Family.mother <- mod_mother;
+          else family.Api_saisie_write_piqi.Family.mother <- mod_mother;
           (* Les index négatifs ne marchent pas ! *)
-          family.Mwrite.Family.index <- Int32.of_string @@ Gwdb.string_of_ifam Gwdb.dummy_ifam;
-          family.Mwrite.Family.father.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-          family.Mwrite.Family.mother.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+          family.Api_saisie_write_piqi.Family.index <- Int32.of_string @@ Gwdb.string_of_ifam Gwdb.dummy_ifam;
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
           (* On met à jour les sexes. *)
-          family.Mwrite.Family.father.Mwrite.Person.sex <- `male;
-          family.Mwrite.Family.mother.Mwrite.Person.sex <- `female;
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.sex <- `male;
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.sex <- `female;
           (* On met à jour la famille avec l'enfant. *)
           let child =
             {
-              Mwrite.Person_link.create_link = `create_default_occ;
-              index = mod_p.Mwrite.Person.index;
-              sex = mod_p.Mwrite.Person.sex;
-              lastname = mod_p.Mwrite.Person.lastname;
-              firstname = mod_p.Mwrite.Person.firstname;
-              occ = mod_p.Mwrite.Person.occ;
+              Api_saisie_write_piqi.Person_link.create_link = `create_default_occ;
+              index = mod_p.Api_saisie_write_piqi.Person.index;
+              sex = mod_p.Api_saisie_write_piqi.Person.sex;
+              lastname = mod_p.Api_saisie_write_piqi.Person.lastname;
+              firstname = mod_p.Api_saisie_write_piqi.Person.firstname;
+              occ = mod_p.Api_saisie_write_piqi.Person.occ;
               dates = None;
             }
           in
-          family.Mwrite.Family.children <- [child];
+          family.Api_saisie_write_piqi.Family.children <- [child];
           family
         in
 
         (* Ajout de fam_asc. *)
         let (all_wl, all_ml, all_hr, cp) =
           (* La personne n'a pas de parents. *)
-          if (fam_asc.Mwrite.Family.father.Mwrite.Person.firstname = "" &&
-              fam_asc.Mwrite.Family.father.Mwrite.Person.lastname = "" &&
-              fam_asc.Mwrite.Family.mother.Mwrite.Person.firstname = "" &&
-              fam_asc.Mwrite.Family.mother.Mwrite.Person.lastname = "")
+          if (fam_asc.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.firstname = "" &&
+              fam_asc.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.lastname = "" &&
+              fam_asc.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.firstname = "" &&
+              fam_asc.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.lastname = "")
           then
             let (all_wl, all_ml, all_hr, cp) =
               match Api_update_person.print_add conf base mod_p with
@@ -2570,17 +2566,17 @@ let print_add_first_fam_ok conf base =
             (* On met à jour l'index. *)
             let () =
               let (sn, fn) =
-                (mod_p.Mwrite.Person.lastname,
-                 mod_p.Mwrite.Person.firstname)
+                (mod_p.Api_saisie_write_piqi.Person.lastname,
+                 mod_p.Api_saisie_write_piqi.Person.firstname)
               in
               let occ =
-                match mod_p.Mwrite.Person.occ with
+                match mod_p.Api_saisie_write_piqi.Person.occ with
                 | None -> 0
                 | Some occ -> Int32.to_int occ
               in
               match Gwdb.person_of_key base fn sn occ with
               | Some ip ->
-                  mod_p.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip
+                  mod_p.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip
               | None -> failwith "ErrorAddFirstFamNoChildFound"
             in
             (all_wl, all_ml, all_hr, cp)
@@ -2595,28 +2591,28 @@ let print_add_first_fam_ok conf base =
             in
             (* On modifie la personne "principale". *)
             let (all_wl, all_ml, all_hr, cp) =
-              match fam_asc.Mwrite.Family.children with
+              match fam_asc.Api_saisie_write_piqi.Family.children with
               | [create_child] ->
                   let (sn, fn) =
-                    (mod_p.Mwrite.Person.lastname,
-                     mod_p.Mwrite.Person.firstname)
+                    (mod_p.Api_saisie_write_piqi.Person.lastname,
+                     mod_p.Api_saisie_write_piqi.Person.firstname)
                   in
                   let occ =
-                    match create_child.Mwrite.Person_link.occ with
+                    match create_child.Api_saisie_write_piqi.Person_link.occ with
                     | None -> 0
                     | Some occ -> Int32.to_int occ
                   in
                   (match Gwdb.person_of_key base fn sn occ with
                   | Some ip_child ->
-                      mod_p.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip_child;
-                      mod_p.Mwrite.Person.occ <-
-                        create_child.Mwrite.Person_link.occ;
+                      mod_p.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip_child;
+                      mod_p.Api_saisie_write_piqi.Person.occ <-
+                        create_child.Api_saisie_write_piqi.Person_link.occ;
                       (* On calcul le digest maintenant que l'enfant est créé. *)
                       let child = Gwdb.poi base ip_child in
                       let digest =
                         Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base child)
                       in
-                      mod_p.Mwrite.Person.digest <- digest;
+                      mod_p.Api_saisie_write_piqi.Person.digest <- digest;
                       (match Api_update_person.print_mod conf base mod_p with
                       | Api_update_util.UpdateSuccess (wl, ml, hr, cp) ->
                           (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
@@ -2630,8 +2626,8 @@ let print_add_first_fam_ok conf base =
         in
 
         (* Normalement, on a réussi à mettre à jour l'ip de la personne. *)
-        let () = ip := Gwdb.iper_of_string @@ Int32.to_string mod_p.Mwrite.Person.index in
-        let () = ifam := Gwdb.ifam_of_string @@ Int32.to_string fam_asc.Mwrite.Family.index in
+        let () = ip := Gwdb.iper_of_string @@ Int32.to_string mod_p.Api_saisie_write_piqi.Person.index in
+        let () = ifam := Gwdb.ifam_of_string @@ Int32.to_string fam_asc.Api_saisie_write_piqi.Family.index in
 
         (* On crée la famille avec les enfants. *)
         let fam_desc =
@@ -2640,81 +2636,81 @@ let print_add_first_fam_ok conf base =
           in
           (* On ré-initialise un certain nombre de valeurs, *)
           (* surtout si c'est des personnes vides.          *)
-          family.Mwrite.Family.father.Mwrite.Person.digest <- "";
-          family.Mwrite.Family.father.Mwrite.Person.create_link <- `create_default_occ;
-          family.Mwrite.Family.father.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-          family.Mwrite.Family.father.Mwrite.Person.occ <- None;
-          family.Mwrite.Family.father.Mwrite.Person.access <- `access_iftitles;
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.digest <- "";
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.occ <- None;
+          family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.access <- `access_iftitles;
 
-          family.Mwrite.Family.mother.Mwrite.Person.digest <- "";
-          family.Mwrite.Family.mother.Mwrite.Person.create_link <- `create_default_occ;
-          family.Mwrite.Family.mother.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-          family.Mwrite.Family.mother.Mwrite.Person.occ <- None;
-          family.Mwrite.Family.mother.Mwrite.Person.access <- `access_iftitles;
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.digest <- "";
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.occ <- None;
+          family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.access <- `access_iftitles;
 
           (* On remplace les parents. *)
-          if mod_p.Mwrite.Person.sex = `male then
+          if mod_p.Api_saisie_write_piqi.Person.sex = `male then
             begin
-              family.Mwrite.Family.father <- mod_p;
-              if mod_spouse.Mwrite.Person.lastname = "" &&
-                 mod_spouse.Mwrite.Person.firstname = ""
+              family.Api_saisie_write_piqi.Family.father <- mod_p;
+              if mod_spouse.Api_saisie_write_piqi.Person.lastname = "" &&
+                 mod_spouse.Api_saisie_write_piqi.Person.firstname = ""
               then ()
-              else family.Mwrite.Family.mother <- mod_spouse;
+              else family.Api_saisie_write_piqi.Family.mother <- mod_spouse;
             end
           else
             begin
-              if mod_spouse.Mwrite.Person.lastname = "" &&
-                 mod_spouse.Mwrite.Person.firstname = ""
+              if mod_spouse.Api_saisie_write_piqi.Person.lastname = "" &&
+                 mod_spouse.Api_saisie_write_piqi.Person.firstname = ""
               then ()
-              else family.Mwrite.Family.father <- mod_spouse;
-              family.Mwrite.Family.mother <- mod_p;
+              else family.Api_saisie_write_piqi.Family.father <- mod_spouse;
+              family.Api_saisie_write_piqi.Family.mother <- mod_p;
             end;
           (* Les index négatifs ne marchent pas ! *)
-          family.Mwrite.Family.index <- Int32.of_string @@ Gwdb.string_of_ifam Gwdb.dummy_ifam;
+          family.Api_saisie_write_piqi.Family.index <- Int32.of_string @@ Gwdb.string_of_ifam Gwdb.dummy_ifam;
           (* On n'autorise pas les parents de meme sexe. *)
           (* On met les parents en mode Create. *)
-          if mod_p.Mwrite.Person.sex = `male then
+          if mod_p.Api_saisie_write_piqi.Person.sex = `male then
             begin
-              family.Mwrite.Family.father.Mwrite.Person.create_link <- `link;
+              family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.create_link <- `link;
               let p = Gwdb.poi base !ip in
               let digest = Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base p) in
-              family.Mwrite.Family.father.Mwrite.Person.digest <- digest;
-              family.Mwrite.Family.mother.Mwrite.Person.create_link <- `create_default_occ;
-              family.Mwrite.Family.mother.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+              family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.digest <- digest;
+              family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+              family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
             end
           else
             begin
-              family.Mwrite.Family.father.Mwrite.Person.create_link <- `create_default_occ;
-              family.Mwrite.Family.father.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-              family.Mwrite.Family.mother.Mwrite.Person.create_link <- `link;
+              family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.create_link <- `create_default_occ;
+              family.Api_saisie_write_piqi.Family.father.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+              family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.create_link <- `link;
               let p = Gwdb.poi base !ip in
               let digest = Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base p) in
-              family.Mwrite.Family.mother.Mwrite.Person.digest <- digest;
+              family.Api_saisie_write_piqi.Family.mother.Api_saisie_write_piqi.Person.digest <- digest;
             end;
           (* On met à jour la famille avec les enfants. *)
           let children =
             List.map
               (fun c ->
                 {
-                  Mwrite.Person_link.create_link = `create_default_occ;
-                  index = c.Mwrite.Person.index;
-                  sex = c.Mwrite.Person.sex;
-                  lastname = c.Mwrite.Person.lastname;
-                  firstname = c.Mwrite.Person.firstname;
-                  occ = c.Mwrite.Person.occ;
+                  Api_saisie_write_piqi.Person_link.create_link = `create_default_occ;
+                  index = c.Api_saisie_write_piqi.Person.index;
+                  sex = c.Api_saisie_write_piqi.Person.sex;
+                  lastname = c.Api_saisie_write_piqi.Person.lastname;
+                  firstname = c.Api_saisie_write_piqi.Person.firstname;
+                  occ = c.Api_saisie_write_piqi.Person.occ;
                   dates = None;
                 })
               mod_children
           in
-          family.Mwrite.Family.children <- children;
+          family.Api_saisie_write_piqi.Family.children <- children;
           family
         in
 
         (* On ajoute la famille avec les enfants. *)
         (* S'il n'y a pas de descendance, on ne fait pas l'ajout. *)
         let (all_wl, all_ml, all_hr) =
-          if (mod_spouse.Mwrite.Person.firstname = "" &&
-              mod_spouse.Mwrite.Person.lastname = "" &&
+          if (mod_spouse.Api_saisie_write_piqi.Person.firstname = "" &&
+              mod_spouse.Api_saisie_write_piqi.Person.lastname = "" &&
               mod_children = [])
           then (all_wl, all_ml, all_hr)
           else
@@ -2729,23 +2725,23 @@ let print_add_first_fam_ok conf base =
               List.fold_left
                 (fun (all_wl, all_ml, all_hr, _cp) mod_child ->
                   let (sn, fn) =
-                    (mod_child.Mwrite.Person.lastname,
-                     mod_child.Mwrite.Person.firstname)
+                    (mod_child.Api_saisie_write_piqi.Person.lastname,
+                     mod_child.Api_saisie_write_piqi.Person.firstname)
                   in
                   let occ =
-                    match mod_child.Mwrite.Person.occ with
+                    match mod_child.Api_saisie_write_piqi.Person.occ with
                     | None -> 0
                     | Some occ -> Int32.to_int occ
                   in
                   (match Gwdb.person_of_key base fn sn occ with
                   | Some ip_child ->
-                      mod_child.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip_child;
+                      mod_child.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper ip_child;
                       (* On calcul le digest maintenant que l'enfant est créé. *)
                       let child = Gwdb.poi base ip_child in
                       let digest =
                         Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base child)
                       in
-                      mod_child.Mwrite.Person.digest <- digest;
+                      mod_child.Api_saisie_write_piqi.Person.digest <- digest;
                       (match Api_update_person.print_mod conf base mod_child with
                       | Api_update_util.UpdateSuccess (wl, ml, hr, cp) ->
                           (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
