@@ -62,12 +62,6 @@ let () =
   let aux fn _assets conf base =
     fn { conf with Geneweb.Config.api_mode = true } base ; true
   in
-  let aux' fn conf base =
-    fn { conf with Geneweb.Config.api_mode = true } base ; true
-  in
-  let aux'' fn _assets conf (_base : string option) =
-    fn { conf with Geneweb.Config.api_mode = true } ; true
-  in
   Gwd_lib.GwdPlugin.register ~ns:"api"
     [ ( "API_ADD_FIRST_FAM"
       , aux @@ fun conf _ -> Plugin_api_lib.Api_saisie_write.print_add_first_fam conf)
@@ -124,9 +118,9 @@ let () =
     ; ( "API_FICHE_PERSON"
       , aux @@ w_base @@ Plugin_api_lib.Api_saisie_read.print_fiche_person)
     ; ( "API_AUTO_COMPLETE"
-      , fun a -> aux' @@ wiz @@ w_base @@ Plugin_api_lib.Api_saisie_write.print_auto_complete a)
+      , fun a -> aux (wiz @@ w_base @@ Plugin_api_lib.Api_saisie_write.print_auto_complete a) a)
     ; ( "API_GET_CONFIG"
-      , aux'' @@ wiz' @@ Plugin_api_lib.Api_saisie_write.print_config)
+      , aux @@ fun conf _ -> wiz' Plugin_api_lib.Api_saisie_write.print_config conf)
     ; ( "API_PERSON_SEARCH_LIST"
       , aux @@ wiz @@ w_base @@ Plugin_api_lib.Api_saisie_write.print_person_search_list)
     ; ( "API_GET_PERSON_SEARCH_INFO"
