@@ -1,8 +1,6 @@
 (**/**) (* Fonctions pour l'auto-completion. *)
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_auto_complete : config -> base -> AutoCompleteResult       *)
 (** [Description] : Renvoie la liste unique d'un champ. Par exemple la liste
                     de nom de famille en fonction de ce qui est tapé.
     [Args] :
@@ -11,7 +9,6 @@
     [Retour] :
       - result : la liste de la recherche.
                                                                            *)
-(* ************************************************************************ *)
 
 let print_auto_complete assets conf base =
   let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_auto_complete in
@@ -32,8 +29,6 @@ let print_auto_complete assets conf base =
   Api_util.print_result conf data
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_person_search_list : config -> base -> SearchPerson        *)
 (** [Description] : Renvoie la liste des personnes qui ont ce nom ou prénom.
     [Args] :
       - conf : configuration de la base
@@ -41,7 +36,6 @@ let print_auto_complete assets conf base =
     [Retour] :
       - result : la liste de la recherche.
                                                                            *)
-(* ************************************************************************ *)
 let print_person_search_list conf base =
   let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_person_search_list_params in
   let surname = params.Api_saisie_write_piqi.Person_search_list_params.lastname in
@@ -90,8 +84,6 @@ let print_person_search_list conf base =
   Api_util.print_result conf data
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_person_search_info : config -> base -> PersonSearchInfo    *)
 (** [Description] : Affiche les informations telles que sur le panneau
                     droit dans l'arbre.
     [Args] :
@@ -99,7 +91,6 @@ let print_person_search_list conf base =
       - base : base de donnée
     [Retour] : PersonSearchInfo
                                                                            *)
-(* ************************************************************************ *)
 let print_person_search_info conf base =
   let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person in
   let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person.index in
@@ -111,8 +102,6 @@ let print_person_search_info conf base =
 
 (**/**) (* Configuration pour la saisie. *)
 
-(* ************************************************************************ *)
-(*  [Fonc] print_config : config -> base -> Config                          *)
 (** [Description] : Renvoi un message contenant la configuration, i.e. la
                     traduction de plusieurs mots clés : pevent, fevent, ...
                     ainsi que le découpage des lieux ...
@@ -122,7 +111,6 @@ let print_person_search_info conf base =
     [Retour] :
       - Config
                                                                            *)
-(* ************************************************************************ *)
 
 let print_config conf =
   let transl_cal =
@@ -950,8 +938,6 @@ let compute_modification_status conf base ip fam resp =
 (**/**) (* Fonctions d'ajout de la première personne. *)
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_add_ind_start_ok : config -> base -> ModificationStatus    *)
 (** [Description] : Fonction qui ajoute une personne à la base lors de la
                     création d'un arbre et de la première saisie.
     [Args] :
@@ -960,7 +946,6 @@ let compute_modification_status conf base ip fam resp =
     [Retour] :
       - status : les informations si la modification s'est bien passée.
                                                                            *)
-(* ************************************************************************ *)
 let print_add_ind_start_ok conf base =
   let start_p = Api_util.get_params conf Api_piqi_ext.parse_person_start in
   let mod_p =
@@ -983,8 +968,6 @@ let print_add_ind_start_ok conf base =
 (**/**) (* Fonctions de modification individu. *)
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_mod_ind : config -> base -> ModificationStatus             *)
 (** [Description] : Fonction qui renvoi les informations d'une personne
                     afin d'afficher le formulaire de modification.
     [Args] :
@@ -993,7 +976,6 @@ let print_add_ind_start_ok conf base =
     [Retour] :
       - status : les informations si la modification s'est bien passée.
                                                                            *)
-(* ************************************************************************ *)
 let print_mod_ind conf base =
   let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person in
   let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person.index in
@@ -1003,8 +985,6 @@ let print_mod_ind conf base =
   Api_util.print_result conf data
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_mod_ind_ok : config -> base -> ModificationStatus          *)
 (** [Description] : Fonction qui réalise les modifications d'une personne.
     [Args] :
       - conf : configuration de la base
@@ -1012,7 +992,6 @@ let print_mod_ind conf base =
     [Retour] :
       - status : les informations si la modification s'est bien passée.
                                                                            *)
-(* ************************************************************************ *)
 let print_mod_ind_ok conf base =
   let mod_p = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_person in
   let resp = Api_update_person.print_mod conf base mod_p in
@@ -1021,8 +1000,6 @@ let print_mod_ind_ok conf base =
   Api_util.print_result conf data
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_add_ind_ok : config -> base -> ModificationStatus              *)
 (** [Description] : Fonction qui ajoute une personne à la base.
     [Args] :
       - conf : configuration de la base
@@ -1030,7 +1007,6 @@ let print_mod_ind_ok conf base =
     [Retour] :
       - status : les informations si la modification s'est bien passée.
                                                                            *)
-(* ************************************************************************ *)
 let print_add_ind_ok conf base =
   let mod_p = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_person in
   let resp = Api_update_person.print_add conf base mod_p in
@@ -1151,8 +1127,6 @@ let compute_add_family
   family.Api_saisie_write_piqi.Family.mother <- mother;
   family
 
-(* ************************************************************************ *)
-(*  [Fonc] print_add_family : config -> base -> AddFamily                   *)
 (** [Description] : Renvoie le conjoint dive où on a calculé le décès pour
                     le conjoint, ainsi qu'une famille vide.
     [Args] :
@@ -1161,7 +1135,6 @@ let compute_add_family
     [Retour] :
       - AddFamily : les informations du template.
                                                                            *)
-(* ************************************************************************ *)
 let print_add_family conf base =
   let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person in
   let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person.index in
@@ -1353,8 +1326,6 @@ let compute_add_family_ok'
 let compute_add_family_ok conf base family =
   snd @@ compute_add_family_ok' conf base family
 
-(* ************************************************************************ *)
-(*  [Fonc] print_add_family_ok : config -> base -> ModificationStatus       *)
 (** [Description] : Enregistre l'ajout d'une famille.
     [Args] :
       - conf : configuration de la base
@@ -1362,7 +1333,6 @@ let compute_add_family_ok conf base family =
     [Retour] :
       - status : les informations si la modification s'est bien passée.
                                                                            *)
-(* ************************************************************************ *)
 let print_add_family_ok conf base =
   let add_family_ok = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_family_ok in
   let ip = Gwdb.iper_of_string @@ Int32.to_string add_family_ok.Api_saisie_write_piqi.Add_family_ok.index_person in
@@ -1441,8 +1411,6 @@ let print_add_family_ok conf base =
   Api_util.print_result conf data
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_mod_family_request : config -> base -> EditFamily          *)
 (** [Description] :
     [Args] :
       - conf : configuration de la base
@@ -1450,7 +1418,6 @@ let print_add_family_ok conf base =
     [Retour] :
       - EditFamily : les informations du template.
 *)
-(* ************************************************************************ *)
 let print_mod_family_request conf base =
   let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_child_request in
   let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Add_child_request.index in
@@ -1519,8 +1486,6 @@ let print_mod_family_request conf base =
        { Api_saisie_write_piqi.Edit_family_request.spouses ; first_family })
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_mod_family : config -> base -> EditFamily                  *)
 (** [Description] :
     [Args] :
       - conf : configuration de la base
@@ -1528,7 +1493,6 @@ let print_mod_family_request conf base =
     [Retour] :
       - EditFamily : les informations du template.
                                                                            *)
-(* ************************************************************************ *)
 let print_mod_family conf base =
   let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person_and_family in
   let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person_and_family.index_person in
@@ -1560,8 +1524,6 @@ let print_mod_family conf base =
   Api_util.print_result conf data
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_mod_family_ok : config -> base -> ModificationStatus       *)
 (** [Description] : Enregistre l'ajout d'une famille.
     [Args] :
       - conf : configuration de la base
@@ -1569,7 +1531,6 @@ let print_mod_family conf base =
     [Retour] :
       - status : les informations si la modification s'est bien passée.
                                                                            *)
-(* ************************************************************************ *)
 let print_mod_family_ok conf base =
   let edit_family_ok = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_edit_family_ok in
   let ip = Gwdb.iper_of_string @@ Int32.to_string edit_family_ok.Api_saisie_write_piqi.Edit_family_ok.index_person in
@@ -1637,8 +1598,6 @@ let print_mod_family_ok conf base =
   Api_util.print_result conf data
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_add_parents : config -> base -> AddParents                 *)
 (** [Description] : Renvoie les parents vides où on a calculé le nom pour
                     le père et le décès pour les parents, ainsi qu'une
                     famille vide.
@@ -1648,7 +1607,6 @@ let print_mod_family_ok conf base =
     [Retour] :
       - AddChild : les informations du template.
                                                                            *)
-(* ************************************************************************ *)
 let print_add_parents conf base =
   let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_index_person in
   let ip = Gwdb.iper_of_string @@ Int32.to_string params.Api_saisie_write_piqi.Index_person.index in
@@ -1783,8 +1741,6 @@ let print_add_child_ok conf base =
   let add_child_ok = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_child_ok in
   print_add_child_ok_aux conf base add_child_ok
 
-(* ************************************************************************ *)
-(*  [Fonc] print_add_parents_ok : config -> base -> ModificationStatus      *)
 (** [Description] : Enregistre les modifications de l'ajout de parents.
     [Args] :
       - conf : configuration de la base
@@ -1792,7 +1748,6 @@ let print_add_child_ok conf base =
     [Retour] :
       - status : les informations si la modification s'est bien passée.
                                                                            *)
-(* ************************************************************************ *)
 let print_add_parents_ok conf base =
   let add_parents_ok = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_parents_ok in
   let ip = Gwdb.iper_of_string @@ Int32.to_string add_parents_ok.Api_saisie_write_piqi.Add_parents_ok.index_person in
@@ -1910,8 +1865,6 @@ let i32_of_iper i = Int32.of_string @@ Gwdb.string_of_iper i
 let iper_of_i32 i = Gwdb.iper_of_string @@ Int32.to_string i
 let ifam_of_i32 i = Gwdb.ifam_of_string @@ Int32.to_string i
 
-(* ************************************************************************ *)
-(*  [Fonc] print_add_child : config -> base -> AddChild                     *)
 (** [Description] : Renvoie un enfant vide pour lequel on calcul son nom
                     et s'il est potentiellement décédé ou pas.
     [Args] :
@@ -1920,7 +1873,6 @@ let ifam_of_i32 i = Gwdb.ifam_of_string @@ Int32.to_string i
     [Retour] :
       - AddChild : les informations du template.
                                                                            *)
-(* ************************************************************************ *)
 let print_add_child conf base =
   let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_child_request in
   let ip = iper_of_i32 params.Api_saisie_write_piqi.Add_child_request.index in
@@ -2019,8 +1971,6 @@ let print_add_child conf base =
   let data = Api_saisie_write_piqi_ext.gen_add_child add_child in
   Api_util.print_result conf data
 
-(* ************************************************************************ *)
-(*  [Fonc] print_add_sibling : config -> base -> AddSibling                 *)
 (** [Description] : Renvoie un frère/sœur vide pour lequel on calcul son
                     nom et s'il est potentiellement décédé ou pas.
     [Args] :
@@ -2029,7 +1979,6 @@ let print_add_child conf base =
     [Retour] :
       - AddSibling : les informations du template.
                                                                            *)
-(* ************************************************************************ *)
 let print_add_sibling conf base =
   let params = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_sibling_request in
   let ip = iper_of_i32 params.Api_saisie_write_piqi.Add_sibling_request.index in
@@ -2080,8 +2029,6 @@ let print_add_sibling conf base =
   Api_util.print_result conf data
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_add_sibling_ok : config -> base -> ModificationStatus      *)
 (** [Description] : Enregistre en base les informations envoyées.
       2 cas de figures :
         - ajout d'un conjoint et d'un enfant
@@ -2092,7 +2039,6 @@ let print_add_sibling conf base =
     [Retour] :
       - status : les informations si la modification s'est bien passée.
                                                                            *)
-(* ************************************************************************ *)
 let print_add_sibling_ok conf base =
   let add_sibling_ok = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_sibling_ok in
   let ip = iper_of_i32 add_sibling_ok.Api_saisie_write_piqi.Add_sibling_ok.index_person in
@@ -2289,9 +2235,6 @@ let check_input_person mod_p : 'unit_or_exn =
   else if mod_p.Api_saisie_write_piqi.Person.sex = `unknown then
     raise_ModErr (Geneweb.Update.UERR_sex_undefined (f, s, o))
 
-(* ************************************************************************ *)
-(*  [Fonc] compute_add_first_fam : config ->
-                                     (AddFirstFam, ModificationStatus)      *)
 (** [Description] : Permet de vérifier qu'à partir de l'objet AddFirstFam,
       la saisie va bien se passer. C'est elle qui calcul les occ des
       homonymes pour ne pas avoir de conflit et vérifie que les champs
@@ -2304,7 +2247,6 @@ let check_input_person mod_p : 'unit_or_exn =
          occ et le status de la réponse si l'utilisateur a fait une mauvaise
          saisie.
                                                                            *)
-(* ************************************************************************ *)
 let compute_add_first_fam conf =
   let add_first_fam = Api_util.get_params conf Api_saisie_write_piqi_ext.parse_add_first_fam in
 
@@ -2468,8 +2410,6 @@ let print_add_first_fam conf =
   Api_util.print_result conf data
 
 
-(* ************************************************************************ *)
-(*  [Fonc] print_add_first_fam_ok : config -> base -> ModificationStatus    *)
 (** [Description] : Enregistre en base les informations envoyées.
       On reconstitue toutes les liaisons à la main pour pouvoir les
       enregistrer en base, i.e. ascendants de la personne (famille) et
@@ -2481,7 +2421,6 @@ let print_add_first_fam conf =
     [Retour] :
       - status : les informations si la modification s'est bien passée.
                                                                            *)
-(* ************************************************************************ *)
 let print_add_first_fam_ok conf base =
   let (add_first_fam, _) = compute_add_first_fam conf in
   let mod_p = add_first_fam.Api_saisie_write_piqi.Add_first_fam.sosa in
