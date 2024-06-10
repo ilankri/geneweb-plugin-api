@@ -1110,8 +1110,6 @@ let set_parents_fields conf base p linked created =
     created.Api_saisie_write_piqi.Person.pevents <- created.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ]
   end
 
-(* ************************************************************************ *)
-(*  [Fonc] compute_add_family : config -> base -> person -> Family (piqi)   *)
 (** [Description] : Permet la factorisation du code pour ajouter une famille
                     et ajouter un enfant à une nouvelle famille.
     [Args] :
@@ -1121,8 +1119,9 @@ let set_parents_fields conf base p linked created =
     [Retour] :
       - Family : la famille piqi
                                                                            *)
-(* ************************************************************************ *)
-let compute_add_family conf base p =
+let compute_add_family
+      (conf : Geneweb.Config.config) (base : Gwdb.base) (p : Gwdb.person) :
+      Api_saisie_write_piqi.family  =
   let adding_to_father = Gwdb.get_sex p = Def.Male in
   let family =
     Api_update_util.piqi_empty_family conf base Gwdb.dummy_ifam
@@ -1181,8 +1180,6 @@ let print_add_family conf base =
   Api_util.print_result conf data
 
 
-(* ************************************************************************ *)
-(*  [Fonc] compute_add_family_ok : config -> base -> Family -> ifam option * UpdateStatus *)
 (** [Description] : Permet la factorisation du code pour ajouter une famille
                     et ajouter un enfant à une nouvelle famille.
     [Args] :
@@ -1192,8 +1189,11 @@ let print_add_family conf base =
     [Retour] :
       - UpdateStatus
                                                                            *)
-(* ************************************************************************ *)
-let compute_add_family_ok' conf base mod_family =
+let compute_add_family_ok'
+      (conf : Geneweb.Config.config)
+      (base : Gwdb.base)
+      (mod_family : Api_saisie_write_piqi.family) :
+      (Gwdb.ifam option * Api_update_util.update_base_status) =
   let mod_father = mod_family.Api_saisie_write_piqi.Family.father in
   let mod_mother = mod_family.Api_saisie_write_piqi.Family.mother in
   let moth_fn = mod_mother.Api_saisie_write_piqi.Person.firstname in
