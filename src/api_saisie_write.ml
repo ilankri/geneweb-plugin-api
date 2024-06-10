@@ -621,18 +621,6 @@ let possible_family_dup_homonmous conf base fam p =
             |> Utf8.capitalize_fst
   in
   let link = merge_dup_link conf curr txt in
-  (*
-  let iper = Gwdb.string_of_iper curr in
-  let henv = ["i", Adef.encoded iper;
-              "ip", Adef.encoded iper;
-              "m", Adef.encoded "MRG_DUP";]
-  in
-
-  let link =
-    "<a href=" ^ !!(Util.commd {conf with henv})  ^ ">"
-    ^ (transl conf "click here to merge these persons and their unions")
-    ^ "</a>"
-  in*)
   w ^ ". " ^ link
 
 let compute_warnings conf base resp =
@@ -668,45 +656,14 @@ let compute_warnings conf base resp =
                 w :: wl
             | ChangedOrderOfChildren _ -> wl
                 (* On ignore les messages de changement d'ordre. *)
-                (*
-                let cpl = foi base ifam in
-                let fath = poi base (get_father cpl) in
-                let moth = poi base (get_mother cpl) in
-                (capitale (transl conf "changed order of children")) ^ " " ^
-                (Gutil.designation base fath ^ "\n" ^ transl_nth conf "and" 0 ^
-                     " " ^ Gutil.designation base moth ^ "\n")
-                *)
             | ChangedOrderOfMarriages _ -> wl
                 (* On ignore les messages de changement d'ordre. *)
-                (*
-                (capitale (transl conf "changed order of marriages"))
-                *)
             | ChangedOrderOfFamilyEvents _ -> wl
                 (* On ignore les messages de changement d'ordre. *)
-                (*
-                (capitale (transl conf "changed order of family's events"))
-                *)
             | ChangedOrderOfPersonEvents _ -> wl
                 (* On ignore les messages de changement d'ordre. *)
-                (*
-                (capitale (transl conf "changed order of person's events"))
-                *)
             | ChildrenNotInOrder _ -> wl
                 (* On ignore les messages de changement d'ordre. *)
-                (*
-                let cpl = foi base ifam in
-                (Printf.sprintf
-                   (fcapitale
-                      (ftransl conf
-                         "the following children of %t and %t are not in order"))
-                   (fun _ ->
-                     Gutil.designation base (poi base (get_father cpl)))
-                   (fun _ ->
-                     Gutil.designation base (poi base (get_mother cpl))))
-                ^ ": " ^
-                Gutil.designation base elder ^ (DateDisplay.short_dates_text conf base elder) ^
-                Gutil.designation base x ^ (DateDisplay.short_dates_text conf base x)
-                *)
             | CloseChildren (ifam, c1, c2) ->
                 let cpl = foi base ifam in
                 let w =
@@ -1274,13 +1231,6 @@ let compute_add_family_ok' conf base mod_family =
         in
         ifam_opt, Api_update_util.UpdateSuccess (all_wl, all_ml, all_hr, cp)
       | ((`create | `create_default_occ), `link) ->
-          (*
-          let occ = Api_update_util.find_free_occ base fath_fn fath_sn in
-          if occ = 0 then
-            mod_father.Mwrite.Person.occ <- None
-          else
-            mod_father.Mwrite.Person.occ <- Some (Int32.of_int occ);
-          *)
         let (all_wl, all_ml, all_hr, _cp) =
           match Api_update_person.print_mod conf base mod_mother with
           | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (wl, ml, hr, cp)
@@ -1408,27 +1358,6 @@ let print_add_family_ok conf base =
   let mother = mod_family.Mwrite.Family.mother in
   let _moth_occ = mother.Mwrite.Person.occ in
 
-(*  let log_person p =
-    let fn = p.Mwrite.Person.firstname in
-    let sn = p.Mwrite.Person.lastname in
-    let occ = Option.map (fun i -> Int32.to_int i |> string_of_int) p.Mwrite.Person.occ in
-    let occ = Option.value ~default:"None" occ in
-    let link = p.Mwrite.Person.create_link in
-    let events = p.Mwrite.Person.pevents in
-    let s_e = match events with [] -> "no_evt" | evts ->
-      List.fold_left (fun s e ->
-          s ^ match e.Mwrite.Pevent.pevent_type with
-          | Some _name -> "an event; "
-          | None -> "no_name; "
-        ) "evts : " evts
-    in
-    let s = "fn : " ^ fn ^ " sn : " ^ sn ^ " occ : " ^ occ ^ " lnk : " ^
-            (match link with `link -> "link" | `create -> "create" | `create_default_occ -> "create_default_occ") ^ " " ^ s_e ^ " " ^ (match p.Mwrite.Person.occupation with None -> "" | Some s -> s) in
-    (!GWPARAM.syslog) `LOG_DEBUG s
-  in
-  log_person father;
-  log_person mother;
-*)
   let ifam_opt, resp = compute_add_family_ok' conf base mod_family in
   let ifam = Option.value ifam_opt
       ~default:(Gwdb.ifam_of_string @@ Int32.to_string mod_family.Mwrite.Family.index)
