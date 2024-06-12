@@ -747,8 +747,8 @@ module HistoryApi = struct
     | "cs" -> `source_modified
     | "co" -> `occupation_modified
     | s -> raise (Invalid_argument s)
-  
-  let person_of_key base s =
+
+  let person_of_key conf base s =
     let year_of_date = function
       | Adef.Cdate (Dgreg (dmy, _cal)) -> Some (Int32.of_int dmy.year)
       | Cdate (Dtext _) | Cnone | Cgregorian _ | Cjulian _ | Cfrench _
@@ -761,11 +761,17 @@ module HistoryApi = struct
         | OfCourseDead ->
          Adef.Cnone
     in
+    let has_history fn sn occ =
+      let person_file = HistoryDiff.history_file fn sn occ in
+      Sys.file_exists (HistoryDiff.history_path conf person_file)
+    in
     let history_person_of_iper ip =
       let pers = Gwdb.poi base ip in
       let lastname = Gwdb.sou base (Gwdb.get_surname pers) in
       let firstname = Gwdb.sou base (Gwdb.get_first_name pers) in
-      let oc = Int32.of_int (Gwdb.get_occ pers) in
+      let oc = Gwdb.get_occ pers in
+      let has_history = has_history firstname lastname oc in
+      let oc = Int32.of_int oc in
       let n = Name.lower lastname in
       let p = Name.lower firstname in
       let birth_year = year_of_date (Gwdb.get_birth pers) in
@@ -779,6 +785,7 @@ module HistoryApi = struct
         birth_year;
         death_year;
         exists_in_base = true;
+        has_history;
       }
     in
     let history_person_of_key (p, oc, n) =
@@ -791,16 +798,17 @@ module HistoryApi = struct
         birth_year = None;
         death_year = None;
         exists_in_base = false;
+        has_history = false;
       }
     in
     match Gutil.person_of_string_key base s with
     | Some ip -> Some (history_person_of_iper ip)
     | None -> Gutil.split_key s |> Option.map history_person_of_key
 
-  let history_entry base time user action keyo =
+  let history_entry conf base time user action keyo =
     let time = time_of_string time in
     let action = action_of_string action in
-    let person = Option.bind keyo (person_of_key base) in
+    let person = Option.bind keyo (person_of_key conf base) in
     {
       M.History_entry.modification_type = action;
       time;
@@ -822,7 +830,7 @@ module HistoryApi = struct
         ((ipage - 1) * elements_per_page)
         elements_per_page
       |> List.map (fun (time, user, action, keyo) ->
-          history_entry base time user action keyo)
+          history_entry conf base time user action keyo)
     in
     Mext.gen_history {M.History.entries; page; page_max}
 end
