@@ -747,7 +747,7 @@ module HistoryApi = struct
     | "cs" -> `source_modified
     | "co" -> `occupation_modified
     | s -> raise (Invalid_argument s)
-
+  
   let person_of_key base s =
     let year_of_date = function
       | Adef.Cdate (Dgreg (dmy, _cal)) -> Some (Int32.of_int dmy.year)
@@ -761,7 +761,7 @@ module HistoryApi = struct
         | OfCourseDead ->
          Adef.Cnone
     in
-    Option.map (fun ip ->
+    let history_person_of_iper ip =
       let pers = Gwdb.poi base ip in
       let lastname = Gwdb.sou base (Gwdb.get_surname pers) in
       let firstname = Gwdb.sou base (Gwdb.get_first_name pers) in
@@ -779,7 +779,21 @@ module HistoryApi = struct
         birth_year;
         death_year;
       }
-    ) (Gutil.person_of_string_key base s)
+    in
+    let history_person_of_key (p, oc, n) =
+      {
+        M.History_person.n;
+        p;
+        oc = Int32.of_int oc;
+        firstname = "";
+        lastname = "";
+        birth_year = None;
+        death_year = None;
+      }
+    in
+    match Gutil.person_of_string_key base s with
+    | Some ip -> Some (history_person_of_iper ip)
+    | None -> Gutil.split_key s |> Option.map history_person_of_key
 
   let history_entry base time user action keyo =
     let time = time_of_string time in
