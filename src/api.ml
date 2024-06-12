@@ -778,6 +778,7 @@ module HistoryApi = struct
         lastname;
         birth_year;
         death_year;
+        exists_in_base = true;
       }
     in
     let history_person_of_key (p, oc, n) =
@@ -789,6 +790,7 @@ module HistoryApi = struct
         lastname = "";
         birth_year = None;
         death_year = None;
+        exists_in_base = false;
       }
     in
     match Gutil.person_of_string_key base s with

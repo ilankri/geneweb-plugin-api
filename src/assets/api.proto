@@ -801,6 +801,7 @@ message HistoryPerson {
     required string lastname = 5;
     optional int32 birth_year = 6;
     optional int32 death_year = 7;
+    required bool exists_in_base = 8;
 }
 
 message HistoryEntry {
