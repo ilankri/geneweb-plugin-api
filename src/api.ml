@@ -816,7 +816,7 @@ module HistoryApi = struct
       person;
     }
 
-  let history_list conf base page elements_per_page =
+  let history_list conf base page elements_per_page filter_user =
     let f ~time ~user ~action ~keyo =
       time, user, action, keyo
     in
@@ -825,12 +825,14 @@ module HistoryApi = struct
     let ipage = Int32.to_int page in
     let elements_per_page = Int32.to_int elements_per_page in
     let page_max = Int32.of_int (elts / elements_per_page) in
+    let filter = Option.is_some filter_user in
     let entries =
       Ext_list.sublist entries
         ((ipage - 1) * elements_per_page)
         elements_per_page
-      |> List.map (fun (time, user, action, keyo) ->
-          history_entry conf base time user action keyo)
+      |> List.filter_map (fun (time, user, action, keyo) ->
+          Ext_option.return_if (not filter || user = Option.get filter_user)
+            (fun () -> history_entry conf base time user action keyo))
     in
     Mext.gen_history {M.History.entries; page; page_max}
 end
@@ -839,5 +841,6 @@ let history conf base =
   let params = get_params conf Mext.parse_history_request in
   let page = params.M.History_request.page in
   let elements_per_page = params.M.History_request.elements_per_page in
-  let data = HistoryApi.history_list conf base page elements_per_page in
+  let filter_user = params.M.History_request.filter_user in
+  let data = HistoryApi.history_list conf base page elements_per_page filter_user in
   print_result conf data

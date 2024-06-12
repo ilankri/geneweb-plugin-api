@@ -791,6 +791,7 @@ message Time {
 message HistoryRequest {
     required int32 page = 1;
     required int32 elements_per_page = 2;
+    optional string filter_user = 3;
 }
 
 message HistoryPerson {
