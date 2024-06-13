@@ -750,17 +750,10 @@ module HistoryApi = struct
 
   let person_of_key conf base s =
     let year_of_date = function
-      | Adef.Cdate (Dgreg (dmy, _cal)) -> Some (Int32.of_int dmy.year)
-      | Cdate (Dtext _) | Cnone | Cgregorian _ | Cjulian _ | Cfrench _
-        | Chebrew _ | Ctext _ ->
-         None
+      | Date.Dgreg (dmy, _cal) -> Some (Int32.of_int dmy.year)
+      | Dtext _ -> None
     in
-    let date_of_death = function
-      | Def.Death (_, cdate) -> cdate
-      | NotDead | DeadYoung | DeadDontKnowWhen | DontKnowIfDead
-        | OfCourseDead ->
-         Adef.Cnone
-    in
+    let year_of_cdate d = Option.bind (Date.od_of_cdate d) year_of_date in
     let has_history fn sn occ =
       let person_file = HistoryDiff.history_file fn sn occ in
       Sys.file_exists (HistoryDiff.history_path conf person_file)
@@ -774,8 +767,8 @@ module HistoryApi = struct
       let oc = Int32.of_int oc in
       let n = Name.lower lastname in
       let p = Name.lower firstname in
-      let birth_year = year_of_date (Gwdb.get_birth pers) in
-      let death_year = year_of_date (date_of_death (Gwdb.get_death pers)) in
+      let birth_year = year_of_cdate (Gwdb.get_birth pers) in
+      let death_year = Option.bind (Date.date_of_death (Gwdb.get_death pers)) year_of_date in
       {
         M.History_person.n;
         p;
