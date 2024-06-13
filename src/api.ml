@@ -827,7 +827,7 @@ module HistoryApi = struct
     let page_max = Int32.of_int (elts / elements_per_page) in
     let filter = Option.is_some filter_user in
     let entries =
-      Ext_list.sublist entries
+      Ext_list.sublist (List.rev entries)
         ((ipage - 1) * elements_per_page)
         elements_per_page
       |> List.filter_map (fun (time, user, action, keyo) ->
