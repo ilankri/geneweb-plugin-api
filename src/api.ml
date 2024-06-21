@@ -749,11 +749,7 @@ module HistoryApi = struct
     | s -> raise (Invalid_argument s)
 
   let person_of_key conf base s =
-    let year_of_date = function
-      | Date.Dgreg (dmy, _cal) -> Some (Int32.of_int dmy.year)
-      | Dtext _ -> None
-    in
-    let year_of_cdate d = Option.bind (Date.od_of_cdate d) year_of_date in
+    let year_of_cdate d = Option.bind (Date.od_of_cdate d) Date.year_of_date in
     let has_history fn sn occ =
       let person_file = HistoryDiff.history_file fn sn occ in
       Sys.file_exists (HistoryDiff.history_path conf person_file)
@@ -767,16 +763,26 @@ module HistoryApi = struct
       let oc = Int32.of_int oc in
       let n = Name.lower lastname in
       let p = Name.lower firstname in
-      let birth_year = year_of_cdate (Gwdb.get_birth pers) in
-      let death_year = Option.bind (Date.date_of_death (Gwdb.get_death pers)) year_of_date in
+      let year1 =
+        let birth_year = year_of_cdate (Gwdb.get_birth pers) in
+        if Option.is_some birth_year then birth_year
+        else year_of_cdate (Gwdb.get_baptism pers)
+      in
+      let year2 =
+        let death_year =
+          Option.bind (Date.date_of_death (Gwdb.get_death pers)) Date.year_of_date
+        in
+        if Option.is_some death_year then death_year
+        else Option.bind (Date.date_of_burial (Gwdb.get_burial pers)) Date.year_of_date
+      in
       {
         M.History_person.n;
         p;
         oc;
         firstname;
         lastname;
-        birth_year;
-        death_year;
+        year1 = Option.map Int32.of_int year1;
+        year2 = Option.map Int32.of_int year2;
         exists_in_base = true;
         has_history;
       }
@@ -788,8 +794,8 @@ module HistoryApi = struct
         oc = Int32.of_int oc;
         firstname = "";
         lastname = "";
-        birth_year = None;
-        death_year = None;
+        year1 = None;
+        year2 = None;
         exists_in_base = false;
         has_history = false;
       }
