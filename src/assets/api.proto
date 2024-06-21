@@ -816,5 +816,5 @@ message HistoryEntry {
 message History {
     repeated HistoryEntry entries = 1;
     required int32 page = 2;
-    required int32 page_max = 3;
+    required int32 total_elements = 3;
 }

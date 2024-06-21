@@ -820,20 +820,22 @@ module HistoryApi = struct
       time, user, action, keyo
     in
     let entries = Geneweb.History.map_history conf f in
-    let elts = List.length entries in
     let ipage = Int32.to_int page in
     let elements_per_page = Int32.to_int elements_per_page in
-    let page_max = Int32.of_int (elts / elements_per_page) in
     let filter = Option.is_some filter_user in
-    let entries =
-      Ext_list.sublist (List.rev entries)
-        ((ipage - 1) * elements_per_page)
-        elements_per_page
-      |> List.filter_map (fun (time, user, action, keyo) ->
+    let filtered_entries =
+      List.filter_map (fun (time, user, action, keyo) ->
           Ext_option.return_if (not filter || user = Option.get filter_user)
             (fun () -> history_entry conf base time user action keyo))
+        entries
     in
-    Mext.gen_history {M.History.entries; page; page_max}
+    let total_elements = Int32.of_int (List.length entries) in
+    let entries =
+      Ext_list.sublist (List.rev filtered_entries)
+        ((ipage - 1) * elements_per_page)
+        elements_per_page
+    in
+    Mext.gen_history {M.History.entries; page; total_elements}
 end
 
 let history conf base =
