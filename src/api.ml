@@ -824,16 +824,19 @@ module HistoryApi = struct
     let elements_per_page = Int32.to_int elements_per_page in
     let filter = Option.is_some filter_user in
     let filtered_entries =
-      List.filter_map (fun (time, user, action, keyo) ->
-          Ext_option.return_if (not filter || user = Option.get filter_user)
-            (fun () -> history_entry conf base time user action keyo))
-        entries
+      if filter then
+        List.filter (fun (_, user, _, _) ->
+            user = Option.get filter_user)
+          entries
+      else entries
     in
-    let total_elements = Int32.of_int (List.length entries) in
+    let total_elements = Int32.of_int (List.length filtered_entries) in
     let entries =
       Ext_list.sublist (List.rev filtered_entries)
         ((ipage - 1) * elements_per_page)
         elements_per_page
+      |> List.map (fun (time, user, action, keyo) ->
+          history_entry conf base time user action keyo)
     in
     Mext.gen_history {M.History.entries; page; total_elements}
 end
