@@ -172,5 +172,5 @@ let () =
       , aux @@ w_base @@ Api_stats.print_stats)
     ; ( "API_SELECT_EVENTS"
       , aux @@ w_base @@ Api_graph.print_select_events);
-      ("API_HISTORY", aux @@ wiz @@ w_base @@ Api.history)
+      ("API_HISTORY", aux @@ friend @@ w_base @@ Api.history)
     ]
