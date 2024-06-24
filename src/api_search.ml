@@ -1,8 +1,3 @@
-module M = Api_piqi
-module Mext = Api_piqi_ext
-
-module StrSet = Mutil.StrSet
-
 let string_start_with ini s = Mutil.start_with_wildcard ini 0 s
 
 (* Algo de Knuth-Morris-Pratt *)
@@ -295,11 +290,11 @@ let print_list conf base filters list =
    fait l'union des deux ce qui est beaucoup plus efficace.
 *)
 let print_search conf base =
-  let search_params = Api_util.get_params conf (fun x f -> Mext.parse_search_params x f) in
+  let search_params = Api_util.get_params conf (fun x f -> Api_piqi_ext.parse_search_params x f) in
   let filters = Api_util.get_filters conf in
   match
-     (search_params.M.Search_params.lastname,
-      search_params.M.Search_params.firstname)
+     (search_params.Api_piqi.Search_params.lastname,
+      search_params.Api_piqi.Search_params.firstname)
   with
    | (Some n, Some fs) ->
       let _ = Gwdb.load_strings_array base in
@@ -307,8 +302,8 @@ let print_search conf base =
         if Name.lower n = "" && Name.lower fs = "" then
           []
         else
-          let maiden_name = search_params.M.Search_params.maiden_name in
-          match search_params.M.Search_params.search_type with
+          let maiden_name = search_params.Api_piqi.Search_params.maiden_name in
+          match search_params.Api_piqi.Search_params.search_type with
           | `starting_with -> select_start_with conf base n fs
           | `approximative -> select_both_all base n fs maiden_name
           | `lastname_or_firstname ->
@@ -323,7 +318,7 @@ let print_search conf base =
         if Name.lower n = "" then
           []
         else
-          match search_params.M.Search_params.search_type with
+          match search_params.Api_piqi.Search_params.search_type with
           | `starting_with -> select_start_with conf base n ""
           | `approximative -> select_all base true n
           | `lastname_or_firstname -> select_all base true n
@@ -335,7 +330,7 @@ let print_search conf base =
         if Name.lower fs = "" then
           []
         else
-          match search_params.M.Search_params.search_type with
+          match search_params.Api_piqi.Search_params.search_type with
           | `starting_with -> select_start_with conf base "" fs
           | `approximative -> select_all base false fs
           | `lastname_or_firstname -> select_all base false fs
@@ -416,7 +411,7 @@ let matching_nameset base stop max_res istr name_f name first_letter =
     if n < max_res && (stop && String.sub k 0 1 = first_letter || not stop) then
       let n, set =
         if string_incl_start_with (Name.lower name) (Name.lower k) then
-          n + 1, StrSet.add s set
+          n + 1, Mutil.StrSet.add s set
         else n, set
       in
       match Gwdb.spi_next name_f istr with
@@ -424,11 +419,11 @@ let matching_nameset base stop max_res istr name_f name first_letter =
       | istr -> aux n istr set
     else n, set
   in
-  aux 0 istr StrSet.empty
+  aux 0 istr Mutil.StrSet.empty
 
 let matching_nameset' base stop max_res name_f name first_letter =
   match Gwdb.spi_first name_f first_letter with
-  | exception Not_found -> 0, StrSet.empty
+  | exception Not_found -> 0, Mutil.StrSet.empty
   | istr -> matching_nameset base stop max_res istr name_f name first_letter
 
 let matching_nameset_of_input base stop uppercase name_f max_res name =
@@ -462,7 +457,7 @@ let select_start_with_auto_complete base mode max_res input =
       let nb_res, maj_set = matching_nameset_of_input base true true name_f max_res name in
       (* lowercase *)
       let _, min_set = matching_nameset_of_input base true false name_f (max_res - nb_res) name in
-      StrSet.union maj_set min_set
+      Mutil.StrSet.union maj_set min_set
     end
   else
     begin
@@ -473,7 +468,7 @@ let select_start_with_auto_complete base mode max_res input =
 
 let select_start_with_auto_complete base mode max_res ini =
   let s = select_start_with_auto_complete base mode max_res ini in
-  let l = StrSet.elements s in
+  let l = Mutil.StrSet.elements s in
   List.sort Gutil.alphabetic_order l
 
 type dico = string array
