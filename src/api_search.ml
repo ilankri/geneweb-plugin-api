@@ -554,6 +554,7 @@ let get_all_data_from_db conf base data compare =
 
 type kind =
   | Source
+  | Occupation
   | Place of
       {field : Api_saisie_write_piqi.auto_complete_place_field option}
 
@@ -563,6 +564,8 @@ let is_completion_suggestion ~query:{kind; term} candidate =
   match kind with
   | Source ->
      string_start_with term (Name.lower @@ Mutil.tr '_' ' ' candidate)
+  | Occupation ->
+     Mutil.start_with_wildcard term 0 (Name.lower @@ Mutil.tr '_' ' ' candidate)
   | Place {field} ->
      let hd' =
        match field with
@@ -577,6 +580,7 @@ let complete_with_db ~conf ~base ~nb query =
     let data, compare =
       match query.kind with
       | Source -> "src", Gutil.alphabetic_order
+      | Occupation -> "occu", Gutil.alphabetic_order
       | Place _ -> "place", Geneweb.Place.compare_places
     in
     get_all_data_from_db conf base data compare
@@ -619,6 +623,14 @@ let search_auto_complete assets conf base mode place_mode max term =
     if Name.lower term = "" then []
     else ( Gwdb.load_strings_array base
          ; select_start_with_auto_complete base mode max term )
+
+  | `occupation ->
+    let nb = ref 0 in
+    let term = Name.lower @@ Mutil.tr '_' ' ' term in
+    let suggestions_from_db =
+      complete_with_db ~conf ~base ~nb {kind = Occupation; limit = max; term}
+    in
+    complete_with_dico assets conf nb max place_mode term suggestions_from_db
 
 let search_person_list base surname first_name =
   let _ = Gwdb.load_strings_array base in

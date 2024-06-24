@@ -542,6 +542,7 @@ enum AutoCompleteField {
   FIRSTNAME = 1;
   PLACE = 2;
   SOURCE = 3;
+  OCCUPATION = 4;
 }
 
 message AutoComplete {

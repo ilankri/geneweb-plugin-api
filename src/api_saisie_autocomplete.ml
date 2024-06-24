@@ -42,13 +42,19 @@ let create_cache base mode cache_file =
            List.fold_left (fun acc e -> add acc (Gwdb.get_fevent_src e)) acc (Gwdb.get_fevents f) )
         acc
         (Gwdb.families base)
+    | `occupation ->
+       Gwdb.Collection.fold
+         (fun occupations person ->
+           add occupations (Gwdb.get_occupation person))
+         IstrSet.empty (Gwdb.persons base)
   in
   let cache = List.rev_map (Gwdb.sou base) (IstrSet.elements cache) in
   let cache =
     List.sort
       (match mode with
        | `place -> Geneweb.Place.compare_places
-       | `firstname | `lastname | `source -> Gutil.alphabetic_order)
+       | `firstname | `lastname | `source | `occupation ->
+          Gutil.alphabetic_order)
       cache
   in
   let oc = Secure.open_out_bin cache_file in
@@ -63,6 +69,7 @@ let rec get_list_from_cache ?(retry = true) conf base mode max_res s =
     | `firstname -> Filename.concat bfile "cache_first_name"
     | `place -> Filename.concat bfile "cache_place"
     | `source -> Filename.concat bfile "cache_src"
+    | `occupation -> Filename.concat bfile "cache_occupation"
   in
   Lock.control cache_file false ~onerror:(fun () -> []) begin fun () ->
     let stats = Unix.stat cache_file in
