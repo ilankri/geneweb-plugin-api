@@ -474,9 +474,6 @@ let dico_fname assets lang k =
   | `country -> Some ("dico.country." ^ lang ^ ".bin~")
   | `subdivision -> None
 
-(** [ini] must be in the form of [Name.lower @@ Mutil.tr '_' ' ' ini]
-    Assume that [list] is already sorted, but reversed.
-*)
 let complete_with_dico assets conf nb max mode ini list =
   let split_country_code row =
     let rec aux acc l = match l with

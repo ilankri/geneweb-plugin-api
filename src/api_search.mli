@@ -23,6 +23,10 @@ val complete_with_dico :
   string ->
   string list ->
   string list
+(** [complete_with_dico _ _ _ _ _ ini list]:
+    [ini] must be in the form of [Name.lower @@ Mutil.tr '_' ' ' ini]
+    Assume that [list] is already sorted, but reversed.
+*)
 
 val search_auto_complete :
   string ->
