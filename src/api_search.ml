@@ -30,9 +30,6 @@ let kmp p s =
     end
 
 (* FIXME: DUPLICATE OF ALLN.SELECT ??? *)
-(* ************************************************************************** *)
-(*  [Fonc] get_list_of_select_start_with :
-    config -> base -> bool -> string -> bool -> name -> letter                *)
 (** [Description] : Fonction qui scanne l'ensemble des noms de la base
     pour une lettre donnée et retourne une liste de personne.
     [Args] :
@@ -46,8 +43,7 @@ let kmp p s =
     [Retour] :
       - ListPersons : Retourne une liste de personnes.
                                                                               *)
-(* ************************************************************************** *)
-let get_list_of_select_start_with conf base ini_n ini_p letter =
+let get_list_of_select_start_with (conf : Geneweb.Config.config) (base : Gwdb.base) (ini_n : string) (ini_p : string) (letter : string) =
     let name =
     (* Si le nom est défini, on parcourt un tableau de noms *)
     if "" <> ini_n
@@ -128,9 +124,6 @@ let get_list_of_select_start_with conf base ini_n ini_p letter =
         in loop istr []
     with Not_found -> []
 
-(* ************************************************************************** *)
-(*  [Fonc] select_start_with :
-    config -> base -> string -> string -> bool                                  *)
 (** [Description] : Retourne une liste de personne dont le nom OU le prénom
     commence par 'ini_n' ou 'ini_p'.
     [Args] :
@@ -142,8 +135,7 @@ let get_list_of_select_start_with conf base ini_n ini_p letter =
     [Retour] :
       - ListPersons : Retourne une liste de personnes.
                                                                               *)
-(* ************************************************************************** *)
-let select_start_with conf base ini_n ini_p =
+let select_start_with (conf : Geneweb.Config.config) (base : Gwdb.base) (ini_n : string) (ini_p : string) =
   let ini_n = Geneweb.Util.name_key base ini_n in
   let start =
     if ini_n <> ""
