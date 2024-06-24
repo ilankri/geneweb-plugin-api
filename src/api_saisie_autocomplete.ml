@@ -46,7 +46,9 @@ let create_cache base mode cache_file =
   let cache = List.rev_map (Gwdb.sou base) (IstrSet.elements cache) in
   let cache =
     List.sort
-      (if mode = `place then Geneweb.Place.compare_places else Gutil.alphabetic_order)
+      (match mode with
+       | `place -> Geneweb.Place.compare_places
+       | `firstname | `lastname | `source -> Gutil.alphabetic_order)
       cache
   in
   let oc = Secure.open_out_bin cache_file in
