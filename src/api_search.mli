@@ -18,7 +18,7 @@ val complete_with_dico :
   | `county
   | `region
   | `subdivision
-  | `town > `subdivision ]
+  | `town ]
   option ->
   string ->
   string list ->
@@ -28,13 +28,13 @@ val search_auto_complete :
   string ->
   Geneweb.Config.config ->
   Gwdb.base ->
-  [< `firstname | `lastname | `place | `source > `place `source ] ->
+  [< `firstname | `lastname | `place | `source ] ->
   [< `area_code
   | `country
   | `county
   | `region
   | `subdivision
-  | `town > `subdivision ]
+  | `town ]
   option ->
   int ->
   string ->

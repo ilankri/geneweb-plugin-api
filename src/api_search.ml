@@ -521,7 +521,12 @@ let complete_with_dico assets conf nb max mode ini list =
         let hd = Array.unsafe_get list i in
         let acc =
           let k =  Mutil.tr '_' ' ' hd in
-          let k = if mode <> `subdivision then Place.without_suburb k else k in
+          let k =
+            match mode with
+            | `area_code | `country | `county | `region | `town ->
+               Place.without_suburb k
+            | `subdivision -> k
+          in
           if string_start_with ini (Name.lower k) then begin
             let row = Api_csv.row_of_string hd in
             let country_code, expl_hd = split_country_code row in
@@ -598,9 +603,10 @@ let search_auto_complete assets conf base mode place_mode max n =
         | [] -> acc
         | hd :: tl ->
           let hd' =
-            if place_mode <> Some `subdivision
-            then Place.without_suburb hd
-            else hd
+            match place_mode with
+            | None | Some (`area_code | `country | `county | `region | `town) ->
+               Place.without_suburb hd
+            | Some `subdivision -> hd
           in
           let acc =
             if Mutil.start_with_wildcard ini 0 @@ Name.lower @@ Mutil.tr '_' ' ' hd'
@@ -632,7 +638,7 @@ let search_auto_complete assets conf base mode place_mode max n =
     in
     reduce [] list
 
-  | _ ->
+  | `firstname | `lastname ->
     if Name.lower n = "" then []
     else ( load_strings_array base
          ; select_start_with_auto_complete base mode max n )
