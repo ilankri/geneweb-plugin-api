@@ -14,6 +14,8 @@ let print_auto_complete assets conf base =
       match mode with
       | `place | `source | `lastname | `firstname ->
          Api_search.complete_with_dico assets conf (ref @@ List.length cache) max_res place_mode ini cache
+      | `occupation ->
+         Api_search.complete_with_dico assets conf (ref @@ List.length cache) max_res (Some `profession) ini cache
     else
       Api_search.search_auto_complete assets conf base mode place_mode max_res s
   in

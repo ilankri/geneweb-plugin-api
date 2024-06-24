@@ -501,12 +501,13 @@ let complete_with_dico assets conf nb max mode ini list =
             match mode with
             | `area_code | `country | `county | `region | `town ->
                Geneweb.Place.without_suburb k
-            | `subdivision -> k
+            | `subdivision | `profession -> k
           in
           if string_start_with ini (Name.lower k) then begin
             let row = Api_csv.row_of_string hd in
             let hd_opt =
               match mode with
+              | `profession -> Some (String.concat ", " row)
               | #Api_saisie_write_piqi.auto_complete_place_field ->
                  let country_code, expl_hd = split_country_code row in
                  if belongs_to_preferred_countries country_code then
@@ -562,7 +563,18 @@ let complete_with_dico assets conf nb max mode ini list =
       |> reduce_dico mode list format
     in
     append list (List.sort Geneweb.Place.compare_places dico)
-  | None | Some #Api_saisie_write_piqi.auto_complete_place_field -> list
+  | Some `profession when !nb < max ->
+     let dictionary =
+       unmarshal_dico
+         ~assets ~lang:conf.Geneweb.Config.lang ~data_type:`profession
+     in
+     dictionary
+     |> reduce_dico `profession list []
+     |> List.sort Gutil.alphabetic_order
+     |> append list
+  | None
+    | Some (#Api_saisie_write_piqi.auto_complete_place_field | `profession) ->
+     list
 
 let get_all_data_from_db conf base data compare =
   let conf = { conf with Geneweb.Config.env = ("data", Mutil.encode data) :: conf.Geneweb.Config.env } in
@@ -572,6 +584,7 @@ let get_all_data_from_db conf base data compare =
 
 type kind =
   | Source
+  | Occupation
   | Place of
       {field : Api_saisie_write_piqi.auto_complete_place_field option}
 
@@ -579,7 +592,7 @@ type query = {kind : kind; limit : int; term : string}
 
 let is_completion_suggestion ~query:{kind; term} candidate =
   match kind with
-  | Source ->
+  | Source | Occupation ->
      string_start_with term (Name.lower @@ Mutil.tr '_' ' ' candidate)
   | Place {field} ->
      let hd' =
@@ -595,6 +608,7 @@ let complete_with_db ~conf ~base ~nb query =
     let data, compare =
       match query.kind with
       | Source -> "src", Gutil.alphabetic_order
+      | Occupation -> "occu", Gutil.alphabetic_order
       | Place _ -> "place", Geneweb.Place.compare_places
     in
     get_all_data_from_db conf base data compare
@@ -637,6 +651,15 @@ let search_auto_complete assets conf base mode place_mode max term =
     if Name.lower term = "" then []
     else ( Gwdb.load_strings_array base
          ; select_start_with_auto_complete base mode max term )
+
+  | `occupation ->
+    let nb = ref 0 in
+    let term = Name.lower @@ Mutil.tr '_' ' ' term in
+    let suggestions_from_db =
+      complete_with_db ~conf ~base ~nb {kind = Occupation; limit = max; term}
+    in
+    complete_with_dico
+      assets conf nb max (Some `profession) term suggestions_from_db
 
 let search_person_list base surname first_name =
   let _ = Gwdb.load_strings_array base in

@@ -13,7 +13,7 @@ val complete_with_dico :
   Geneweb.Config.config ->
   int ref ->
   int ->
-  [< Api_saisie_write_piqi.auto_complete_place_field ]
+  [< Api_saisie_write_piqi.auto_complete_place_field | `profession]
   option ->
   string ->
   string list ->
