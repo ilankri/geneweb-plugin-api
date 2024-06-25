@@ -804,40 +804,76 @@ module HistoryApi = struct
     | Some ip -> Some (history_person_of_iper ip)
     | None -> Gutil.split_key s |> Option.map history_person_of_key
 
+  let note_link conf key =
+    let pg, part =
+      let i, j =
+        try
+          let i = String.rindex key '/' in
+          (i, i + 1)
+        with Not_found -> (0, 0)
+      in
+      let pg = String.sub key 0 i in
+      let s = String.sub key j (String.length key - j) in
+      try pg, Some (int_of_string s)
+      with Failure _ -> key, None
+    in
+    let link_parameters = "m=NOTES" in
+    let link_parameters =
+      if pg <> "" then
+        Printf.sprintf {|%s;f=%s|} link_parameters pg
+      else link_parameters in
+    let link_parameters =
+      if Option.is_some part then
+        Printf.sprintf {|%s;v=%d|} link_parameters (Option.get part)
+      else link_parameters in
+    let link_txt =
+      if pg <> "" then
+        Printf.sprintf {|[%s]|} pg
+      else transl_nth conf "note/notes" 1 in
+    {
+      M.History_note.link_parameters;
+      link_txt;
+    }
+
   let history_entry conf base time user action keyo =
     let time = time_of_string time in
     let action = action_of_string action in
-    let person = Option.bind keyo (person_of_key conf base) in
+    let person, note =
+      if action = `notes_modified then
+        let note = Option.map (note_link conf) keyo in
+        None, note
+      else
+        let person = Option.bind keyo (person_of_key conf base) in
+        person, None
+    in
     {
       M.History_entry.modification_type = action;
       time;
       editor = user;
       person;
+      note;
     }
 
   let history_list conf base page elements_per_page filter_user =
     let f ~time ~user ~action ~keyo =
-      time, user, action, keyo
+      history_entry conf base time user action keyo
     in
-    let entries = Geneweb.History.map_history conf f in
     let ipage = Int32.to_int page in
     let elements_per_page = Int32.to_int elements_per_page in
-    let filter = Option.is_some filter_user in
-    let filtered_entries =
-      if filter then
-        List.filter (fun (_, user, _, _) ->
-            user = Option.get filter_user)
-          entries
-      else entries
+    let filter = match filter_user with
+      | Some filter_user ->
+        fun ~time:_ ~user ~action:_ ~keyo:_ -> filter_user = user
+      | None ->
+        fun ~time:_ ~user:_ ~action:_ ~keyo:_ -> true
     in
-    let total_elements = Int32.of_int (List.length filtered_entries) in
-    let entries =
-      Ext_list.sublist (List.rev filtered_entries)
-        ((ipage - 1) * elements_per_page)
-        elements_per_page
-      |> List.map (fun (time, user, action, keyo) ->
-          history_entry conf base time user action keyo)
+    let entries = Geneweb.History.filter_map_history
+        ~conf
+        ~skip:((pred ipage) * elements_per_page)
+        ~n:elements_per_page
+        ~filter
+        ~f
     in
+    let total_elements = Int32.of_int (History.total_entries ~conf ~filter) in
     Mext.gen_history {M.History.entries; page; total_elements}
 end
 

@@ -806,11 +806,17 @@ message HistoryPerson {
     required bool has_history = 9;    
 }
 
+message HistoryNote {
+    required string link_parameters = 1;
+    required string link_txt = 2;
+}
+
 message HistoryEntry {
     required ModificationType modification_type = 1;
     required Time time = 2;
     required string editor = 3;
     optional HistoryPerson person = 4;
+    optional HistoryNote note = 5;
 }
 
 message History {
