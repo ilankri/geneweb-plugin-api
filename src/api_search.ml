@@ -432,8 +432,6 @@ let select_start_with_auto_complete base mode max_res input =
     match mode with
     | `lastname -> Gwdb.persons_of_surname base
     | `firstname -> Gwdb.persons_of_first_name base
-    | `place -> failwith "cannot use select_start_with_auto_complete"
-    | `source -> failwith "cannot use select_start_with_auto_complete"
   in
   (* Si la base est grosse > 100 000, on fait un vrai start_with. *)
   if Gwdb.nb_of_persons base > 100000 then
@@ -442,8 +440,6 @@ let select_start_with_auto_complete base mode max_res input =
         match mode with
         | `lastname -> Geneweb.Util.name_key base input
         | `firstname -> input
-        | `place -> failwith "cannot use select_start_with_auto_complete"
-        | `source -> failwith "cannot use select_start_with_auto_complete"
       in
       (* uppercase *)
       let nb_res, maj_set = matching_nameset_of_input base true true name_f max_res name in
@@ -615,7 +611,7 @@ let search_auto_complete assets conf base mode place_mode max n =
     in
     reduce [] list
 
-  | `firstname | `lastname ->
+  | `firstname | `lastname as mode ->
     if Name.lower n = "" then []
     else ( Gwdb.load_strings_array base
          ; select_start_with_auto_complete base mode max n )
