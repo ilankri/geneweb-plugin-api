@@ -176,7 +176,8 @@ let check_person_conflict base original_pevents sp =
           | false, created ->
             (i + 1, created)
         end
-      | _ -> failwith __LOC__ (* Dans l'API, ne peut pas arriver *)
+      | None, None | Some _, Some _ ->
+         failwith __LOC__ (* Dans l'API, ne peut pas arriver *)
     end (0, created) sp.rparents
   in
   (* Vérification des pevents. *)
