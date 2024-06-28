@@ -558,8 +558,8 @@ let complete_with_dico assets conf nb max mode ini list =
     append list (List.sort Geneweb.Place.compare_places dico)
   | _ -> list
 
-let search_auto_complete assets conf base mode place_mode max n =
-  let aux data compare =
+let search_auto_complete assets conf base mode place_mode max term =
+  let get_all_data_from_db data compare =
     let conf = { conf with Geneweb.Config.env = ("data", Mutil.encode data) :: conf.Geneweb.Config.env } in
     Geneweb.UpdateData.get_all_data conf base
     |> List.map (Gwdb.sou base)
@@ -568,9 +568,9 @@ let search_auto_complete assets conf base mode place_mode max n =
   match mode with
 
   | `place ->
-    let list = aux "place" Geneweb.Place.compare_places in
+    let list = get_all_data_from_db "place" Geneweb.Place.compare_places in
     let nb = ref 0 in
-    let ini = Name.lower @@ Mutil.tr '_' ' ' n in
+    let ini = Name.lower @@ Mutil.tr '_' ' ' term in
     let reduce_perso list =
       let rec loop acc = function
         | [] -> acc
@@ -594,9 +594,9 @@ let search_auto_complete assets conf base mode place_mode max n =
     complete_with_dico assets conf nb max place_mode ini reduced_list
 
   | `source ->
-    let list = aux "src" Gutil.alphabetic_order in
+    let list = get_all_data_from_db "src" Gutil.alphabetic_order in
     let nb = ref 0 in
-    let ini = Name.lower @@ Mutil.tr '_' ' ' n in
+    let ini = Name.lower @@ Mutil.tr '_' ' ' term in
     let rec reduce acc = function
       | [] -> acc
       | hd :: tl ->
@@ -612,9 +612,9 @@ let search_auto_complete assets conf base mode place_mode max n =
     List.rev @@ reduce [] list
 
   | `firstname | `lastname as mode ->
-    if Name.lower n = "" then []
+    if Name.lower term = "" then []
     else ( Gwdb.load_strings_array base
-         ; select_start_with_auto_complete base mode max n )
+         ; select_start_with_auto_complete base mode max term )
 
 let search_person_list base surname first_name =
   let _ = Gwdb.load_strings_array base in
