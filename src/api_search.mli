@@ -5,7 +5,7 @@ type dico = string array
 val dico_fname :
   assets:string ->
   lang:string ->
-  data_type:[< `area_code | `country | `county | `region | `subdivision | `town | `profession ] ->
+  data_type:[< Api_saisie_write_piqi.auto_complete_place_field | `profession ] ->
   string option
 
 val complete_with_dico :
@@ -13,12 +13,7 @@ val complete_with_dico :
   Geneweb.Config.config ->
   int ref ->
   int ->
-  [< `area_code
-  | `country
-  | `county
-  | `region
-  | `subdivision
-  | `town ]
+  [< Api_saisie_write_piqi.auto_complete_place_field ]
   option ->
   string ->
   string list ->
@@ -32,13 +27,8 @@ val search_auto_complete :
   string ->
   Geneweb.Config.config ->
   Gwdb.base ->
-  [< `firstname | `lastname | `place | `source ] ->
-  [< `area_code
-  | `country
-  | `county
-  | `region
-  | `subdivision
-  | `town ]
+  [< Api_saisie_write_piqi.auto_complete_field ] ->
+  [< Api_saisie_write_piqi.auto_complete_place_field ]
   option ->
   int ->
   string ->
