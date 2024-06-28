@@ -600,9 +600,8 @@ let search_auto_complete assets conf base mode place_mode max term =
     let rec reduce acc = function
       | [] -> acc
       | hd :: tl ->
-        let k =  Mutil.tr '_' ' ' hd in
         let acc =
-          if string_start_with ini (Name.lower k)
+          if string_start_with ini (Name.lower @@ Mutil.tr '_' ' ' hd)
           then (incr nb ; hd :: acc)
           else acc
         in
