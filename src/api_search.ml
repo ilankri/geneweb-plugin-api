@@ -598,18 +598,18 @@ let search_auto_complete assets conf base mode place_mode max n =
     let nb = ref 0 in
     let ini = Name.lower @@ Mutil.tr '_' ' ' n in
     let rec reduce acc = function
-      | [] -> List.rev acc
+      | [] -> acc
       | hd :: tl ->
         let k =  Mutil.tr '_' ' ' hd in
         let acc =
           if string_start_with ini (Name.lower k)
-            then (incr nb ; hd :: acc)
-            else acc
+          then (incr nb ; hd :: acc)
+          else acc
         in
         if !nb < max then reduce acc tl
-        else List.rev acc
+        else acc
     in
-    reduce [] list
+    List.rev @@ reduce [] list
 
   | `firstname | `lastname as mode ->
     if Name.lower n = "" then []
