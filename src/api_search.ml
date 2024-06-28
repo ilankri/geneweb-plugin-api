@@ -558,17 +558,17 @@ let complete_with_dico assets conf nb max mode ini list =
     append list (List.sort Geneweb.Place.compare_places dico)
   | _ -> list
 
+let get_all_data_from_db conf base data compare =
+  let conf = { conf with Geneweb.Config.env = ("data", Mutil.encode data) :: conf.Geneweb.Config.env } in
+  Geneweb.UpdateData.get_all_data conf base
+  |> List.map (Gwdb.sou base)
+  |> List.sort compare
+
 let search_auto_complete assets conf base mode place_mode max term =
-  let get_all_data_from_db data compare =
-    let conf = { conf with Geneweb.Config.env = ("data", Mutil.encode data) :: conf.Geneweb.Config.env } in
-    Geneweb.UpdateData.get_all_data conf base
-    |> List.map (Gwdb.sou base)
-    |> List.sort compare
-  in
   match mode with
 
   | `place ->
-    let list = get_all_data_from_db "place" Geneweb.Place.compare_places in
+    let list = get_all_data_from_db conf base "place" Geneweb.Place.compare_places in
     let nb = ref 0 in
     let ini = Name.lower @@ Mutil.tr '_' ' ' term in
     let reduce_perso list =
@@ -594,7 +594,7 @@ let search_auto_complete assets conf base mode place_mode max term =
     complete_with_dico assets conf nb max place_mode ini reduced_list
 
   | `source ->
-    let list = get_all_data_from_db "src" Gutil.alphabetic_order in
+    let list = get_all_data_from_db conf base "src" Gutil.alphabetic_order in
     let nb = ref 0 in
     let ini = Name.lower @@ Mutil.tr '_' ' ' term in
     let rec reduce acc = function
