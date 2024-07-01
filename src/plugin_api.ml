@@ -54,11 +54,11 @@ let () =
     match dico_type with
     | `place ->
       if e `town || e `area_code || e `county || e `region || e `country
-      then Api_marshal_dico_place.write_dico_place_set
+      then Api_marshal_dico.write_dico_place_set
           ~assets ~fname_csv:(Filename.concat assets s) ~lang
     | `profession ->
       if e `profession then
-        Api_marshal_dico_place.write_dico_profession_set
+        Api_marshal_dico.write_dico_profession_set
           ~assets ~fname_csv:(Filename.concat assets s) ~lang
   in
   Array.iter begin fun s ->
