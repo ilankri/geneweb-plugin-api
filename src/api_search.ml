@@ -486,14 +486,15 @@ let select_start_with_auto_complete base mode max_res ini =
 
 type dico = string array
 
-let dico_fname assets lang k =
-  Option.map (Filename.concat assets) @@ match k with
+let dico_fname ~assets ~lang ~data_type =
+  Option.map (Filename.concat assets) @@ match data_type with
   | `town -> Some ("dico.town." ^ lang ^ ".bin~")
   | `area_code -> Some ("dico.area_code." ^ lang ^ ".bin~")
   | `county -> Some ("dico.county." ^ lang ^ ".bin~")
   | `region -> Some ("dico.region." ^ lang ^ ".bin~")
   | `country -> Some ("dico.country." ^ lang ^ ".bin~")
   | `subdivision -> None
+  | `profession -> Some ("dico.profession." ^ lang ^ ".bin~")
 
 (** [ini] must be in the form of [Name.lower @@ Mutil.tr '_' ' ' ini]
     Assume that [list] is already sorted, but reversed.
@@ -569,7 +570,7 @@ let complete_with_dico assets conf nb max mode ini list =
           (Api_csv.row_of_string s)
     in
     let dico =
-      begin match dico_fname assets conf.lang mode with
+      begin match dico_fname ~assets ~lang:conf.lang ~data_type:mode with
         | Some fn -> Files.read_or_create_value fn (fun () : dico -> [||])
         | None -> [||]
       end |> reduce_dico mode list format

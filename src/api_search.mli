@@ -3,9 +3,9 @@ val print_search : Geneweb.Config.config -> Gwdb.base -> unit
 type dico = string array
 
 val dico_fname :
-  string ->
-  string ->
-  [< `area_code | `country | `county | `region | `subdivision | `town ] ->
+  assets:string ->
+  lang:string ->
+  data_type:[< `area_code | `country | `county | `region | `subdivision | `town | `profession ] ->
   string option
 
 val complete_with_dico :
