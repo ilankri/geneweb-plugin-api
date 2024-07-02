@@ -18,15 +18,26 @@ let add_opt l set = match l with
      StrSet.add (build_line l) set
   | _ -> set
 
+type dico = string array
+
+let dico_fname assets lang k =
+  Option.map (Filename.concat assets) @@ match k with
+  | `town -> Some ("dico.town." ^ lang ^ ".bin~")
+  | `area_code -> Some ("dico.area_code." ^ lang ^ ".bin~")
+  | `county -> Some ("dico.county." ^ lang ^ ".bin~")
+  | `region -> Some ("dico.region." ^ lang ^ ".bin~")
+  | `country -> Some ("dico.country." ^ lang ^ ".bin~")
+  | `subdivision -> None
+
 let generate assets lang k data =
-  match Api_search.dico_fname assets lang k with
+  match dico_fname assets lang k with
   | None -> ()
   | Some fname_set ->
      let ext_flags =
        [ Open_wronly ; Open_append ; Open_creat ; Open_binary ; Open_nonblock ]
      in
      let oc = open_out_gen ext_flags 0o644 fname_set in
-     output_value oc (data : Api_search.dico) ;
+     output_value oc (data : dico) ;
      close_out oc
 
 let sorted_array_of_set s =
