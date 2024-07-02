@@ -76,6 +76,7 @@
     api_update_util
     api_util
     api_warnings
+    dictionary
   )
   (wrapped true)
   (optional)
