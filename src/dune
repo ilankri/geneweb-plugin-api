@@ -76,6 +76,8 @@
     api_update_util
     api_util
     api_warnings
+    autocomplete_dictionary
+    places_autocomplete_dictionary
   )
   (wrapped true)
   (optional)
