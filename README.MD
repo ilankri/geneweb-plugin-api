@@ -1,16 +1,16 @@
 # Api_marshal_dico_place
 
-This module take csv files as input, create place lists from it, and
-write them to binary files meant to be used by `gwd` API.
+This module takes CSV files as input, creates place lists from it, and
+writes them to binary files meant to be used by `gwd` API.
 
-e.g. for a given language `LANG`, provide a `dico_place_LANG.csv` file
+E.g. for a given language `LANG`, provide a `dico_place_LANG.csv` file
 containing data as `town,are_code,county,region,country`, and it will
 produce these files:
 
 ```
-dico_place_town_LANG.list
-dico_place_area_code_LANG.list
-dico_place_county_LANG.list
-dico_place_region_LANG.list
-dico_place_country_LANG.list
+dico.town.LANG.bin~
+dico.area_code.LANG.bin~
+dico.county.LANG.bin~
+dico.region.LANG.bin~
+dico.country.LANG.bin~
 ```
