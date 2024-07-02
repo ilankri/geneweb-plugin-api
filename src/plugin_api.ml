@@ -39,7 +39,7 @@ let () =
   let assets = !Gwd_lib.GwdPlugin.assets in
   let aux s lang =
     let e k =
-      match Plugin_api_lib.Api_search.dico_fname assets lang k with
+      match Plugin_api_lib.Api_marshal_dico_place.dico_fname assets lang k with
       | None -> false
       | Some fn -> not (Sys.file_exists fn)
     in

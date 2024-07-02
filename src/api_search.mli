@@ -1,13 +1,5 @@
 val print_search : Geneweb.Config.config -> Gwdb.base -> unit
 
-type dico = string array
-
-val dico_fname :
-  string ->
-  string ->
-  [< Api_saisie_write_piqi.auto_complete_place_field ] ->
-  string option
-
 val complete_with_dico :
   string ->
   Geneweb.Config.config ->

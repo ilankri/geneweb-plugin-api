@@ -459,17 +459,6 @@ let select_start_with_auto_complete base mode max_res ini =
   let l = Mutil.StrSet.elements s in
   List.sort Gutil.alphabetic_order l
 
-type dico = string array
-
-let dico_fname assets lang k =
-  Option.map (Filename.concat assets) @@ match k with
-  | `town -> Some ("dico.town." ^ lang ^ ".bin~")
-  | `area_code -> Some ("dico.area_code." ^ lang ^ ".bin~")
-  | `county -> Some ("dico.county." ^ lang ^ ".bin~")
-  | `region -> Some ("dico.region." ^ lang ^ ".bin~")
-  | `country -> Some ("dico.country." ^ lang ^ ".bin~")
-  | `subdivision -> None
-
 let complete_with_dico assets conf nb max mode ini list =
   let split_country_code row =
     let rec aux acc l = match l with
@@ -546,8 +535,8 @@ let complete_with_dico assets conf nb max mode ini list =
           (Api_csv.row_of_string s)
     in
     let dico =
-      begin match dico_fname assets conf.Geneweb.Config.lang mode with
-        | Some fn -> Files.read_or_create_value fn (fun () : dico -> [||])
+      begin match Api_marshal_dico_place.dico_fname assets conf.Geneweb.Config.lang mode with
+        | Some fn -> Files.read_or_create_value fn (fun () : Api_marshal_dico_place.dico -> [||])
         | None -> [||]
       end |> reduce_dico mode list format
     in
