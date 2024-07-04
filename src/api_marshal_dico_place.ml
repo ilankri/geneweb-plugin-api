@@ -101,11 +101,8 @@ end
 let write_dico_place_set ~assets ~fname_csv ~lang =
   Geneweb.GWPARAM.syslog `LOG_DEBUG ("writing files for lang "
                                       ^ lang ^ " from file: " ^ fname_csv);
-
   let csv = Api_csv.load_from_file ~file:fname_csv in
-
   let data = PlacesData.empty in
-
   let data =
     Api_csv.fold_left (
       fun data ->
@@ -124,9 +121,7 @@ let write_dico_place_set ~assets ~fname_csv ~lang =
           data
       ) data csv
   in
-
   let generate = generate assets lang in
-
   generate `town (sorted_array_of_set (PlacesData.get_towns data)) ;
   generate `area_code (sorted_array_of_set (PlacesData.get_area_codes data)) ;
   generate `county (sorted_array_of_set (PlacesData.get_counties data)) ;
