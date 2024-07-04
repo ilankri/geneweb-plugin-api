@@ -98,29 +98,31 @@ end = struct
   let get_countries t = t.countries
 end
 
+let make ~fname_csv =
+  let csv = Api_csv.load_from_file ~file:fname_csv in
+  let data = PlacesData.empty in
+  Api_csv.fold_left (
+      fun data ->
+      function
+      | [ town ; area_code ; county ; region ; country  ; country_code ] ->
+         let data = PlacesData.add_town data [town; area_code; county; region; country; country_code] in
+         let data = PlacesData.add_area_code data [area_code; county; region; country; country_code] in
+         let data = PlacesData.add_county data [county; region; country; country_code] in
+         let data = PlacesData.add_region data [region; country; country_code] in
+         let data = PlacesData.add_country data [country; country_code] in
+         data
+      | l ->
+         Geneweb.GWPARAM.syslog `LOG_DEBUG ("malformed line in file: " ^ fname_csv);
+         let s = List.fold_left (fun s a -> s ^ "," ^ a) "" l in
+         Geneweb.GWPARAM.syslog `LOG_DEBUG ("line is: " ^ s);
+         data
+    ) data csv
+
+
 let write_dico_place_set ~assets ~fname_csv ~lang =
   Geneweb.GWPARAM.syslog `LOG_DEBUG ("writing files for lang "
                                       ^ lang ^ " from file: " ^ fname_csv);
-  let csv = Api_csv.load_from_file ~file:fname_csv in
-  let data = PlacesData.empty in
-  let data =
-    Api_csv.fold_left (
-      fun data ->
-        function
-        | [ town ; area_code ; county ; region ; country  ; country_code ] ->
-          let data = PlacesData.add_town data [town; area_code; county; region; country; country_code] in
-          let data = PlacesData.add_area_code data [area_code; county; region; country; country_code] in
-          let data = PlacesData.add_county data [county; region; country; country_code] in
-          let data = PlacesData.add_region data [region; country; country_code] in
-          let data = PlacesData.add_country data [country; country_code] in
-          data
-        | l ->
-          Geneweb.GWPARAM.syslog `LOG_DEBUG ("malformed line in file: " ^ fname_csv);
-          let s = List.fold_left (fun s a -> s ^ "," ^ a) "" l in
-          Geneweb.GWPARAM.syslog `LOG_DEBUG ("line is: " ^ s);
-          data
-      ) data csv
-  in
+  let data = make ~fname_csv in
   let generate = generate assets lang in
   generate `town (sorted_array_of_set (PlacesData.get_towns data)) ;
   generate `area_code (sorted_array_of_set (PlacesData.get_area_codes data)) ;
