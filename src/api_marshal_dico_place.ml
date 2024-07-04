@@ -101,6 +101,11 @@ end
 let make ~fname_csv =
   let csv = Api_csv.load_from_file ~file:fname_csv in
   let data = PlacesData.empty in
+  let log_malformed_line ~fname_csv l =
+    Geneweb.GWPARAM.syslog `LOG_DEBUG ("malformed line in file: " ^ fname_csv);
+    let s = List.fold_left (fun s a -> s ^ "," ^ a) "" l in
+    Geneweb.GWPARAM.syslog `LOG_DEBUG ("line is: " ^ s)
+  in
   Api_csv.fold_left (
       fun data ->
       function
@@ -112,9 +117,7 @@ let make ~fname_csv =
          let data = PlacesData.add_country data [country; country_code] in
          data
       | l ->
-         Geneweb.GWPARAM.syslog `LOG_DEBUG ("malformed line in file: " ^ fname_csv);
-         let s = List.fold_left (fun s a -> s ^ "," ^ a) "" l in
-         Geneweb.GWPARAM.syslog `LOG_DEBUG ("line is: " ^ s);
+         log_malformed_line ~fname_csv l;
          data
     ) data csv
 
