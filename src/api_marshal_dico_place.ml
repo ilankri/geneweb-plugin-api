@@ -20,14 +20,17 @@ let add_opt l set = match l with
 
 type dico = string array
 
-let dico_fname assets lang k =
-  Option.map (Filename.concat assets) @@ match k with
-  | `town -> Some ("dico.town." ^ lang ^ ".bin~")
-  | `area_code -> Some ("dico.area_code." ^ lang ^ ".bin~")
-  | `county -> Some ("dico.county." ^ lang ^ ".bin~")
-  | `region -> Some ("dico.region." ^ lang ^ ".bin~")
-  | `country -> Some ("dico.country." ^ lang ^ ".bin~")
+let volume_name = function
+  | `town -> Some "town"
+  | `area_code -> Some "area_code"
+  | `county -> Some "county"
+  | `region -> Some "region"
+  | `country -> Some "country"
   | `subdivision -> None
+
+let dico_fname assets lang k =
+  Option.map
+    (Autocomplete_dictionary.volume_filename ~assets ~lang) (volume_name k)
 
 let generate assets lang k data =
   match dico_fname assets lang k with
