@@ -96,7 +96,7 @@ end = struct
 end
 
 let write_dico_place_set ~assets ~fname_csv ~lang =
-  Geneweb.GWPARAM.syslog `LOG_DEBUG ("writing places files for lang "
+  Geneweb.GWPARAM.syslog `LOG_DEBUG ("writing files for lang "
                                       ^ lang ^ " from file: " ^ fname_csv);
 
   let csv = Api_csv.load_from_file ~file:fname_csv in
