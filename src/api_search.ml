@@ -536,7 +536,7 @@ let complete_with_dico assets conf nb max mode ini list =
     in
     let dico =
       begin match Api_marshal_dico_place.dico_fname assets conf.Geneweb.Config.lang mode with
-        | Some fn -> Files.read_or_create_value fn (fun () : Api_marshal_dico_place.dico -> [||])
+        | Some fn -> Files.read_or_create_value fn (fun () : Autocomplete_dictionary.dico -> [||])
         | None -> [||]
       end |> reduce_dico mode list format
     in

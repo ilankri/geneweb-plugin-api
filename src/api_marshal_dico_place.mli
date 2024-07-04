@@ -1,5 +1,3 @@
-type dico = string array
-
 val dico_fname :
   string ->
   string ->
