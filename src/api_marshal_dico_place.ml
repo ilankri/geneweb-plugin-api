@@ -82,12 +82,21 @@ let make ~fname_csv =
       fun data ->
       function
       | [ town ; area_code ; county ; region ; country  ; country_code ] ->
-         let data = PlacesData.add_town data [town; area_code; county; region; country; country_code] in
-         let data = PlacesData.add_area_code data [area_code; county; region; country; country_code] in
-         let data = PlacesData.add_county data [county; region; country; country_code] in
-         let data = PlacesData.add_region data [region; country; country_code] in
-         let data = PlacesData.add_country data [country; country_code] in
-         data
+         List.fold_left
+           (fun data add -> add data)
+           data
+           [ (fun data ->
+               PlacesData.add_town
+                 data [town; area_code; county; region; country; country_code]);
+             (fun data ->
+               PlacesData.add_area_code
+                 data [area_code; county; region; country; country_code]);
+             (fun data ->
+               PlacesData.add_county
+                 data [county; region; country; country_code]);
+             (fun data ->
+               PlacesData.add_region data [region; country; country_code]);
+             (fun data -> PlacesData.add_country data [country; country_code]) ]
       | l ->
          log_malformed_line ~fname_csv l;
          data
@@ -99,8 +108,10 @@ let write_dico_place_set ~assets ~fname_csv ~lang =
                                       ^ lang ^ " from file: " ^ fname_csv);
   let data = make ~fname_csv in
   let generate = generate assets lang in
-  generate `town (sorted_array_of_set (PlacesData.get_towns data)) ;
-  generate `area_code (sorted_array_of_set (PlacesData.get_area_codes data)) ;
-  generate `county (sorted_array_of_set (PlacesData.get_counties data)) ;
-  generate `region (sorted_array_of_set (PlacesData.get_regions data)) ;
-  generate `country (sorted_array_of_set (PlacesData.get_countries data))
+  List.iter
+    (fun (kind, get) -> generate kind (sorted_array_of_set (get data)))
+    [ (`town, PlacesData.get_towns);
+      (`area_code, PlacesData.get_area_codes);
+      (`county, PlacesData.get_counties);
+      (`region, PlacesData.get_regions);
+      (`country, PlacesData.get_countries) ]
