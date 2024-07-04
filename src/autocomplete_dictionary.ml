@@ -22,3 +22,11 @@ type dico = string array
 
 let volume_filename ~assets ~lang name =
   Filename.concat assets (Printf.sprintf "dico.%s.%s.bin~" name lang)
+
+let generate fname_set data =
+  let ext_flags =
+    [ Open_wronly ; Open_append ; Open_creat ; Open_binary ; Open_nonblock ]
+  in
+  let oc = open_out_gen ext_flags 0o644 fname_set in
+  output_value oc (data : dico) ;
+  close_out oc

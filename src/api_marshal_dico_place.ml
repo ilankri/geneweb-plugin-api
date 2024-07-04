@@ -13,13 +13,7 @@ let dico_fname assets lang k =
 let generate assets lang k data =
   match dico_fname assets lang k with
   | None -> ()
-  | Some fname_set ->
-     let ext_flags =
-       [ Open_wronly ; Open_append ; Open_creat ; Open_binary ; Open_nonblock ]
-     in
-     let oc = open_out_gen ext_flags 0o644 fname_set in
-     output_value oc (data : Autocomplete_dictionary.dico) ;
-     close_out oc
+  | Some fname_set -> Autocomplete_dictionary.generate fname_set data
 
 let sorted_array_of_set s =
   let a = Autocomplete_dictionary.StrSet.elements s |> Array.of_list in
