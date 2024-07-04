@@ -38,14 +38,7 @@ let w_base =
 let () =
   let assets = !Gwd_lib.GwdPlugin.assets in
   let aux s lang =
-    let e k =
-      match Plugin_api_lib.Api_marshal_dico_place.dico_fname assets lang k with
-      | None -> false
-      | Some fn -> not (Sys.file_exists fn)
-    in
-    if e `town || e `area_code || e `county || e `region || e `country
-    then Plugin_api_lib.Api_marshal_dico_place.write_dico_place_set
-           ~assets ~fname_csv:(Filename.concat assets s) ~lang
+    Plugin_api_lib.Places_autocomplete_dictionary.marshal ~assets ~lang s
   in
   Array.iter begin fun s ->
     try Scanf.sscanf s "dico_place_%[a-z].csv" (aux s) with _ -> ()

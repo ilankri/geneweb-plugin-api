@@ -535,10 +535,9 @@ let complete_with_dico assets conf nb max mode ini list =
           (Api_csv.row_of_string s)
     in
     let dico =
-      begin match Api_marshal_dico_place.dico_fname assets conf.Geneweb.Config.lang mode with
-        | Some fn -> Files.read_or_create_value fn (fun () : Api_marshal_dico_place.dico -> [||])
-        | None -> [||]
-      end |> reduce_dico mode list format
+      Places_autocomplete_dictionary.unmarshal
+        ~assets ~lang:conf.Geneweb.Config.lang mode
+      |> reduce_dico mode list format
     in
     let append l1 l2 =
       List.fold_left (fun l hd -> hd :: l) l2 (List.rev l1)

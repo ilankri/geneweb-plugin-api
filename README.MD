@@ -1,4 +1,4 @@
-# Api_marshal_dico_place
+# Places_autocomplete_dictionary
 
 This module takes CSV files as input, creates place lists from it, and
 writes them to binary files meant to be used by `gwd` API.
