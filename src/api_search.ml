@@ -506,21 +506,23 @@ let complete_with_dico assets conf nb max mode ini list =
           if string_start_with ini (Name.lower k) then begin
             let row = Api_csv.row_of_string hd in
             let hd_opt =
-              let country_code, expl_hd = split_country_code row in
-              if belongs_to_preferred_countries country_code then
-                if format <> [] then
-                  Some (String.concat ", " @@
-                        Mutil.filter_map begin function
-                          | `town -> List.nth_opt expl_hd 0
-                          | `area_code -> List.nth_opt expl_hd 1
-                          | `county -> List.nth_opt expl_hd 2
-                          | `region -> List.nth_opt expl_hd 3
-                          | `country -> List.nth_opt expl_hd 4
-                          | _ -> None
-                        end
-                          format)
-                else Some (String.concat ", " expl_hd)
-              else None
+              match mode with
+              | #Api_saisie_write_piqi.auto_complete_place_field ->
+                 let country_code, expl_hd = split_country_code row in
+                 if belongs_to_preferred_countries country_code then
+                   if format <> [] then
+                     Some (String.concat ", " @@
+                           Mutil.filter_map begin function
+                             | `town -> List.nth_opt expl_hd 0
+                             | `area_code -> List.nth_opt expl_hd 1
+                             | `county -> List.nth_opt expl_hd 2
+                             | `region -> List.nth_opt expl_hd 3
+                             | `country -> List.nth_opt expl_hd 4
+                             | _ -> None
+                           end
+                             format)
+                   else Some (String.concat ", " expl_hd)
+                 else None
             in
             if Option.is_none hd_opt
             || List.mem (Option.get hd_opt) ignored
@@ -538,7 +540,8 @@ let complete_with_dico assets conf nb max mode ini list =
     | None -> [||]
   in
   match mode with
-  | Some mode when !nb < max ->
+  | Some (#Api_saisie_write_piqi.auto_complete_place_field as mode)
+       when !nb < max ->
     let format =
       match List.assoc_opt "places_format" conf.Geneweb.Config.base_env with
       | None -> []
@@ -559,7 +562,7 @@ let complete_with_dico assets conf nb max mode ini list =
       |> reduce_dico mode list format
     in
     append list (List.sort Geneweb.Place.compare_places dico)
-  | _ -> list
+  | None | Some #Api_saisie_write_piqi.auto_complete_place_field -> list
 
 let get_all_data_from_db conf base data compare =
   let conf = { conf with Geneweb.Config.env = ("data", Mutil.encode data) :: conf.Geneweb.Config.env } in

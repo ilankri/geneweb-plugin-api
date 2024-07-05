@@ -11,7 +11,9 @@ let print_auto_complete assets conf base =
     if Gwdb.nb_of_persons base > 100000 then
       let cache = Api_saisie_autocomplete.get_list_from_cache conf base mode max_res s in
       let ini = Name.lower @@ Mutil.tr '_' ' ' s in
-      Api_search.complete_with_dico assets conf (ref @@ List.length cache) max_res place_mode ini cache
+      match mode with
+      | `place | `source | `lastname | `firstname ->
+         Api_search.complete_with_dico assets conf (ref @@ List.length cache) max_res place_mode ini cache
     else
       Api_search.search_auto_complete assets conf base mode place_mode max_res s
   in
