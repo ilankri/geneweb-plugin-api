@@ -532,6 +532,11 @@ let complete_with_dico assets conf nb max mode ini list =
         if !nb < max then loop acc (i + 1) else acc
     in loop [] 0
   in
+  let unmarshal_dico ~assets ~lang ~data_type =
+    match dico_fname ~assets ~lang ~data_type with
+    | Some fn -> Files.read_or_create_value fn (fun () : dico -> [||])
+    | None -> [||]
+  in
   match mode with
   | Some mode when !nb < max ->
     let format =
@@ -550,10 +555,8 @@ let complete_with_dico assets conf nb max mode ini list =
           (Api_csv.row_of_string s)
     in
     let dico =
-      begin match dico_fname ~assets ~lang:conf.Geneweb.Config.lang ~data_type:mode with
-        | Some fn -> Files.read_or_create_value fn (fun () : dico -> [||])
-        | None -> [||]
-      end |> reduce_dico mode list format
+      unmarshal_dico ~assets ~lang:conf.Geneweb.Config.lang ~data_type:mode
+      |> reduce_dico mode list format
     in
     append list (List.sort Geneweb.Place.compare_places dico)
   | _ -> list
