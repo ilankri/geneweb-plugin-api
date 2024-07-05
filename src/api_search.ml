@@ -1,3 +1,6 @@
+let append l1 l2 =
+  List.fold_left (fun l hd -> hd :: l) l2 (List.rev l1)
+
 let string_start_with ini s = Mutil.start_with_wildcard ini 0 s
 
 (* Algo de Knuth-Morris-Pratt *)
@@ -551,9 +554,6 @@ let complete_with_dico assets conf nb max mode ini list =
         | Some fn -> Files.read_or_create_value fn (fun () : dico -> [||])
         | None -> [||]
       end |> reduce_dico mode list format
-    in
-    let append l1 l2 =
-      List.fold_left (fun l hd -> hd :: l) l2 (List.rev l1)
     in
     append list (List.sort Geneweb.Place.compare_places dico)
   | _ -> list
