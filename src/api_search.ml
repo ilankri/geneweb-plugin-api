@@ -505,8 +505,8 @@ let complete_with_dico assets conf nb max mode ini list =
           in
           if string_start_with ini (Name.lower k) then begin
             let row = Api_csv.row_of_string hd in
-            let country_code, expl_hd = split_country_code row in
             let hd_opt =
+              let country_code, expl_hd = split_country_code row in
               if belongs_to_preferred_countries country_code then
                 if format <> [] then
                   Some (String.concat ", " @@
