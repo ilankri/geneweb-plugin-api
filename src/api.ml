@@ -707,3 +707,180 @@ let print_all_families conf base =
       Mext.gen_list_full_families list
   in
   print_result conf data
+
+
+module HistoryApi = struct
+  let time_of_string s =
+    try
+      Scanf.sscanf s "%i-%i-%i %i:%i:%i"
+        (fun year month day hour minute second ->
+           {M.Time.year = Int32.of_int year;
+            month = Int32.of_int month;
+            day = Int32.of_int day;
+            hour = Int32.of_int hour;
+            minute = Int32.of_int minute;
+            second = Int32.of_int second})
+    with Scanf.Scan_failure _ ->
+      {M.Time.year = Int32.zero;
+       month = Int32.zero;
+       day = Int32.zero;
+       hour = Int32.zero;
+       minute = Int32.zero;
+       second = Int32.zero}
+
+  let action_of_string = function
+    | "ap" -> `person_added
+    | "mp" -> `person_modified
+    | "dp" -> `person_deleted
+    | "fp" -> `person_merged
+    | "si" -> `image_received
+    | "di" -> `image_deleted
+    | "af" -> `family_added
+    | "mf" -> `family_modified
+    | "df" -> `family_deleted
+    | "if" -> `family_inverted
+    | "ff" -> `family_merged
+    | "cn" -> `changed_children_names
+    | "aa" -> `parents_added
+    | "mn" -> `notes_modified
+    | "cp" -> `place_modified
+    | "cs" -> `source_modified
+    | "co" -> `occupation_modified
+    | s -> raise (Invalid_argument s)
+
+  let person_of_key conf base s =
+    let year_of_cdate d = Option.bind (Date.od_of_cdate d) Date.year_of_date in
+    let has_history fn sn occ =
+      let person_file = HistoryDiff.history_file fn sn occ in
+      Sys.file_exists (HistoryDiff.history_path conf person_file)
+    in
+    let history_person_of_iper ip =
+      let pers = Gwdb.poi base ip in
+      let lastname = Gwdb.sou base (Gwdb.get_surname pers) in
+      let firstname = Gwdb.sou base (Gwdb.get_first_name pers) in
+      let oc = Gwdb.get_occ pers in
+      let has_history = has_history firstname lastname oc in
+      let oc = Int32.of_int oc in
+      let n = Name.lower lastname in
+      let p = Name.lower firstname in
+      let year1 =
+        let birth_year = year_of_cdate (Gwdb.get_birth pers) in
+        if Option.is_some birth_year then birth_year
+        else year_of_cdate (Gwdb.get_baptism pers)
+      in
+      let year2 =
+        let death_year =
+          Option.bind (Date.date_of_death (Gwdb.get_death pers)) Date.year_of_date
+        in
+        if Option.is_some death_year then death_year
+        else Option.bind (Date.date_of_burial (Gwdb.get_burial pers)) Date.year_of_date
+      in
+      {
+        M.History_person.n;
+        p;
+        oc;
+        firstname;
+        lastname;
+        year1 = Option.map Int32.of_int year1;
+        year2 = Option.map Int32.of_int year2;
+        exists_in_base = true;
+        has_history;
+      }
+    in
+    let history_person_of_key (p, oc, n) =
+      {
+        M.History_person.n;
+        p;
+        oc = Int32.of_int oc;
+        firstname = "";
+        lastname = "";
+        year1 = None;
+        year2 = None;
+        exists_in_base = false;
+        has_history = false;
+      }
+    in
+    match Gutil.person_of_string_key base s with
+    | Some ip -> Some (history_person_of_iper ip)
+    | None -> Gutil.split_key s |> Option.map history_person_of_key
+
+  let note_link conf key =
+    let pg, part =
+      let i, j =
+        try
+          let i = String.rindex key '/' in
+          (i, i + 1)
+        with Not_found -> (0, 0)
+      in
+      let pg = String.sub key 0 i in
+      let s = String.sub key j (String.length key - j) in
+      try pg, Some (int_of_string s)
+      with Failure _ -> key, None
+    in
+    let link_parameters = "m=NOTES" in
+    let link_parameters =
+      if pg <> "" then
+        Printf.sprintf {|%s;f=%s|} link_parameters pg
+      else link_parameters in
+    let link_parameters =
+      if Option.is_some part then
+        Printf.sprintf {|%s;v=%d|} link_parameters (Option.get part)
+      else link_parameters in
+    let link_txt =
+      if pg <> "" then
+        Printf.sprintf {|[%s]|} pg
+      else transl_nth conf "note/notes" 1 in
+    {
+      M.History_note.link_parameters;
+      link_txt;
+    }
+
+  let history_entry conf base time user action keyo =
+    let time = time_of_string time in
+    let action = action_of_string action in
+    let person, note =
+      if action = `notes_modified then
+        let note = Option.map (note_link conf) keyo in
+        None, note
+      else
+        let person = Option.bind keyo (person_of_key conf base) in
+        person, None
+    in
+    {
+      M.History_entry.modification_type = action;
+      time;
+      editor = user;
+      person;
+      note;
+    }
+
+  let history_list conf base page elements_per_page filter_user =
+    let f ~time ~user ~action ~keyo =
+      history_entry conf base time user action keyo
+    in
+    let ipage = Int32.to_int page in
+    let elements_per_page = Int32.to_int elements_per_page in
+    let filter = match filter_user with
+      | Some filter_user ->
+        fun ~time:_ ~user ~action:_ ~keyo:_ -> filter_user = user
+      | None ->
+        fun ~time:_ ~user:_ ~action:_ ~keyo:_ -> true
+    in
+    let entries = Geneweb.History.filter_map_history
+        ~conf
+        ~skip:((pred ipage) * elements_per_page)
+        ~n:elements_per_page
+        ~filter
+        ~f
+    in
+    let total_elements = Int32.of_int (History.total_entries ~conf ~filter) in
+    Mext.gen_history {M.History.entries; page; total_elements}
+end
+
+let history conf base =
+  let params = get_params conf Mext.parse_history_request in
+  let page = params.M.History_request.page in
+  let elements_per_page = params.M.History_request.elements_per_page in
+  let filter_user = params.M.History_request.filter_user in
+  let data = HistoryApi.history_list conf base page elements_per_page filter_user in
+  print_result conf data
