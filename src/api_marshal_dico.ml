@@ -136,4 +136,3 @@ let write_dico_profession_set ~assets ~fname_csv ~lang =
     ) StrSet.empty csv
   in
   generate assets lang `profession (sorted_array_of_set professions_set)
-  
