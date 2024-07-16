@@ -29,9 +29,9 @@ let generate assets lang data_type data =
      output_value oc (data : Api_search.dico) ;
      close_out oc
 
-let sorted_array_of_set s =
+let sorted_array_of_set ?(compare = Gutil.alphabetic) s =
   let a = StrSet.elements s |> Array.of_list in
-  Array.sort Gutil.alphabetic a ;
+  Array.sort compare a ;
   a
 
 module PlacesData : sig
