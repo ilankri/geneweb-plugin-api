@@ -513,7 +513,7 @@ let complete_with_dico assets conf nb max mode ini list =
                  if belongs_to_preferred_countries country_code then
                    if format <> [] then
                      Some (String.concat ", " @@
-                           Mutil.filter_map begin function
+                           List.filter_map begin function
                              | `town -> List.nth_opt expl_hd 0
                              | `area_code -> List.nth_opt expl_hd 1
                              | `county -> List.nth_opt expl_hd 2

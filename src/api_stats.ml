@@ -284,7 +284,7 @@ let format_top_stats ht title =
   let l =
     List.sort (fun (_, n1) (_, n2) -> if n1 > n2 then -1 else 1) !res
   in
-  let l = Util.reduce_list 10 l in
+  let l = Ext_list.take l 10 in
   let (series_string, datas) =
     List.fold_right
       (fun (s, n) (series, datas) ->
@@ -850,7 +850,7 @@ let print_ind_stats conf base =
         (fun (_, n1) (_, n2) -> if n1 > n2 then -1 else 1)
         !res
     in
-    let l = Util.reduce_list 10 l in
+    let l = Ext_list.take l 10 in
     let (series_string, datas) =
       List.fold_right
         (fun (s, n) (series, datas) ->
@@ -929,7 +929,7 @@ let print_ind_stats conf base =
         (fun (_, n1) (_, n2) -> if n1 > n2 then -1 else 1)
         !res
     in
-    let l = Util.reduce_list 10 l in
+    let l = Ext_list.take l 10 in
     let (series_string, datas) =
       List.fold_right
         (fun (s, n) (series, datas) ->

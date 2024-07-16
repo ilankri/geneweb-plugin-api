@@ -58,7 +58,7 @@ let print_person_search_list conf base =
       list
   in
   (* On préfère limiter la liste ici, même si on perd un peu en performance. *)
-  let list = Geneweb.Util.reduce_list max_res list in
+  let list = Ext_list.take list max_res in
   let () = Geneweb.SosaCache.build_sosa_ht conf base in
   let list =
     List.map
