@@ -56,7 +56,7 @@
     api_csv
     api_def
     api_graph
-    api_marshal_dico_place
+    api_marshal_dico
     api_piqi
     api_piqi_util
     api_piqi_ext

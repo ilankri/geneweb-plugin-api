@@ -45,18 +45,27 @@ let w_base =
 
 let () =
   let assets = !GWD.GwdPlugin.assets in
-  let aux s lang =
+  let aux dico_type s lang =
     let e k =
-      match Api_search.dico_fname assets lang k with
+      match Api_search.dico_fname ~assets ~lang ~data_type:k with
       | None -> false
       | Some fn -> not (Sys.file_exists fn)
     in
-    if e `town || e `area_code || e `county || e `region || e `country
-    then Api_marshal_dico_place.write_dico_place_set
-           ~assets ~fname_csv:(Filename.concat assets s) ~lang
+    match dico_type with
+    | `place ->
+      if e `town || e `area_code || e `county || e `region || e `country
+      then Api_marshal_dico.write_dico_place_set
+          ~assets ~fname_csv:(Filename.concat assets s) ~lang
+    | `profession ->
+      if e `profession then
+        Api_marshal_dico.write_dico_profession_set
+          ~assets ~fname_csv:(Filename.concat assets s) ~lang
   in
   Array.iter begin fun s ->
-    try Scanf.sscanf s "dico_place_%[a-z].csv" (aux s) with _ -> ()
+    try Scanf.sscanf s "dico_place_%[a-z].csv" (aux `place s)
+    with _ ->
+    try Scanf.sscanf s "dico_profession_%[a-z].csv" (aux `profession s)
+    with _ -> ()
   end (Sys.readdir assets) ;
   let aux fn _assets conf base =
     fn { conf with api_mode = true } base ; true

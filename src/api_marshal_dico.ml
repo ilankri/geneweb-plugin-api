@@ -18,8 +18,8 @@ let add_opt l set = match l with
      StrSet.add (build_line l) set
   | _ -> set
 
-let generate assets lang k data =
-  match Api_search.dico_fname assets lang k with
+let generate assets lang data_type data =
+  match Api_search.dico_fname ~assets ~lang ~data_type with
   | None -> ()
   | Some fname_set ->
      let ext_flags =
@@ -84,6 +84,11 @@ end = struct
   let get_countries t = t.countries
 end
 
+let malformed_line fname l =
+  Geneweb.GWPARAM.syslog `LOG_DEBUG ("malformed line in file: " ^ fname);
+  let s = String.concat "," l in
+  Geneweb.GWPARAM.syslog `LOG_DEBUG ("line is: " ^ s)
+
 let write_dico_place_set ~assets ~fname_csv ~lang =
   Geneweb.GWPARAM.syslog `LOG_DEBUG ("writing places files for lang "
                                       ^ lang ^ " from file: " ^ fname_csv);
@@ -104,9 +109,7 @@ let write_dico_place_set ~assets ~fname_csv ~lang =
           let data = PlacesData.add_country data [country; country_code] in
           data
         | l ->
-          Geneweb.GWPARAM.syslog `LOG_DEBUG ("malformed line in file: " ^ fname_csv);
-          let s = List.fold_left (fun s a -> s ^ "," ^ a) "" l in
-          Geneweb.GWPARAM.syslog `LOG_DEBUG ("line is: " ^ s);
+          malformed_line fname_csv l;
           data
       ) data csv
   in
@@ -118,3 +121,19 @@ let write_dico_place_set ~assets ~fname_csv ~lang =
   generate `county (sorted_array_of_set (PlacesData.get_counties data)) ;
   generate `region (sorted_array_of_set (PlacesData.get_regions data)) ;
   generate `country (sorted_array_of_set (PlacesData.get_countries data))
+
+let write_dico_profession_set ~assets ~fname_csv ~lang =
+  Geneweb.GWPARAM.syslog `LOG_DEBUG ("writing professions files for lang "
+                                     ^ lang ^ " from file: " ^ fname_csv);
+  let csv = Api_csv.load_from_file ~file:fname_csv in
+  let professions_set = Api_csv.fold_left (fun set ->
+      function
+      | [profession] ->
+        StrSet.add profession set
+      | l ->
+        malformed_line fname_csv l;
+        set
+    ) StrSet.empty csv
+  in
+  generate assets lang `profession (sorted_array_of_set professions_set)
+  
