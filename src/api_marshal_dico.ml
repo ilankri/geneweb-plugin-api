@@ -29,9 +29,9 @@ let generate assets lang data_type data =
      output_value oc (data : Api_search.dico) ;
      close_out oc
 
-let sorted_array_of_set s =
+let sorted_array_of_set ?(compare = Gutil.alphabetic) s =
   let a = StrSet.elements s |> Array.of_list in
-  Array.sort Gutil.alphabetic a ;
+  Array.sort compare a ;
   a
 
 module PlacesData : sig
@@ -129,11 +129,11 @@ let write_dico_profession_set ~assets ~fname_csv ~lang =
   let professions_set = Api_csv.fold_left (fun set ->
       function
       | [profession] ->
-        StrSet.add profession set
+        StrSet.add (Utf8.capitalize_fst profession) set
       | l ->
         malformed_line fname_csv l;
         set
     ) StrSet.empty csv
   in
-  generate assets lang `profession (sorted_array_of_set professions_set)
-  
+  generate assets lang `profession
+    (sorted_array_of_set ~compare:Gutil.alphabetic_order professions_set)
