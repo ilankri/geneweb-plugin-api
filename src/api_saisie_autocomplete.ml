@@ -1,57 +1,54 @@
-open Geneweb
-open Config
-open Gwdb
-open Util
-
 (**/**)
 
 module IstrSet = Set.Make (struct type t = Gwdb.istr let compare = compare end)
 
 (** Create cache files  used by autocomplete *)
 let create_cache base mode cache_file =
-  let add acc x = if not (is_empty_string x) then IstrSet.add x acc else acc in
+  let add acc x = if not (Gwdb.is_empty_string x) then IstrSet.add x acc else acc in
   let cache =
     match mode with
     | `lastname ->
       Gwdb.Collection.fold
-        (fun acc p -> add acc (get_surname p) )
+        (fun acc p -> add acc (Gwdb.get_surname p) )
         IstrSet.empty
         (Gwdb.persons base)
     | `firstname ->
       Gwdb.Collection.fold
-        (fun acc p -> add acc (get_first_name p) )
+        (fun acc p -> add acc (Gwdb.get_first_name p) )
         IstrSet.empty (Gwdb.persons base)
     | `place ->
       let acc =
         Gwdb.Collection.fold
           (fun acc p ->
              List.fold_left
-               (fun acc e -> add acc (get_pevent_place e)) acc (get_pevents p) )
+               (fun acc e -> add acc (Gwdb.get_pevent_place e)) acc (Gwdb.get_pevents p) )
           IstrSet.empty (Gwdb.persons base)
       in
       Gwdb.Collection.fold
-        (fun acc f -> List.fold_left (fun acc e -> add acc (get_fevent_place e)) acc (get_fevents f) )
+        (fun acc f -> List.fold_left (fun acc e -> add acc (Gwdb.get_fevent_place e)) acc (Gwdb.get_fevents f) )
         acc (Gwdb.families base)
     | `source ->
       let acc =
         Gwdb.Collection.fold
           (fun acc p ->
-             let acc = add acc (get_psources p) in
-             List.fold_left (fun acc e -> add acc (get_pevent_src e)) acc (get_pevents p) )
+             let acc = add acc (Gwdb.get_psources p) in
+             List.fold_left (fun acc e -> add acc (Gwdb.get_pevent_src e)) acc (Gwdb.get_pevents p) )
           IstrSet.empty
           (Gwdb.persons base)
       in
       Gwdb.Collection.fold
         (fun acc f ->
-           let acc = add acc (get_fsources f) in
-           List.fold_left (fun acc e -> add acc (get_fevent_src e)) acc (get_fevents f) )
+           let acc = add acc (Gwdb.get_fsources f) in
+           List.fold_left (fun acc e -> add acc (Gwdb.get_fevent_src e)) acc (Gwdb.get_fevents f) )
         acc
         (Gwdb.families base)
   in
-  let cache = List.rev_map (sou base) (IstrSet.elements cache) in
+  let cache = List.rev_map (Gwdb.sou base) (IstrSet.elements cache) in
   let cache =
     List.sort
-      (if mode = `place then Place.compare_places else Gutil.alphabetic_order)
+      (match mode with
+       | `place -> Geneweb.Place.compare_places
+       | `firstname | `lastname | `source -> Gutil.alphabetic_order)
       cache
   in
   let oc = Secure.open_out_bin cache_file in
@@ -59,7 +56,7 @@ let create_cache base mode cache_file =
   close_out oc
 
 let rec get_list_from_cache ?(retry = true) conf base mode max_res s =
-  let bfile = bpath (conf.bname ^ ".gwb") in
+  let bfile = Geneweb.Util.bpath (conf.Geneweb.Config.bname ^ ".gwb") in
   let cache_file =
     match mode with
     | `lastname -> Filename.concat bfile "cache_surname"
@@ -69,7 +66,7 @@ let rec get_list_from_cache ?(retry = true) conf base mode max_res s =
   in
   Lock.control cache_file false ~onerror:(fun () -> []) begin fun () ->
     let stats = Unix.stat cache_file in
-    let last_mod = conf.ctime -. stats.Unix.st_mtime in
+    let last_mod = conf.Geneweb.Config.ctime -. stats.Unix.st_mtime in
     if stats.Unix.st_size = 0 || last_mod > 3600.
     then create_cache base mode cache_file ;
     let ic = Secure.open_in_bin cache_file in
