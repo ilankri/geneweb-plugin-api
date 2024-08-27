@@ -1518,6 +1518,7 @@ let pers_to_piqi_person conf base p base_prefix is_main_person =
       events_witnesses = get_events_witnesses conf base p base_prefix gen_p p_auth pers_to_piqi_simple_person simple_event_witness_constructor;
       baseprefix = base_prefix;
       fiche_person_person = None;
+      is_contemporary = GWPARAM.is_contemporary conf base p;
     }
 
 let fill_ref_if_is_main_person conf base is_main_person =
@@ -1670,6 +1671,7 @@ let rec pers_to_piqi_fiche_person conf base p base_prefix is_main_person nb_asc 
         related = if return_simple_attributes then get_related_piqi conf base p base_prefix gen_p pers_to_piqi_simple_person simple_relation_person_constructor else [];
         rparents = if return_simple_attributes then get_rparents_piqi base conf base_prefix gen_p pers_to_piqi_simple_person simple_relation_person_constructor else [];
         baseprefix = base_prefix;
+        is_contemporary = GWPARAM.is_contemporary conf base p;
       }
     end
 
