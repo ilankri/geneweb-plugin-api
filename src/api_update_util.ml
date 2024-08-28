@@ -2,29 +2,21 @@ module M = Api_piqi
 
 module Mwrite = Api_saisie_write_piqi
 
-open Geneweb
-open Def
-open Date
-open Gwdb
-open Util
-open Api_util
-
-
 (**/**) (* Misc *)
 
 let new_gutil_find_free_occ base f s i =
-  let ipl = persons_of_name base (f ^ " " ^ s) in
+  let ipl = Gwdb.persons_of_name base (f ^ " " ^ s) in
   let first_name = Name.lower f in
   let surname = Name.lower s in
   let list_occ =
     let rec loop list =
       function
       | ip :: ipl ->
-          let p = poi base ip in
-          if not (List.mem (get_occ p) list) &&
-             first_name = Name.lower (p_first_name base p) &&
-             surname = Name.lower (p_surname base p) then
-            loop (get_occ p :: list) ipl
+          let p = Gwdb.poi base ip in
+          if not (List.mem (Gwdb.get_occ p) list) &&
+             first_name = Name.lower (Gwdb.p_first_name base p) &&
+             surname = Name.lower (Gwdb.p_surname base p) then
+            loop (Gwdb.get_occ p :: list) ipl
           else loop list ipl
       | [] -> list
     in
@@ -90,9 +82,9 @@ type created_person = {
 }
 
 let created_person_of_person base pers =
-  let n = Gwdb.sou base pers.surname in
-  let p = Gwdb.sou base pers.first_name in
-  let oc = Int32.of_int pers.occ in
+  let n = Gwdb.sou base pers.Def.surname in
+  let p = Gwdb.sou base pers.Def.first_name in
+  let oc = Int32.of_int pers.Def.occ in
   {n; p; oc}
 
 let created_person ~n ~p ~oc = {n; p; oc}
@@ -101,8 +93,8 @@ let created_person_is_unnamed cp =
   cp.n = "?" && cp.p = "?"
 
 type update_base_status =
-  | UpdateSuccess of CheckItem.base_warning list * CheckItem.base_misc list * (unit -> unit) list * created_person option
-  | UpdateError of Update.update_error
+  | UpdateSuccess of Geneweb.CheckItem.base_warning list * Geneweb.CheckItem.base_misc list * (unit -> unit) list * created_person option
+  | UpdateError of Geneweb.Update.update_error
   | UpdateErrorConflict of Mwrite.Create_conflict.t
 
 
@@ -117,7 +109,7 @@ let error_conflict_person_link base created (f, s, o, create, _, force_create) =
   let f = if f = "" then "?" else f in
   let s = if s = "" then "?" else s in
   match create with
-  | Update.Create (_, _) ->
+  | Geneweb.Update.Create (_, _) ->
     if f <> "?" && s <> "?" then
       if force_create then
         (* If we want to force, we need a free occ *)
@@ -130,14 +122,14 @@ let error_conflict_person_link base created (f, s, o, create, _, force_create) =
   | Link -> false, created
 
 let check_person_conflict base original_pevents sp =
-  let op = poi base (sp.key_index) in
-  let ofn = sou base (get_first_name op) in
-  let osn = sou base (get_surname op) in
-  let oocc = get_occ op in
+  let op = Gwdb.poi base (sp.Def.key_index) in
+  let ofn = Gwdb.sou base (Gwdb.get_first_name op) in
+  let osn = Gwdb.sou base (Gwdb.get_surname op) in
+  let oocc = Gwdb.get_occ op in
   let created =
-    if ofn <> sp.first_name || osn <> sp.surname || oocc <> sp.occ then
-      match Gwdb.person_of_key base sp.first_name sp.surname sp.occ with
-      | Some p' when p' <> sp.key_index ->
+    if ofn <> sp.Def.first_name || osn <> sp.Def.surname || oocc <> sp.Def.occ then
+      match Gwdb.person_of_key base sp.Def.first_name sp.Def.surname sp.Def.occ with
+      | Some p' when p' <> sp.Def.key_index ->
         let conflict =
           { Mwrite.Create_conflict.form = Some `person_form1
           ; witness = false
@@ -145,18 +137,18 @@ let check_person_conflict base original_pevents sp =
           ; event = false
           ; pos = None
           ; pos_witness = None
-          ; lastname = sp.surname
-          ; firstname = sp.first_name
+          ; lastname = sp.Def.surname
+          ; firstname = sp.Def.first_name
           }
         in
         raise (ModErrApiConflict conflict)
-      | _ -> [ (sp.first_name, sp.surname, sp.occ) ]
+      | _ -> [ (sp.Def.first_name, sp.Def.surname, sp.Def.occ) ]
     else []
   in
   (* Vérification des rparents. *)
   let _, created =
     List.fold_left begin fun (i, created) r ->
-      match (r.r_fath, r.r_moth) with
+      match (r.Def.r_fath, r.Def.r_moth) with
       | (Some (f, s, o, create, var, force_create), None)
       | (None, Some (f, s, o, create, var, force_create)) ->
         begin match error_conflict_person_link base created (f, s, o, create, var, force_create) with
@@ -201,7 +193,7 @@ let check_person_conflict base original_pevents sp =
           in
           raise (ModErrApiConflict conflict)
         | false, created -> (j + 1, created)
-      end (0, created) evt.epers_witnesses
+      end (0, created) evt.Def.epers_witnesses
     in created
   end created sp.pevents
 
@@ -247,10 +239,10 @@ let check_family_conflict base sfam scpl sdes =
             in
             raise (ModErrApiConflict conflict)
           | false, created -> (j + 1, created)
-        end (0, created) evt.efam_witnesses
+        end (0, created) evt.Def.efam_witnesses
       in
       (i + 1, created)
-    end (0, created) sfam.fevents
+    end (0, created) sfam.Def.fevents
   in
   (* Vérification des enfants. *)
   ignore @@
@@ -270,7 +262,7 @@ let check_family_conflict base sfam scpl sdes =
       in
       raise (ModErrApiConflict conflict)
     | false, created -> created
-  end created sdes.children
+  end created sdes.Def.children
 
 (**/**) (* Convertion d'une date. *)
 
@@ -286,14 +278,14 @@ let check_family_conflict base sfam scpl sdes =
 (* ************************************************************************ *)
 let piqi_date_of_date date =
   match date with
-  | Dgreg (dmy, cal) ->
+  | Date.Dgreg (dmy, cal) ->
       let (cal, dmy) =
-        let d = Date.convert ~from:Dgregorian ~to_:cal dmy in
+        let d = Date.convert ~from:Date.Dgregorian ~to_:cal dmy in
         match cal with
-        | Dgregorian -> (None, dmy)
-        | Djulian -> (Some `julian, d)
-        | Dfrench -> (Some `french, d)
-        | Dhebrew -> (Some `hebrew, d)
+        | Date.Dgregorian -> (None, dmy)
+        | Date.Djulian -> (Some `julian, d)
+        | Date.Dfrench -> (Some `french, d)
+        | Date.Dhebrew -> (Some `hebrew, d)
       in
       let (prec, dmy, dmy2) =
         let d = Some (Int32.of_int dmy.day) in
@@ -303,12 +295,12 @@ let piqi_date_of_date date =
         let dmy1 = {Mwrite.Dmy.day = d; month = m; year = y; delta = delta;} in
         let (prec, dmy2) =
           match dmy.prec with
-          | Sure -> (`sure, None)
-          | About -> (`about, None)
-          | Maybe -> (`maybe, None)
-          | Before -> (`before, None)
-          | After -> (`after, None)
-          | OrYear dmy2 ->
+          | Date.Sure -> (`sure, None)
+          | Date.About -> (`about, None)
+          | Date.Maybe -> (`maybe, None)
+          | Date.Before -> (`before, None)
+          | Date.After -> (`after, None)
+          | Date.OrYear dmy2 ->
               let d = Some (Int32.of_int dmy2.day2) in
               let m = Some (Int32.of_int dmy2.month2) in
               let y = Some (Int32.of_int dmy2.year2) in
@@ -317,7 +309,7 @@ let piqi_date_of_date date =
                 {Mwrite.Dmy.day = d; month = m; year = y; delta = delta;}
               in
               (`oryear, Some dmy2)
-          | YearInt dmy2 ->
+          | Date.YearInt dmy2 ->
               let d = Some (Int32.of_int dmy2.day2) in
               let m = Some (Int32.of_int dmy2.month2) in
               let y = Some (Int32.of_int dmy2.year2) in
@@ -336,7 +328,7 @@ let piqi_date_of_date date =
         dmy2 = dmy2;
         text = None;
       }
-  | Dtext txt ->
+  | Date.Dtext txt ->
       {
         Mwrite.Date.cal = None;
         prec = None;
@@ -357,7 +349,7 @@ let piqi_date_of_date date =
 (* ************************************************************************ *)
 let date_of_piqi_date conf date =
   match date.Mwrite.Date.text with
-  | Some txt -> Some (Dtext txt)
+  | Some txt -> Some (Date.Dtext txt)
   | _ ->
       (* Si on a une année, on a une date. *)
       match date.Mwrite.Date.dmy with
@@ -367,10 +359,10 @@ let date_of_piqi_date conf date =
             | Some _ ->
                 let cal =
                   match date.Mwrite.Date.cal with
-                  | Some `julian -> Djulian
-                  | Some `french -> Dfrench
-                  | Some `hebrew -> Dhebrew
-                  | _ -> Dgregorian
+                  | Some `julian -> Date.Djulian
+                  | Some `french -> Date.Dfrench
+                  | Some `hebrew -> Date.Dhebrew
+                  | _ -> Date.Dgregorian
                 in
                 let get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal prec =
                   let day =
@@ -402,7 +394,7 @@ let date_of_piqi_date conf date =
                         (day, month, year)
                   in
                   let adef_dmy =
-                    {day = day; month = month; year = year; delta = delta; prec = prec}
+                    {Date.day = day; month = month; year = year; delta = delta; prec = prec}
                   in
                   let day_to_check =
                     adef_dmy.day >= 1 && adef_dmy.day <= 31
@@ -416,11 +408,11 @@ let date_of_piqi_date conf date =
                   else if adef_dmy.day = 0 && month_to_check
                   then
                     (* Check the month in the gregorian calendar. *)
-                    if cal = Dgregorian
+                    if cal = Date.Dgregorian
                     then
                       begin
                         (* The day is set to 1 for checking. *)
-                        Update.check_greg_day conf {day = 1; month = adef_dmy.month; year = adef_dmy.year; delta = delta; prec = prec};
+                        Geneweb.Update.check_greg_day conf {Date.day = 1; month = adef_dmy.month; year = adef_dmy.year; delta = delta; prec = prec};
                         adef_dmy
                       end
                     else
@@ -429,64 +421,64 @@ let date_of_piqi_date conf date =
                   else if day_to_check && month_to_check
                   then
                     (* Check the date in the gregorian calendar. *)
-                    if cal = Dgregorian
+                    if cal = Date.Dgregorian
                     then
                       begin
-                        Update.check_greg_day conf {day = adef_dmy.day; month = adef_dmy.month; year = adef_dmy.year; delta = delta; prec = prec};
+                        Geneweb.Update.check_greg_day conf {Date.day = adef_dmy.day; month = adef_dmy.month; year = adef_dmy.year; delta = delta; prec = prec};
                         adef_dmy
                       end
                     else
                       adef_dmy
                   else
-                    Update.bad_date conf adef_dmy
+                    Geneweb.Update.bad_date conf adef_dmy
                 in
                 let delta2 = 0 in
                 let prec =
                   match date.Mwrite.Date.prec with
-                  | Some `about -> About
-                  | Some `maybe -> Maybe
-                  | Some `before -> Before
-                  | Some `after -> After
+                  | Some `about -> Date.About
+                  | Some `maybe -> Date.Maybe
+                  | Some `before -> Date.Before
+                  | Some `after -> Date.After
                   | Some `oryear ->
                       (match date.Mwrite.Date.dmy2 with
                       | Some dmy ->
                           begin
                             match dmy.Mwrite.Dmy.year with
                             | Some _ ->
-                              let adef_dmy = get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal Sure in
-                              OrYear {day2 = adef_dmy.day; month2 = adef_dmy.month; year2 = adef_dmy.year; delta2 = delta2}
-                            | None -> Sure
+                              let adef_dmy = get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal Date.Sure in
+                              Date.OrYear {day2 = adef_dmy.day; month2 = adef_dmy.month; year2 = adef_dmy.year; delta2 = delta2}
+                            | None -> Date.Sure
                           end
-                      | None -> Sure (*OrYear {day2 = 0; month2 = 0; year2 = 0; delta2 = 0}*) (* erreur*))
+                      | None -> Date.Sure (*OrYear {day2 = 0; month2 = 0; year2 = 0; delta2 = 0}*) (* erreur*))
                   | Some `yearint ->
                       (match date.Mwrite.Date.dmy2 with
                       | Some dmy ->
                           begin
                             match dmy.Mwrite.Dmy.year with
                             | Some _ ->
-                              let adef_dmy = get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal Sure in
-                              YearInt {day2 = adef_dmy.day; month2 = adef_dmy.month; year2 = adef_dmy.year; delta2 = delta2}
-                            | None -> Sure
+                              let adef_dmy = get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal Date.Sure in
+                              Date.YearInt {day2 = adef_dmy.day; month2 = adef_dmy.month; year2 = adef_dmy.year; delta2 = delta2}
+                            | None -> Date.Sure
                           end
-                      | None -> Sure (*YearInt {day2 = 0; month2 = 0; year2 = 0; delta2 = 0}*) (* erreur*))
-                  | _ -> Sure
+                      | None -> Date.Sure (*YearInt {day2 = 0; month2 = 0; year2 = 0; delta2 = 0}*) (* erreur*))
+                  | _ -> Date.Sure
                 in
                 let dmy =
                   match date.Mwrite.Date.dmy with
                   | Some dmy ->
                       get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal prec
                   | None -> (* erreur*)
-                      {day = 0; month = 0; year = 0; prec = Sure; delta = 0}
+                      {Date.day = 0; month = 0; year = 0; prec = Sure; delta = 0}
                 in
                 let dmy =
                   begin match cal with
-                  | Dgregorian ->
-                      Update.check_greg_day conf dmy
-                  | Djulian | Dfrench | Dhebrew -> ()
+                  | Date.Dgregorian ->
+                      Geneweb.Update.check_greg_day conf dmy
+                  | Date.Djulian | Date.Dfrench | Date.Dhebrew -> ()
                   end;
-                  Date.convert ~from:cal ~to_:Dgregorian dmy
+                  Date.convert ~from:cal ~to_:Date.Dgregorian dmy
                 in
-                Some (Dgreg (dmy, cal))
+                Some (Date.Dgreg (dmy, cal))
           | None -> None
           end
       | None -> None
@@ -501,23 +493,23 @@ let child_of_parent conf base p =
   (* Si le père a un nom de famille différent de la personne *)
   (* alors on l'affiche, sinon on n'affiche que le prénom.   *)
   let print_father fath =
-    if not (eq_istr (get_surname p) (get_surname fath)) then
-      gen_person_text ~escape:false ~html:false conf base fath
+    if not (Gwdb.eq_istr (Gwdb.get_surname p) (Gwdb.get_surname fath)) then
+      Geneweb.Util.gen_person_text ~escape:false ~html:false conf base fath
     else
-      gen_person_text ~escape:false ~html:false ~sn:false conf base fath
+      Geneweb.Util.gen_person_text ~escape:false ~html:false ~sn:false conf base fath
   in
-  let a = pget conf base (get_iper p) in
+  let a = Geneweb.Util.pget conf base (Gwdb.get_iper p) in
   let ifam =
-    match get_parents a with
+    match Gwdb.get_parents a with
     | Some ifam ->
-        let cpl = foi base ifam in
+        let cpl = Gwdb.foi base ifam in
         let fath =
-          let fath = pget conf base (get_father cpl) in
-          if p_first_name base fath = "?" then None else Some fath
+          let fath = Geneweb.Util.pget conf base (Gwdb.get_father cpl) in
+          if Gwdb.p_first_name base fath = "?" then None else Some fath
         in
         let moth =
-          let moth = pget conf base (get_mother cpl) in
-          if p_first_name base moth = "?" then None else Some moth
+          let moth = Geneweb.Util.pget conf base (Gwdb.get_mother cpl) in
+          if Gwdb.p_first_name base moth = "?" then None else Some moth
         in
         Some (fath, moth)
     | None -> None
@@ -528,33 +520,35 @@ let child_of_parent conf base p =
       let s =
         match (fath, moth) with
         | (Some fath, None) -> print_father fath
-        | (None, Some moth) -> gen_person_text ~escape:false ~html:false conf base moth
+        | (None, Some moth) -> Geneweb.Util.gen_person_text ~escape:false ~html:false conf base moth
         | (Some fath, Some moth) ->
+            let open Def in
             print_father fath
-            ^^^ " " ^<^ transl_nth conf "and" 0 ^<^ " "
-            ^<^ gen_person_text ~escape:false ~html:false conf base moth
+            ^^^ " " ^<^ Geneweb.Util.transl_nth conf "and" 0 ^<^ " "
+            ^<^ Geneweb.Util.gen_person_text ~escape:false ~html:false conf base moth
         | _ -> Adef.safe ""
       in
-      let is = index_of_sex (get_sex p) in
-      translate_eval
-        (transl_a_of_gr_eq_gen_lev conf
-           (transl_nth conf "son/daughter/child" is)
+      let is = Geneweb.Util.index_of_sex (Gwdb.get_sex p) in
+      Geneweb.Util.translate_eval
+        (Geneweb.Util.transl_a_of_gr_eq_gen_lev conf
+           (Geneweb.Util.transl_nth conf "son/daughter/child" is)
            (s :> string)
            (s :> string))
 
 let husband_wife conf base p =
   let rec loop i =
-    if i < Array.length (get_family p) then
-      let fam = foi base (get_family p).(i) in
-      let conjoint = Gutil.spouse (get_iper p) fam in
-      let conjoint = pget conf base conjoint in
-      if p_first_name base conjoint <> "?" || p_surname base conjoint <> "?"
+    if i < Array.length (Gwdb.get_family p) then
+      let fam = Gwdb.foi base (Gwdb.get_family p).(i) in
+      let conjoint = Gutil.spouse (Gwdb.get_iper p) fam in
+      let conjoint = Geneweb.Util.pget conf base conjoint in
+      if Gwdb.p_first_name base conjoint <> "?" || Gwdb.p_surname base conjoint <> "?"
       then
         let relation =
-          Printf.sprintf (relation_txt conf (get_sex p) fam) (fun () -> "")
+          Printf.sprintf (Geneweb.Util.relation_txt conf (Gwdb.get_sex p) fam) (fun () -> "")
         in
-        translate_eval
-          (relation ^<^ " " ^<^ (gen_person_text ~escape:false ~html:false conf base conjoint)
+        let open Def in
+        Geneweb.Util.translate_eval
+          (relation ^<^ " " ^<^ (Geneweb.Util.gen_person_text ~escape:false ~html:false conf base conjoint)
            :> string)
       else loop (i + 1)
     else ""
@@ -576,15 +570,15 @@ let husband_wife conf base p =
     [Rem] : Non exporté en clair hors de ce module.                           *)
 (* ************************************************************************** *)
 let pers_to_piqi_simple_person conf base p =
-  let index = Int32.of_string @@ Gwdb.string_of_iper (get_iper p) in
+  let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
   let sex =
-    match get_sex p with
-    | Male -> `male
-    | Female -> `female
-    | Neuter -> `unknown
+    match Gwdb.get_sex p with
+    | Def.Male -> `male
+    | Def.Female -> `female
+    | Def.Neuter -> `unknown
   in
   let sosa =
-    let sosa_nb = SosaCache.get_single_sosa conf base p in
+    let sosa_nb = Geneweb.SosaCache.get_single_sosa conf base p in
     if Sosa.eq sosa_nb Sosa.zero then `no_sosa
     else if Sosa.eq sosa_nb Sosa.one then `sosa_ref
     else `sosa
@@ -596,33 +590,43 @@ let pers_to_piqi_simple_person conf base p =
     let (birth, death, _) = Gutil.get_birth_death_date p in
     let birth =
       match birth with
-      | Some d -> !!(DateDisplay.string_slash_of_date conf d)
+      | Some d ->
+         let open Api_util in
+         !!(Geneweb.DateDisplay.string_slash_of_date conf d)
       | None -> ""
     in
     let birth_place =
-      let birth_place = sou base (get_birth_place p) in
+      let birth_place = Gwdb.sou base (Gwdb.get_birth_place p) in
       if birth_place <> ""
-      then !!(Util.string_of_place birth_place)
+      then
+        let open Api_util in
+        !!(Geneweb.Util.string_of_place birth_place)
       else
-        let baptism_place = sou base (get_baptism_place p) in
-        !!(Util.string_of_place baptism_place)
+        let baptism_place = Gwdb.sou base (Gwdb.get_baptism_place p) in
+        let open Api_util in
+        !!(Geneweb.Util.string_of_place baptism_place)
     in
     let death =
       match death with
-      | Some d -> !!(DateDisplay.string_slash_of_date conf d)
+      | Some d ->
+         let open Api_util in
+         !!(Geneweb.DateDisplay.string_slash_of_date conf d)
       | None -> ""
     in
     let death_place =
-      let death_place = sou base (get_death_place p) in
+      let death_place = Gwdb.sou base (Gwdb.get_death_place p) in
       if death_place <> ""
-      then !!(Util.string_of_place death_place)
+      then
+        let open Api_util in
+        !!(Geneweb.Util.string_of_place death_place)
       else
-        let burial_place = sou base (get_burial_place p) in
-        !!(Util.string_of_place burial_place)
+        let burial_place = Gwdb.sou base (Gwdb.get_burial_place p) in
+        let open Api_util in
+        !!(Geneweb.Util.string_of_place burial_place)
     in
     (birth, birth_place, death, death_place)
   in
-  let image = get_portrait conf base p in
+  let image = Api_util.get_portrait conf base p in
   {
     Mwrite.Simple_person.index = index;
     sex = sex;
@@ -650,15 +654,15 @@ let pers_to_piqi_simple_person conf base p =
     [Rem] : Non exporté en clair hors de ce module.                           *)
 (* ************************************************************************** *)
 let pers_to_piqi_person_search conf base p =
-  let index = Int32.of_string @@ Gwdb.string_of_iper (get_iper p) in
+  let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
   let sex =
-    match get_sex p with
-    | Male -> `male
-    | Female -> `female
-    | Neuter -> `unknown
+    match Gwdb.get_sex p with
+    | Def.Male -> `male
+    | Def.Female -> `female
+    | Def.Neuter -> `unknown
   in
   let sosa =
-    let sosa_nb = SosaCache.get_sosa_person p in
+    let sosa_nb = Geneweb.SosaCache.get_sosa_person p in
     if Sosa.eq sosa_nb Sosa.zero then `no_sosa
     else if Sosa.eq sosa_nb Sosa.one then `sosa_ref
     else `sosa
@@ -667,7 +671,7 @@ let pers_to_piqi_person_search conf base p =
     Api_saisie_read.person_firstname_surname_txt base p
   in
   let dates = Api_saisie_read.short_dates_text conf base p in
-  let image = get_portrait conf base p in
+  let image = Api_util.get_portrait conf base p in
   let family =
     let hw = husband_wife conf base p in
     if hw <> "" then hw
@@ -699,48 +703,64 @@ let pers_to_piqi_person_search conf base p =
     [Rem] : Non exporté en clair hors de ce module.                           *)
 (* ************************************************************************** *)
 let pers_to_piqi_person_search_info conf base p =
-  let index = Int32.of_string @@ Gwdb.string_of_iper (get_iper p) in
+  let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
   let sex =
-    match get_sex p with
-    | Male -> `male
-    | Female -> `female
-    | Neuter -> `unknown
+    match Gwdb.get_sex p with
+    | Def.Male -> `male
+    | Def.Female -> `female
+    | Def.Neuter -> `unknown
   in
   let sosa =
-    let sosa_nb = SosaCache.get_single_sosa conf base p in
+    let sosa_nb = Geneweb.SosaCache.get_single_sosa conf base p in
     if Sosa.eq sosa_nb Sosa.zero then `no_sosa
     else if Sosa.eq sosa_nb Sosa.one then `sosa_ref
     else `sosa
   in
-  let surname = sou base (get_surname p) in
-  let first_name = sou base (get_first_name p) in
-  let publicname = sou base (get_public_name p) in
-  let aliases = List.map (sou base) (get_aliases p) in
-  let qualifiers = List.map (sou base) (get_qualifiers p) in
-  let firstname_aliases = List.map (sou base) (get_first_names_aliases p) in
-  let surname_aliases = List.map (sou base) (get_surnames_aliases p) in
-  let occupation = !!(Notes.source conf base (sou base (get_occupation p))) in
-  let image = get_portrait conf base p in
+  let surname = Gwdb.sou base (Gwdb.get_surname p) in
+  let first_name = Gwdb.sou base (Gwdb.get_first_name p) in
+  let publicname = Gwdb.sou base (Gwdb.get_public_name p) in
+  let aliases = List.map (Gwdb.sou base) (Gwdb.get_aliases p) in
+  let qualifiers = List.map (Gwdb.sou base) (Gwdb.get_qualifiers p) in
+  let firstname_aliases = List.map (Gwdb.sou base) (Gwdb.get_first_names_aliases p) in
+  let surname_aliases = List.map (Gwdb.sou base) (Gwdb.get_surnames_aliases p) in
+  let occupation =
+    let open Api_util in
+    !!(Geneweb.Notes.source conf base (Gwdb.sou base (Gwdb.get_occupation p)))
+  in
+  let image = Api_util.get_portrait conf base p in
   let events =
     List.map
       (fun evt ->
         let name =
-          match Event.get_name evt with
-          | Event.Pevent name -> !!(Util.string_of_pevent_name conf base name)
-          | Event.Fevent name -> !!(Util.string_of_fevent_name conf base name)
+          match Geneweb.Event.get_name evt with
+          | Geneweb.Event.Pevent name ->
+             let open Api_util in
+             !!(Geneweb.Util.string_of_pevent_name conf base name)
+          | Geneweb.Event.Fevent name ->
+             let open Api_util in
+             !!(Geneweb.Util.string_of_fevent_name conf base name)
         in
         let (date, _, date_conv, _, date_cal) =
-          match Date.od_of_cdate (Event.get_date evt) with
+          match Date.od_of_cdate (Geneweb.Event.get_date evt) with
           | Some d -> Api_saisie_read.string_of_date_and_conv conf d
           | _ -> ("", "", "", "", None)
         in
-        let place = !!(Util.raw_string_of_place (sou base (Event.get_place evt)) |> Adef.safe) in
-        let note = !!(Notes.person_note conf base p (sou base (Event.get_note evt))) in
-        let src = !!(Notes.source conf base (sou base (Event.get_src evt))) in
+        let place =
+          let open Api_util in
+          !!(Geneweb.Util.raw_string_of_place (Gwdb.sou base (Geneweb.Event.get_place evt)) |> Adef.safe)
+        in
+        let note =
+          let open Api_util in
+          !!(Geneweb.Notes.person_note conf base p (Gwdb.sou base (Geneweb.Event.get_note evt)))
+        in
+        let src =
+          let open Api_util in
+          !!(Geneweb.Notes.source conf base (Gwdb.sou base (Geneweb.Event.get_src evt)))
+        in
         let spouse =
-          match Event.get_spouse_iper evt with
+          match Geneweb.Event.get_spouse_iper evt with
           | Some ip ->
-              let sp = poi base ip in
+              let sp = Gwdb.poi base ip in
               Some (pers_to_piqi_simple_person conf base sp)
           | None -> None
         in
@@ -748,11 +768,11 @@ let pers_to_piqi_person_search_info conf base p =
           Mutil.array_to_list_map
             (fun (ip, wk, wnote) ->
               let witness_type = Api_util.piqi_of_witness_kind wk in
-               let witness = pers_to_piqi_simple_person conf base @@ poi base ip in
-              let witness_note = sou base wnote in
+               let witness = pers_to_piqi_simple_person conf base @@ Gwdb.poi base ip in
+              let witness_note = Gwdb.sou base wnote in
               let witness_note = if witness_note = "" then None else Some witness_note in
               Mwrite.Witness_event.{ witness_type ; witness ; witness_note})
-            (Event.get_witnesses_and_notes evt)
+            (Geneweb.Event.get_witnesses_and_notes evt)
         in
         {
           Mwrite.Event.name = name;
@@ -766,49 +786,56 @@ let pers_to_piqi_person_search_info conf base p =
           spouse = spouse;
           witnesses = witnesses;
         })
-      (Event.sorted_events conf base p)
+      (Geneweb.Event.sorted_events conf base p)
   in
-  let notes = !!(Notes.person_note conf base p (sou base (get_notes p))) in
-  let psources = !!(Notes.source conf base (sou base (get_psources p))) in
+  let notes =
+    let open Api_util in
+    !!(Geneweb.Notes.person_note conf base p (Gwdb.sou base (Gwdb.get_notes p)))
+  in
+  let psources =
+    let open Api_util in
+    !!(Geneweb.Notes.source conf base (Gwdb.sou base (Gwdb.get_psources p)))
+  in
   let has_sources = psources <> "" in
-  let titles = Perso.nobility_titles_list conf base p in
+  let titles = Geneweb.Perso.nobility_titles_list conf base p in
   let titles =
     List.map (fun x ->
-        !!(Perso.string_of_title ~safe:true ~link:false conf base (Adef.safe "") p x)
+        let open Api_util in
+        !!(Geneweb.Perso.string_of_title ~safe:true ~link:false conf base (Adef.safe "") p x)
       ) titles
   in
   let related =
     let list =
-      let list = List.sort_uniq compare (get_related p) in
+      let list = List.sort_uniq compare (Gwdb.get_related p) in
       List.fold_left
         (fun list ic ->
-           let c = pget conf base ic in
+           let c = Geneweb.Util.pget conf base ic in
            let rec loop list =
              function
              | r :: rl ->
-                 (match r.r_fath with
-                 | Some ip when ip = get_iper p ->
+                 (match r.Def.r_fath with
+                 | Some ip when ip = Gwdb.get_iper p ->
                      loop ((c, r) :: list) rl
                  | _ ->
-                     (match r.r_moth with
-                     | Some ip when ip = get_iper p ->
+                     (match r.Def.r_moth with
+                     | Some ip when ip = Gwdb.get_iper p ->
                          loop ((c, r) :: list) rl
                      | _ -> loop list rl))
              | [] -> list
-           in loop list (get_rparents c))
+           in loop list (Gwdb.get_rparents c))
         [] list
     in
     let list =
       List.sort
         (fun (c1, _) (c2, _) ->
            let d1 =
-             match Date.od_of_cdate (get_baptism c1) with
-             | None -> Date.od_of_cdate (get_birth c1)
+             match Date.od_of_cdate (Gwdb.get_baptism c1) with
+             | None -> Date.od_of_cdate (Gwdb.get_birth c1)
              | x -> x
            in
            let d2 =
-             match Date.od_of_cdate (get_baptism c2) with
-             | None -> Date.od_of_cdate (get_birth c2)
+             match Date.od_of_cdate (Gwdb.get_baptism c2) with
+             | None -> Date.od_of_cdate (Gwdb.get_birth c2)
              | x -> x
            in
            match (d1, d2) with
@@ -820,7 +847,7 @@ let pers_to_piqi_person_search_info conf base p =
       (fun (p, rp) ->
         let p = pers_to_piqi_simple_person conf base p in
         let r_type =
-          match rp.r_type with
+          match rp.Def.r_type with
           | Adoption -> `rchild_adoption
           | Recognition -> `rchild_recognition
           | CandidateParent -> `rchild_candidate_parent
@@ -837,7 +864,7 @@ let pers_to_piqi_person_search_info conf base p =
     List.fold_left
       (fun rl rp ->
         let r_type =
-          match rp.r_type with
+          match rp.Def.r_type with
           | Adoption -> `rparent_adoption
           | Recognition -> `rparent_recognition
           | CandidateParent -> `rparent_candidate_parent
@@ -845,9 +872,9 @@ let pers_to_piqi_person_search_info conf base p =
           | FosterParent -> `rparent_foster_parent
         in
         let rl =
-          match rp.r_fath with
+          match rp.Def.r_fath with
           | Some ip ->
-              let p = poi base ip in
+              let p = Gwdb.poi base ip in
               let p = pers_to_piqi_simple_person conf base p in
               let p =
                 {
@@ -858,9 +885,9 @@ let pers_to_piqi_person_search_info conf base p =
               p :: rl
           | None -> rl
         in
-        match rp.r_moth with
+        match rp.Def.r_moth with
         | Some ip ->
-          let p = poi base ip in
+          let p = Gwdb.poi base ip in
           let p = pers_to_piqi_simple_person conf base p in
           let p =
             {
@@ -870,25 +897,25 @@ let pers_to_piqi_person_search_info conf base p =
           in
           p :: rl
         | None -> rl)
-      [] (get_rparents p)
+      [] (Gwdb.get_rparents p)
   in
   let was_witness =
     let list =
       let list = ref [] in
-      let related = List.sort_uniq compare (get_related p) in
+      let related = List.sort_uniq compare (Gwdb.get_related p) in
       let rec make_list =
         function
         | ic :: icl ->
-            let c = pget conf base ic in
-            if get_sex c = Male then
+            let c = Geneweb.Util.pget conf base ic in
+            if Gwdb.get_sex c = Def.Male then
               Array.iter
                 (fun ifam ->
-                   let fam = foi base ifam in
-                   if Array.mem (get_iper p) (get_witnesses fam)
+                   let fam = Gwdb.foi base ifam in
+                   if Array.mem (Gwdb.get_iper p) (Gwdb.get_witnesses fam)
                    then
                      list := (ifam, fam) :: !list
                    else ())
-                (get_family (pget conf base ic))
+                (Gwdb.get_family (Geneweb.Util.pget conf base ic))
             else ();
             make_list icl
         | [] -> ()
@@ -900,8 +927,8 @@ let pers_to_piqi_person_search_info conf base p =
       List.sort
         (fun (_, fam1) (_, fam2) ->
            match
-             (Date.od_of_cdate (get_marriage fam1),
-              Date.od_of_cdate (get_marriage fam2))
+             (Date.od_of_cdate (Gwdb.get_marriage fam1),
+              Date.od_of_cdate (Gwdb.get_marriage fam2))
            with
            | (Some d1, Some d2) -> Date.compare_date d1 d2
            | _ -> 0 )
@@ -909,19 +936,19 @@ let pers_to_piqi_person_search_info conf base p =
     in
     List.map
       (fun (_, fam) ->
-         let ifath = get_father fam in
-         let imoth = get_mother fam in
-         let father = poi base ifath in
-         let mother = poi base imoth in
-         let father_auth = authorized_age conf base father in
+         let ifath = Gwdb.get_father fam in
+         let imoth = Gwdb.get_mother fam in
+         let father = Gwdb.poi base ifath in
+         let mother = Gwdb.poi base imoth in
+         let father_auth = Geneweb.Util.authorized_age conf base father in
          let husband =
-           if not father_auth && (is_hide_names conf father) then "x x"
-           else p_first_name base father ^ " " ^ p_surname base father
+           if not father_auth && (Geneweb.Util.is_hide_names conf father) then "x x"
+           else Gwdb.p_first_name base father ^ " " ^ Gwdb.p_surname base father
          in
-         let mother_auth = authorized_age conf base mother in
+         let mother_auth = Geneweb.Util.authorized_age conf base mother in
          let wife =
-           if not mother_auth && (is_hide_names conf mother) then "x x"
-           else p_first_name base mother ^ " " ^ p_surname base mother
+           if not mother_auth && (Geneweb.Util.is_hide_names conf mother) then "x x"
+           else Gwdb.p_first_name base mother ^ " " ^ Gwdb.p_surname base mother
          in
          (*
          let husband = pers_to_piqi_simple_person conf base father in
@@ -974,16 +1001,16 @@ let pers_to_piqi_person_search_info conf base p =
 (* ************************************************************************** *)
 let pers_to_piqi_person_link conf base p =
   let create_link = `link in
-  let index = Int32.of_string @@ Gwdb.string_of_iper (get_iper p) in
+  let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
   let sex =
-    match get_sex p with
-    | Male -> `male
-    | Female -> `female
-    | Neuter -> `unknown
+    match Gwdb.get_sex p with
+    | Def.Male -> `male
+    | Def.Female -> `female
+    | Def.Neuter -> `unknown
   in
-  let first_name = sou base (get_first_name p) in
-  let surname = sou base (get_surname p) in
-  let occ = get_occ p in
+  let first_name = Gwdb.sou base (Gwdb.get_first_name p) in
+  let surname = Gwdb.sou base (Gwdb.get_surname p) in
+  let occ = Gwdb.get_occ p in
   let occ = if occ = 0 then None else Some (Int32.of_int occ) in
   let dates = Api_saisie_read.short_dates_text conf base p in
   let dates =
@@ -1013,18 +1040,18 @@ let pers_to_piqi_person_link conf base p =
     [Rem] : Non exporté en clair hors de ce module.                          *)
 (* ************************************************************************* *)
 let pers_to_piqi_mod_person conf base p =
-  let digest = Update.digest_person (UpdateInd.string_person_of base p) in
+  let digest = Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base p) in
   let create_link = `link in
-  let index = Int32.of_string @@ Gwdb.string_of_iper (get_iper p) in
+  let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
   let sex =
-    match get_sex p with
-    | Male -> `male
-    | Female -> `female
-    | Neuter -> `unknown
+    match Gwdb.get_sex p with
+    | Def.Male -> `male
+    | Def.Female -> `female
+    | Def.Neuter -> `unknown
   in
-  let surname = sou base (get_surname p) in
-  let first_name = sou base (get_first_name p) in
-  let occ = get_occ p in
+  let surname = Gwdb.sou base (Gwdb.get_surname p) in
+  let first_name = Gwdb.sou base (Gwdb.get_first_name p) in
+  let occ = Gwdb.get_occ p in
   let occ =
     (* Cas particulier pour les personnes sans clé, et principalement *)
     (* ? ?. On ne renvoie pas le occ, comme ça si la personne existe  *)
@@ -1034,28 +1061,28 @@ let pers_to_piqi_mod_person conf base p =
       if occ = 0 then None
       else Some (Int32.of_int occ)
   in
-  let publicname = sou base (get_public_name p) in
-  let aliases = List.map (sou base) (get_aliases p) in
-  let qualifiers = List.map (sou base) (get_qualifiers p) in
-  let firstname_aliases = List.map (sou base) (get_first_names_aliases p) in
-  let surname_aliases = List.map (sou base) (get_surnames_aliases p) in
-  let image = get_portrait conf base p in
-  let death_type = Api_util.piqi_death_type_of_death (get_death p) in
-  let occupation = sou base (get_occupation p) in
-  let psources = sou base (get_psources p) in
-  let notes = sou base (get_notes p) in
+  let publicname = Gwdb.sou base (Gwdb.get_public_name p) in
+  let aliases = List.map (Gwdb.sou base) (Gwdb.get_aliases p) in
+  let qualifiers = List.map (Gwdb.sou base) (Gwdb.get_qualifiers p) in
+  let firstname_aliases = List.map (Gwdb.sou base) (Gwdb.get_first_names_aliases p) in
+  let surname_aliases = List.map (Gwdb.sou base) (Gwdb.get_surnames_aliases p) in
+  let image = Api_util.get_portrait conf base p in
+  let death_type = Api_util.piqi_death_type_of_death (Gwdb.get_death p) in
+  let occupation = Gwdb.sou base (Gwdb.get_occupation p) in
+  let psources = Gwdb.sou base (Gwdb.get_psources p) in
+  let notes = Gwdb.sou base (Gwdb.get_notes p) in
   let titles =
     List.map
       (fun t ->
         (* On ne prend pas en compte le type du titre (main/name/none). *)
         let name =
-          match t.t_name with
+          match t.Def.t_name with
           | Tmain -> ""
-          | Tname name -> sou base name
+          | Tname name -> Gwdb.sou base name
           | Tnone -> ""
         in
-        let title = sou base t.t_ident in
-        let fief = sou base t.t_place in
+        let title = Gwdb.sou base t.t_ident in
+        let fief = Gwdb.sou base t.t_place in
         let date_begin =
           match Date.od_of_cdate t.t_date_start with
           | Some d -> Some (piqi_date_of_date d)
@@ -1075,13 +1102,13 @@ let pers_to_piqi_mod_person conf base p =
           date_end = date_end;
           nth = nth;
         }))
-      (get_titles p)
+      (Gwdb.get_titles p)
   in
   let pevents =
     List.map
       (fun evt ->
          let (pevent_type, event_perso) =
-           match get_pevent_name evt with
+           match Gwdb.get_pevent_name evt with
            | Epers_Birth -> (Some `epers_birth, None)
            | Epers_Baptism -> (Some `epers_baptism, None)
            | Epers_Death -> (Some `epers_death, None)
@@ -1132,27 +1159,27 @@ let pers_to_piqi_mod_person conf base p =
            | Epers_ScellentSpouseLDS -> (Some `epers_scellentspouselds, None)
            | Epers_VenteBien -> (Some `epers_ventebien, None)
            | Epers_Will -> (Some `epers_will, None)
-           | Epers_Name n -> (None, Some (sou base n))
+           | Epers_Name n -> (None, Some (Gwdb.sou base n))
          in
          let date =
-           match Date.od_of_cdate (get_pevent_date evt) with
+           match Date.od_of_cdate (Gwdb.get_pevent_date evt) with
            | Some d -> Some (piqi_date_of_date d)
            | _ -> None
          in
-         let place = sou base (get_pevent_place evt) in
+         let place = Gwdb.sou base (Gwdb.get_pevent_place evt) in
          let reason = None in
-         let note = sou base (get_pevent_note evt) in
-         let src = sou base (get_pevent_src evt) in
+         let note = Gwdb.sou base (Gwdb.get_pevent_note evt) in
+         let src = Gwdb.sou base (Gwdb.get_pevent_src evt) in
          let witnesses =
            Mutil.array_to_list_map
              (fun (ip, wk, wnote) ->
                 let witness_type = Api_util.piqi_of_witness_kind wk in
-                let p = poi base ip in
+                let p = Gwdb.poi base ip in
                 let person_link = pers_to_piqi_person_link conf base p in
-                let witness_note = sou base wnote in
+                let witness_note = Gwdb.sou base wnote in
                 let witness_note = if witness_note = "" then None else Some witness_note in
                 Mwrite.Witness.{ witness_type ; person = Some person_link; witness_note })
-             (get_pevent_witnesses_and_notes evt)
+             (Gwdb.get_pevent_witnesses_and_notes evt)
          in
          {
            Mwrite.Pevent.pevent_type = pevent_type;
@@ -1164,10 +1191,10 @@ let pers_to_piqi_mod_person conf base p =
            witnesses = witnesses;
            event_perso = event_perso;
          })
-      (Event.sort_events
-         (fun e -> Event.Pevent (Gwdb.get_pevent_name e))
+      (Geneweb.Event.sort_events
+         (fun e -> Geneweb.Event.Pevent (Gwdb.get_pevent_name e))
          (fun e -> Gwdb.get_pevent_date e)
-         (get_pevents p)
+         (Gwdb.get_pevents p)
       )
   in
   (* Si la personne n'a aucun évènement et/ou est décédée mais *)
@@ -1188,7 +1215,7 @@ let pers_to_piqi_mod_person conf base p =
           }
         in
         (* Que pour les personnes qui existent. *)
-        if get_iper p <> dummy_iper && death_type != `not_dead then
+        if Gwdb.get_iper p <> Gwdb.dummy_iper && death_type != `not_dead then
           let death =
             {
               Mwrite.Pevent.pevent_type = Some `epers_death;
@@ -1208,9 +1235,9 @@ let pers_to_piqi_mod_person conf base p =
       let (has_birth, has_death) =
         List.fold_left
           (fun (has_birth, has_death) evt ->
-            (has_birth || get_pevent_name evt = Epers_Birth,
-             has_death || get_pevent_name evt = Epers_Death))
-          (false, false) (get_pevents p)
+            (has_birth || Gwdb.get_pevent_name evt = Epers_Birth,
+             has_death || Gwdb.get_pevent_name evt = Epers_Death))
+          (false, false) (Gwdb.get_pevents p)
       in
       let pevents =
         if has_birth then pevents
@@ -1249,18 +1276,18 @@ let pers_to_piqi_mod_person conf base p =
           pevents @ [death]
         end;
   in
-  let related = List.map (fun x -> Int32.of_string @@ Gwdb.string_of_iper x) (get_related p) in
+  let related = List.map (fun x -> Int32.of_string @@ Gwdb.string_of_iper x) (Gwdb.get_related p) in
   let rparents =
     List.fold_right
       (fun rp accu ->
-        let source = sou base rp.r_sources in
+        let source = Gwdb.sou base rp.Def.r_sources in
         let accu =
-          match rp.r_fath with
+          match rp.Def.r_fath with
           | Some ip ->
-              let p = poi base ip in
+              let p = Gwdb.poi base ip in
               let father = pers_to_piqi_person_link conf base p in
               let rpt_type =
-                match rp.r_type with
+                match rp.Def.r_type with
                 | Adoption -> `rpt_adoption_father
                 | Recognition -> `rpt_recognition_father
                 | CandidateParent -> `rpt_candidate_parent_father
@@ -1277,12 +1304,12 @@ let pers_to_piqi_mod_person conf base p =
               r :: accu
           | None -> accu
         in
-        match rp.r_moth with
+        match rp.Def.r_moth with
         | Some ip ->
-          let p = poi base ip in
+          let p = Gwdb.poi base ip in
           let mother = pers_to_piqi_person_link conf base p in
           let rpt_type =
-            match rp.r_type with
+            match rp.Def.r_type with
             | Adoption -> `rpt_adoption_mother
             | Recognition -> `rpt_recognition_mother
             | CandidateParent -> `rpt_candidate_parent_mother
@@ -1298,23 +1325,23 @@ let pers_to_piqi_mod_person conf base p =
           in
           r :: accu
         | None -> accu)
-      (get_rparents p) []
+      (Gwdb.get_rparents p) []
   in
   let access =
-    match get_access p with
+    match Gwdb.get_access p with
     | IfTitles -> `access_iftitles
     | Public -> `access_public
     | Private -> `access_private
   in
   let parents =
-    match get_parents p with
+    match Gwdb.get_parents p with
     | Some ifam -> Some (Int32.of_string (Gwdb.string_of_ifam ifam))
     | None -> None
   in
   let families =
-    Mutil.array_to_list_map (fun x -> Int32.of_string @@ Gwdb.string_of_ifam x) (get_family p)
+    Mutil.array_to_list_map (fun x -> Int32.of_string @@ Gwdb.string_of_ifam x) (Gwdb.get_family p)
   in
-  let is_contemporary = GWPARAM.is_contemporary conf base p in
+  let is_contemporary = Geneweb.GWPARAM.is_contemporary conf base p in
   {
     Mwrite.Person.digest = digest;
     index = index;
@@ -1362,7 +1389,7 @@ let fam_to_piqi_mod_family conf base ifam fam =
     List.map
       (fun evt ->
          let (fevent_type, event_perso) =
-           match get_fevent_name evt with
+           match Gwdb.get_fevent_name evt with
            | Efam_Marriage -> (Some `efam_marriage, None)
            | Efam_NoMarriage -> (Some `efam_no_marriage, None)
            | Efam_NoMention -> (Some `efam_no_mention, None)
@@ -1375,27 +1402,27 @@ let fam_to_piqi_mod_family conf base ifam fam =
            | Efam_MarriageLicense -> (Some `efam_marriage_license, None)
            | Efam_PACS -> (Some `efam_pacs, None)
            | Efam_Residence -> (Some `efam_residence, None)
-           | Efam_Name n -> (None, Some (sou base n))
+           | Efam_Name n -> (None, Some (Gwdb.sou base n))
          in
          let date =
-           match Date.od_of_cdate (get_fevent_date evt) with
+           match Date.od_of_cdate (Gwdb.get_fevent_date evt) with
            | Some d -> Some (piqi_date_of_date d)
            | _ -> None
          in
-         let place = sou base (get_fevent_place evt) in
+         let place = Gwdb.sou base (Gwdb.get_fevent_place evt) in
          let reason = None in
-         let note = sou base (get_fevent_note evt) in
-         let src = sou base (get_fevent_src evt) in
+         let note = Gwdb.sou base (Gwdb.get_fevent_note evt) in
+         let src = Gwdb.sou base (Gwdb.get_fevent_src evt) in
          let witnesses =
            Mutil.array_to_list_map
              (fun (ip, wk, wnote) ->
                 let witness_type = Api_util.piqi_of_witness_kind wk in
-                let p = poi base ip in
+                let p = Gwdb.poi base ip in
                 let person_link = pers_to_piqi_person_link conf base p in
-                let witness_note = sou base wnote in
+                let witness_note = Gwdb.sou base wnote in
                 let witness_note = if witness_note = "" then None else Some witness_note in
                 Mwrite.Witness.{ witness_type; person = Some person_link ; witness_note})
-             (get_fevent_witnesses_and_notes evt)
+             (Gwdb.get_fevent_witnesses_and_notes evt)
          in
          {
            Mwrite.Fevent.fevent_type = fevent_type;
@@ -1407,27 +1434,27 @@ let fam_to_piqi_mod_family conf base ifam fam =
            witnesses = witnesses;
            event_perso = event_perso;
          })
-      (Event.sort_events
-         (fun e -> Event.Fevent (Gwdb.get_fevent_name e))
+      (Geneweb.Event.sort_events
+         (fun e -> Geneweb.Event.Fevent (Gwdb.get_fevent_name e))
          (fun e -> Gwdb.get_fevent_date e)
-         (get_fevents fam)
+         (Gwdb.get_fevents fam)
       )
   in
-  let fsources = sou base (get_fsources fam) in
-  let origin_file = sou base (get_origin_file fam) in
-  let comment = sou base (get_comment fam) in
-  let father = poi base (get_father fam) in
+  let fsources = Gwdb.sou base (Gwdb.get_fsources fam) in
+  let origin_file = Gwdb.sou base (Gwdb.get_origin_file fam) in
+  let comment = Gwdb.sou base (Gwdb.get_comment fam) in
+  let father = Gwdb.poi base (Gwdb.get_father fam) in
   let father = pers_to_piqi_mod_person conf base father in
-  let mother = poi base (get_mother fam) in
+  let mother = Gwdb.poi base (Gwdb.get_mother fam) in
   let mother = pers_to_piqi_mod_person conf base mother in
   let children =
     Mutil.array_to_list_map
-      (fun ip -> pers_to_piqi_person_link conf base @@ poi base ip)
-      (get_children fam)
+      (fun ip -> pers_to_piqi_person_link conf base @@ Gwdb.poi base ip)
+      (Gwdb.get_children fam)
   in
   (* Compatibilité avec GeneWeb. *)
   let old_witnesses =
-    Mutil.array_to_list_map (fun x -> Int32.of_string @@ Gwdb.string_of_iper x) (get_witnesses fam)
+    Mutil.array_to_list_map (fun x -> Int32.of_string @@ Gwdb.string_of_iper x) (Gwdb.get_witnesses fam)
   in
   {
     Mwrite.Family.digest = digest;
@@ -1478,19 +1505,19 @@ let piqi_mod_person_of_person_start conf base start_p =
                | Some d ->
                    let d = Int32.to_int d in
                    let dmy =
-                     {day = d; month = m; year = y; prec = Sure; delta = 0}
+                     {Date.day = d; month = m; year = y; prec = Sure; delta = 0}
                    in
-                   Some (Dgreg (dmy, Dgregorian))
+                   Some (Date.Dgreg (dmy, Date.Dgregorian))
                | None ->
                    let dmy =
-                     {day = 0; month = m; year = y; prec = Sure; delta = 0}
+                     {Date.day = 0; month = m; year = y; prec = Sure; delta = 0}
                    in
-                   Some (Dgreg (dmy, Dgregorian)))
+                   Some (Date.Dgreg (dmy, Date.Dgregorian)))
            | None ->
                let dmy =
-                 {day = 0; month = 0; year = y; prec = Sure; delta = 0}
+                 {Date.day = 0; month = 0; year = y; prec = Sure; delta = 0}
                in
-               Some (Dgreg (dmy, Dgregorian)))
+               Some (Date.Dgreg (dmy, Date.Dgregorian)))
         else
           None
     | None -> None
@@ -1563,17 +1590,17 @@ let reconstitute_somebody base person =
   let (fn, sn, occ, create, var, force_create) = match create_link with
     | `link ->
       let ip = Gwdb.iper_of_string @@ Int32.to_string person.Mwrite.Person_link.index in
-      let p = poi base ip in
-      let fn = sou base (get_first_name p) in
-      let sn = sou base (get_surname p) in
-      let occ = get_occ p in
-      (fn, sn, occ, Update.Link, "", false)
+      let p = Gwdb.poi base ip in
+      let fn = Gwdb.sou base (Gwdb.get_first_name p) in
+      let sn = Gwdb.sou base (Gwdb.get_surname p) in
+      let occ = Gwdb.get_occ p in
+      (fn, sn, occ, Geneweb.Update.Link, "", false)
     | _ ->
       let sex =
         match person.Mwrite.Person_link.sex with
-          | `male -> Male
-          | `female -> Female
-          | `unknown -> Neuter
+          | `male -> Def.Male
+          | `female -> Def.Female
+          | `unknown -> Def.Neuter
       in
       let fn = person.Mwrite.Person_link.firstname in
       let sn = person.Mwrite.Person_link.lastname in
@@ -1592,7 +1619,7 @@ let reconstitute_somebody base person =
           (occ, true)
         | _ -> (0, false) (* Should not happen. *)
       in
-      (fn, sn, occ, Update.Create (sex, None), "", force_create)
+      (fn, sn, occ, Geneweb.Update.Create (sex, None), "", force_create)
   in
   let (fn, sn) =
     (* If there are forbidden characters, delete them. *)
