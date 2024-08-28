@@ -89,8 +89,8 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
         | Some date -> Api_update_util.date_of_piqi_date conf date
         | None -> None
       in
-      let place = Option.fold ~none:"" ~some:(fun p -> Geneweb.Util.only_printable p) evt.Api_update_util.Mwrite.Pevent.place in
-      let reason = Option.fold ~none:"" ~some:(fun r -> Geneweb.Util.only_printable r) evt.Api_update_util.Mwrite.Pevent.reason in
+      let place = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_update_util.Mwrite.Pevent.place in
+      let reason = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_update_util.Mwrite.Pevent.reason in
       let note =
         Option.fold
           ~none:"" ~some:(fun n -> Geneweb.Util.only_printable_or_nl (Mutil.strip_all_trailing_spaces n))
