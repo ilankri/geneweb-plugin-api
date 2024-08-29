@@ -263,14 +263,6 @@ let check_family_conflict base sfam scpl sdes =
 (**/**) (* Convertion d'une date. *)
 
 
-(* ************************************************************************ *)
-(** [Description] : Converti une date en date piqi
-    [Args] :
-      - date : la date a convertir
-    [Retour] :
-      - piqi date : date du module Api_saisie_write_piqi.
-    [Rem] : Non exporté en clair hors de ce module.                         *)
-(* ************************************************************************ *)
 let piqi_date_of_date (date : Date.date) : Api_saisie_write_piqi.date =
   match date with
   | Date.Dgreg (dmy, cal) ->
@@ -333,14 +325,6 @@ let piqi_date_of_date (date : Date.date) : Api_saisie_write_piqi.date =
       }
 
 
-(* ************************************************************************ *)
-(** [Description] : Converti date piqi en date
-    [Args] :
-      - date : date du module Api_saisie_write_piqi
-    [Retour] :
-      - date : date
-    [Rem] : Non exporté en clair hors de ce module.                         *)
-(* ************************************************************************ *)
 let date_of_piqi_date conf date =
   match date.Api_saisie_write_piqi.Date.text with
   | Some txt -> Some (Date.Dtext txt)
@@ -550,17 +534,6 @@ let husband_wife conf base p =
   loop 0
 
 
-(* ************************************************************************** *)
-(** [Description] : Retourne à partir d'une person (gwdb) une SimplePerson
-                    (piqi).
-    [Args] :
-      - conf      : configuration de la base
-      - base      : base de donnée
-      - p         : person
-    [Retour] :
-      - Person : Retourne une personne dont tous les champs sont complétés.
-    [Rem] : Non exporté en clair hors de ce module.                           *)
-(* ************************************************************************** *)
 let pers_to_piqi_simple_person (conf : Geneweb.Config.config) (base : Gwdb.base) (p : Gwdb.person) : Api_saisie_write_piqi.simple_person =
   let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
   let sex =
@@ -635,13 +608,7 @@ let pers_to_piqi_simple_person (conf : Geneweb.Config.config) (base : Gwdb.base)
 
 (* ************************************************************************** *)
 (** [Description] : Retourne une personne qui sert lors de la recherche pour
-                    relier un individu dans la saisie.
-    [Args] :
-      - conf      : configuration de la base
-      - base      : base de donnée
-      - p         : person
-    [Retour] : PersonSearchLink
-    [Rem] : Non exporté en clair hors de ce module.                           *)
+                    relier un individu dans la saisie.                        *)
 (* ************************************************************************** *)
 let pers_to_piqi_person_search conf base p =
   let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
@@ -682,13 +649,7 @@ let pers_to_piqi_person_search conf base p =
 (* ************************************************************************** *)
 (** [Description] : Retourne une personne qui sert lors de la recherche pour
                     relier un individu dans la saisie (affichage des
-                    informations détaillées).
-    [Args] :
-      - conf      : configuration de la base
-      - base      : base de donnée
-      - p         : person
-    [Retour] : PersonSearchInfo
-    [Rem] : Non exporté en clair hors de ce module.                           *)
+                    informations détaillées).                                 *)
 (* ************************************************************************** *)
 let pers_to_piqi_person_search_info conf base p =
   let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
@@ -973,13 +934,7 @@ let pers_to_piqi_person_search_info conf base p =
 
 (* ************************************************************************** *)
 (** [Description] : Retourne une personne qui sert lors de la recherche pour
-                    relier un individu dans la saisie.
-    [Args] :
-      - conf      : configuration de la base
-      - base      : base de donnée
-      - p         : person
-    [Retour] : PersonSearchLink
-    [Rem] : Non exporté en clair hors de ce module.                           *)
+                    relier un individu dans la saisie.                        *)
 (* ************************************************************************** *)
 let pers_to_piqi_person_link conf base p =
   let create_link = `link in
@@ -1010,16 +965,6 @@ let pers_to_piqi_person_link conf base p =
   }
 
 
-(* ************************************************************************* *)
-(** [Description] : Converti une personne en personne piqi.
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-      - p    : person
-    [Retour] :
-      - piqi person : person du module Api_saisie_write_piqi.
-    [Rem] : Non exporté en clair hors de ce module.                          *)
-(* ************************************************************************* *)
 let pers_to_piqi_mod_person conf base p =
   let digest = Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base p) in
   let create_link = `link in
@@ -1351,16 +1296,6 @@ let pers_to_piqi_mod_person conf base p =
     is_contemporary;
   }
 
-(* ************************************************************************ *)
-(** [Description] : Converti une personne en personne piqi.
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-      - p    : person
-    [Retour] :
-      - piqi person : person du module Api_saisie_write_piqi.
-    [Rem] : Non exporté en clair hors de ce module.                         *)
-(* ************************************************************************ *)
 let fam_to_piqi_mod_family conf base ifam fam =
   let digest = "" in
   let index = Int32.of_string (Gwdb.string_of_ifam ifam) in
@@ -1452,13 +1387,7 @@ let fam_to_piqi_mod_family conf base ifam fam =
 (* ************************************************************************** *)
 (** [Description] : Converti une personne start pour la première saisie en
                     Person afin de suivre le chemin classique de modification
-                    de la base.
-    [Args] :
-      - conf      : configuration de la base
-      - base      : base de donnée
-      - start_    : Person_start
-    [Retour] : Person
-    [Rem] : Non exporté en clair hors de ce module.                           *)
+                    de la base.                                               *)
 (* ************************************************************************** *)
 let piqi_mod_person_of_person_start conf base start_p =
   let p = Gwdb.empty_person base (Gwdb.dummy_iper) in
