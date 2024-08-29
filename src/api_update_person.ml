@@ -1,7 +1,7 @@
 let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
-  let key_index = Gwdb.iper_of_string @@ Int32.to_string mod_p.Api_update_util.Mwrite.Person.index in
-  let first_name = Geneweb.Util.only_printable mod_p.Api_update_util.Mwrite.Person.firstname in
-  let surname = Geneweb.Util.only_printable mod_p.Api_update_util.Mwrite.Person.lastname in
+  let key_index = Gwdb.iper_of_string @@ Int32.to_string mod_p.Api_saisie_write_piqi.Person.index in
+  let first_name = Geneweb.Util.only_printable mod_p.Api_saisie_write_piqi.Person.firstname in
+  let surname = Geneweb.Util.only_printable mod_p.Api_saisie_write_piqi.Person.lastname in
   (* S'il y a des caractères interdits, on les supprime *)
   let (first_name, surname) =
     let contain_fn = String.contains first_name in
@@ -12,54 +12,54 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
     else (first_name, surname)
   in
   let occ = fn_occ mod_p in
-  let image = Option.fold ~none:"" ~some:Geneweb.Util.only_printable mod_p.Api_update_util.Mwrite.Person.image in
+  let image = Option.fold ~none:"" ~some:Geneweb.Util.only_printable mod_p.Api_saisie_write_piqi.Person.image in
   let strings_aux = List.map Geneweb.Util.only_printable in
-  let first_names_aliases = strings_aux mod_p.Api_update_util.Mwrite.Person.firstname_aliases in
-  let surnames_aliases = strings_aux mod_p.Api_update_util.Mwrite.Person.surname_aliases in
-  let public_name = Option.value ~default:"" mod_p.Api_update_util.Mwrite.Person.public_name |> Geneweb.Util.only_printable in
-  let qualifiers = strings_aux mod_p.Api_update_util.Mwrite.Person.qualifiers in
-  let aliases = strings_aux mod_p.Api_update_util.Mwrite.Person.aliases in
+  let first_names_aliases = strings_aux mod_p.Api_saisie_write_piqi.Person.firstname_aliases in
+  let surnames_aliases = strings_aux mod_p.Api_saisie_write_piqi.Person.surname_aliases in
+  let public_name = Option.value ~default:"" mod_p.Api_saisie_write_piqi.Person.public_name |> Geneweb.Util.only_printable in
+  let qualifiers = strings_aux mod_p.Api_saisie_write_piqi.Person.qualifiers in
+  let aliases = strings_aux mod_p.Api_saisie_write_piqi.Person.aliases in
   let titles =
     List.map begin fun t ->
       { Def.t_name =
-          begin match t.Api_update_util.Mwrite.Title.name with
+          begin match t.Api_saisie_write_piqi.Title.name with
             | Some s -> if s = "" then Tnone else Tname s
             | None -> Tnone
           end
-      ; t_ident = begin match t.Api_update_util.Mwrite.Title.title with
+      ; t_ident = begin match t.Api_saisie_write_piqi.Title.title with
           | Some s -> s
           | None -> ""
         end
-      ; t_place = begin match t.Api_update_util.Mwrite.Title.fief with
+      ; t_place = begin match t.Api_saisie_write_piqi.Title.fief with
           | Some s -> s
           | None -> ""
         end
-      ; t_date_start = begin match t.Api_update_util.Mwrite.Title.date_begin with
+      ; t_date_start = begin match t.Api_saisie_write_piqi.Title.date_begin with
           | Some date -> Api_update_util.date_of_piqi_date conf date |> Date.cdate_of_od
           | None -> Date.cdate_None
         end
-      ; t_date_end = begin match t.Api_update_util.Mwrite.Title.date_end with
+      ; t_date_end = begin match t.Api_saisie_write_piqi.Title.date_end with
           | Some date -> Api_update_util.date_of_piqi_date conf date |> Date.cdate_of_od
           | None -> Date.cdate_None
         end
-      ; t_nth = begin match t.Api_update_util.Mwrite.Title.nth with
+      ; t_nth = begin match t.Api_saisie_write_piqi.Title.nth with
           | Some i -> Int32.to_int i
           | None -> 0
         end
       }
-    end mod_p.Api_update_util.Mwrite.Person.titles
+    end mod_p.Api_saisie_write_piqi.Person.titles
   in
   let rparents = fn_rparents mod_p in
-  let access = Api_piqi_util.piqi_access_to_access mod_p.Api_update_util.Mwrite.Person.access in
-  let occupation = Option.fold ~none:"" ~some:Geneweb.Util.only_printable mod_p.Api_update_util.Mwrite.Person.occupation in
+  let access = Api_piqi_util.piqi_access_to_access mod_p.Api_saisie_write_piqi.Person.access in
+  let occupation = Option.fold ~none:"" ~some:Geneweb.Util.only_printable mod_p.Api_saisie_write_piqi.Person.occupation in
   let sex =
-    match mod_p.Api_update_util.Mwrite.Person.sex with
+    match mod_p.Api_saisie_write_piqi.Person.sex with
     | `male -> Def.Male
     | `female -> Def.Female
     | `unknown -> Def.Neuter
   in
   let death =
-    match mod_p.Api_update_util.Mwrite.Person.death_type with
+    match mod_p.Api_saisie_write_piqi.Person.death_type with
     | `not_dead -> Def.NotDead
     | `dead -> Def.DeadDontKnowWhen
     | `dead_young -> Def.DeadYoung
@@ -67,41 +67,41 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
     | `dont_know_if_dead -> Def.DontKnowIfDead
     | `of_course_dead -> Def.OfCourseDead
   in
-  let psources = Option.fold ~none:"" ~some:Geneweb.Util.only_printable mod_p.Api_update_util.Mwrite.Person.psources in
+  let psources = Option.fold ~none:"" ~some:Geneweb.Util.only_printable mod_p.Api_saisie_write_piqi.Person.psources in
   let notes =
     Option.fold ~none:""
       ~some:(fun s -> Geneweb.Util.only_printable_or_nl (Mutil.strip_all_trailing_spaces s))
-      mod_p.Api_update_util.Mwrite.Person.notes
+      mod_p.Api_saisie_write_piqi.Person.notes
   in
   let original_pevents =
     (* GeneWeb used to strip empty death event, but we need to do it after conflicts check. *)
     List.map begin fun evt ->
       let name =
-        match evt.Api_update_util.Mwrite.Pevent.event_perso with
+        match evt.Api_saisie_write_piqi.Pevent.event_perso with
         | Some n -> Def.Epers_Name (Geneweb.Util.only_printable n)
         | _ ->
-          match evt.Api_update_util.Mwrite.Pevent.pevent_type with
+          match evt.Api_saisie_write_piqi.Pevent.pevent_type with
           | Some x -> Api_piqi_util.pevent_name_of_piqi_pevent_name x
           | _ -> Def.Epers_Name ""
       in
       let date =
-        match evt.Api_update_util.Mwrite.Pevent.date with
+        match evt.Api_saisie_write_piqi.Pevent.date with
         | Some date -> Api_update_util.date_of_piqi_date conf date
         | None -> None
       in
-      let place = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_update_util.Mwrite.Pevent.place in
-      let reason = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_update_util.Mwrite.Pevent.reason in
+      let place = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_saisie_write_piqi.Pevent.place in
+      let reason = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_saisie_write_piqi.Pevent.reason in
       let note =
         Option.fold
           ~none:"" ~some:(fun n -> Geneweb.Util.only_printable_or_nl (Mutil.strip_all_trailing_spaces n))
-          evt.Api_update_util.Mwrite.Pevent.note
+          evt.Api_saisie_write_piqi.Pevent.note
       in
-      let src = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_update_util.Mwrite.Pevent.src in
+      let src = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_saisie_write_piqi.Pevent.src in
       let witnesses = fn_pevt_witnesses evt in
       { Def.epers_name = name; epers_date = Date.cdate_of_od date;
         epers_place = place; epers_reason = reason; epers_note = note;
         epers_src = src; epers_witnesses = Array.of_list witnesses }
-    end mod_p.Api_update_util.Mwrite.Person.pevents
+    end mod_p.Api_saisie_write_piqi.Person.pevents
   in
   let (bi, bp, de, bu, pevents) =
     (* [reconstitute_from_pevents] sorts pevents.
@@ -148,23 +148,23 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
 let reconstitute_person conf base mod_p
   : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person =
   let fn_occ mod_p =
-    match mod_p.Api_update_util.Mwrite.Person.create_link with
+    match mod_p.Api_saisie_write_piqi.Person.create_link with
     | `create ->
-      let fn = mod_p.Api_update_util.Mwrite.Person.firstname in
-      let sn = mod_p.Api_update_util.Mwrite.Person.lastname in
+      let fn = mod_p.Api_saisie_write_piqi.Person.firstname in
+      let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
       Api_update_util.api_find_free_occ base fn sn
     | _ ->
       (* Cas par défaut, i.e. modifier personne sans changer le occ. *)
-      Option.fold ~none:0 ~some:Int32.to_int mod_p.Api_update_util.Mwrite.Person.occ
+      Option.fold ~none:0 ~some:Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
   in
   let fn_rparents mod_p =
     List.fold_right begin fun r accu ->
-      match r.Api_update_util.Mwrite.Relation_parent.person with
+      match r.Api_saisie_write_piqi.Relation_parent.person with
       | None -> accu
       | Some person when person.lastname = "?" && person.firstname = "?" -> accu
       | Some person ->
         let r_type =
-          match r.Api_update_util.Mwrite.Relation_parent.rpt_type with
+          match r.Api_saisie_write_piqi.Relation_parent.rpt_type with
           | `rpt_adoption_father | `rpt_adoption_mother -> Def.Adoption
           | `rpt_recognition_father | `rpt_recognition_mother -> Def.Recognition
           | `rpt_candidate_parent_father | `rpt_candidate_parent_mother -> Def.CandidateParent
@@ -172,12 +172,12 @@ let reconstitute_person conf base mod_p
           | `rpt_foster_parent_father | `rpt_foster_parent_mother -> Def.FosterParent
         in
         let (r_fath, r_moth) =
-          match person.Api_update_util.Mwrite.Person_link.sex with
+          match person.Api_saisie_write_piqi.Person_link.sex with
           | `female -> (None, Some (Api_update_util.reconstitute_somebody base person))
           | _ -> (Some (Api_update_util.reconstitute_somebody base person), None)
         in
         let r_sources =
-          match r.Api_update_util.Mwrite.Relation_parent.source with
+          match r.Api_saisie_write_piqi.Relation_parent.source with
           | Some s -> s
           | None -> ""
         in
@@ -186,19 +186,19 @@ let reconstitute_person conf base mod_p
             r_moth = r_moth; r_sources = r_sources }
         in
         r :: accu
-    end mod_p.Api_update_util.Mwrite.Person.rparents []
+    end mod_p.Api_saisie_write_piqi.Person.rparents []
   in
   let fn_pevt_witnesses evt =
     List.fold_right begin fun witness accu ->
-      match witness.Api_update_util.Mwrite.Witness.person with
+      match witness.Api_saisie_write_piqi.Witness.person with
       | Some person ->
-        let wk = Api_util.witness_kind_of_piqi witness.Api_update_util.Mwrite.Witness.witness_type in
-        let wnote = witness.Api_update_util.Mwrite.Witness.witness_note in
+        let wk = Api_util.witness_kind_of_piqi witness.Api_saisie_write_piqi.Witness.witness_type in
+        let wnote = witness.Api_saisie_write_piqi.Witness.witness_note in
         let wnote = Option.fold ~none:"" ~some:Fun.id wnote in
         let wit = (Api_update_util.reconstitute_somebody base person, wk, wnote) in
         wit :: accu
       | None -> accu
-    end evt.Api_update_util.Mwrite.Pevent.witnesses []
+    end evt.Api_saisie_write_piqi.Pevent.witnesses []
   in
   let original_pevents, p = reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p in
   ignore @@ Api_update_util.check_person_conflict base original_pevents p ;
@@ -246,7 +246,7 @@ let print_add conf base mod_p =
     let sp : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person = reconstitute_person conf base mod_p in
     let sp = {(sp) with key_index = Gwdb.dummy_iper} in
     (* On met à jour les occ. *)
-    if sp.occ <> 0 then mod_p.Api_update_util.Mwrite.Person.occ <- Some (Int32.of_int sp.occ);
+    if sp.occ <> 0 then mod_p.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int sp.occ);
     let sp : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person = Geneweb.UpdateIndOk.strip_person sp in
     match Geneweb.UpdateIndOk.check_person conf base (sp : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person) with
     | Some err ->
@@ -273,7 +273,7 @@ let print_mod_aux conf base ncn mod_p callback =
     let p = Geneweb.UpdateIndOk.strip_person p in
     let ini_ps = Geneweb.UpdateInd.string_person_of base (Gwdb.poi base p.key_index) in
     let digest = Geneweb.Update.digest_person ini_ps in
-    if digest = mod_p.Api_update_util.Mwrite.Person.digest then
+    if digest = mod_p.Api_saisie_write_piqi.Person.digest then
       match match if ncn then None else Geneweb.Update.check_missing_name base p with
         | Some _ as err -> err
         | None ->
@@ -293,7 +293,7 @@ let print_mod_aux conf base ncn mod_p callback =
   | Api_update_util.ModErrApiConflict c -> Api_update_util.UpdateErrorConflict c
 
 let print_mod ?(no_check_name = false) ?(fexclude = []) conf base mod_p =
-  let ip = Gwdb.iper_of_string @@ Int32.to_string mod_p.Api_update_util.Mwrite.Person.index in
+  let ip = Gwdb.iper_of_string @@ Int32.to_string mod_p.Api_saisie_write_piqi.Person.index in
   let o_p =
     Geneweb.Util.string_gen_person base (Gwdb.gen_person_of_person (Gwdb.poi base ip))
   in
@@ -375,13 +375,13 @@ let find_free_occ_nobase fn sn =
 
 let reconstitute_person_nobase conf mod_p =
   let fn_occ mod_p =
-    match mod_p.Api_update_util.Mwrite.Person.create_link with
+    match mod_p.Api_saisie_write_piqi.Person.create_link with
     | `create_default_occ ->
-      let fn = mod_p.Api_update_util.Mwrite.Person.firstname in
-      let sn = mod_p.Api_update_util.Mwrite.Person.lastname in
+      let fn = mod_p.Api_saisie_write_piqi.Person.firstname in
+      let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
       find_free_occ_nobase fn sn
     | `create ->
-      begin match mod_p.Api_update_util.Mwrite.Person.occ with
+      begin match mod_p.Api_saisie_write_piqi.Person.occ with
         | Some occ -> Int32.to_int occ
         | None -> 0
       end
@@ -407,7 +407,7 @@ let print_add_nobase conf mod_p =
     let sp = reconstitute_person_nobase conf mod_p in
     let sp = {(sp) with key_index = Gwdb.dummy_iper} in
     (* On met à jour les occ. *)
-    if sp.occ <> 0 then mod_p.Api_update_util.Mwrite.Person.occ <- Some (Int32.of_int sp.occ);
+    if sp.occ <> 0 then mod_p.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int sp.occ);
     let _sp = Geneweb.UpdateIndOk.strip_person sp in
     (* On ne vérifie pas ici si le prénom de la personne est vide, mais *)
     (* on le fait plus haut, pour savoir si c'est un oubli ou si l'on   *)
