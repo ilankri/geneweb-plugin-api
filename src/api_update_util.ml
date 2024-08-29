@@ -28,7 +28,7 @@ let new_gutil_find_free_occ base f s i =
   in
   loop 0 list_occ
 
-let ht_free_occ = Hashtbl.create 33 ;;
+let ht_free_occ = Hashtbl.create 33
 let api_find_free_occ base fn sn =
   let key = Name.lower (fn ^ " " ^ sn) in
   try
@@ -95,7 +95,7 @@ type update_base_status =
 
 
 (* Exception qui gère les conflits de création de personnes. *)
-exception ModErrApiConflict of Api_saisie_write_piqi.Create_conflict.t ;;
+exception ModErrApiConflict of Api_saisie_write_piqi.Create_conflict.t
 
 let error_conflict_person_link base created (f, s, o, create, _, force_create) =
   let k = (f, s, o) in
