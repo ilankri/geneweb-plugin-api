@@ -606,10 +606,6 @@ let pers_to_piqi_simple_person (conf : Geneweb.Config.config) (base : Gwdb.base)
   }
 
 
-(* ************************************************************************** *)
-(** [Description] : Retourne une personne qui sert lors de la recherche pour
-                    relier un individu dans la saisie.                        *)
-(* ************************************************************************** *)
 let pers_to_piqi_person_search conf base p =
   let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
   let sex =
@@ -646,11 +642,6 @@ let pers_to_piqi_person_search conf base p =
   }
 
 
-(* ************************************************************************** *)
-(** [Description] : Retourne une personne qui sert lors de la recherche pour
-                    relier un individu dans la saisie (affichage des
-                    informations détaillées).                                 *)
-(* ************************************************************************** *)
 let pers_to_piqi_person_search_info conf base p =
   let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
   let sex =
@@ -932,10 +923,6 @@ let pers_to_piqi_person_search_info conf base p =
 (**/**) (* Convertion d'une personne, d'une famille. *)
 
 
-(* ************************************************************************** *)
-(** [Description] : Retourne une personne qui sert lors de la recherche pour
-                    relier un individu dans la saisie.                        *)
-(* ************************************************************************** *)
 let pers_to_piqi_person_link conf base p =
   let create_link = `link in
   let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
@@ -1384,11 +1371,6 @@ let fam_to_piqi_mod_family conf base ifam fam =
   }
 
 
-(* ************************************************************************** *)
-(** [Description] : Converti une personne start pour la première saisie en
-                    Person afin de suivre le chemin classique de modification
-                    de la base.                                               *)
-(* ************************************************************************** *)
 let piqi_mod_person_of_person_start conf base start_p =
   let p = Gwdb.empty_person base (Gwdb.dummy_iper) in
   let mod_p = pers_to_piqi_mod_person conf base p in

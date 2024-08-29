@@ -56,18 +56,25 @@ val pers_to_piqi_person_search :
   Gwdb.base ->
   Gwdb.person ->
   Api_saisie_write_piqi.person_search
+(** [Description] : Retourne une personne qui sert lors de la recherche pour
+                    relier un individu dans la saisie.                        *)
 
 val pers_to_piqi_person_search_info :
   Geneweb.Config.config ->
   Gwdb.base ->
   Gwdb.person ->
   Api_saisie_write_piqi.person_search_info
+(** [Description] : Retourne une personne qui sert lors de la recherche pour
+                    relier un individu dans la saisie (affichage des
+                    informations détaillées).                                 *)
 
 val pers_to_piqi_person_link :
   Geneweb.Config.config ->
   Gwdb.base ->
   Gwdb.person ->
   Api_saisie_write_piqi.person_link
+(** [Description] : Retourne une personne qui sert lors de la recherche pour
+                    relier un individu dans la saisie.                        *)
 
 val pers_to_piqi_mod_person :
   Geneweb.Config.config ->
@@ -87,6 +94,9 @@ val piqi_mod_person_of_person_start :
   Gwdb.base ->
   Api_piqi.person_start ->
   Api_saisie_write_piqi.person
+(** [Description] : Converti une personne start pour la première saisie en
+                    Person afin de suivre le chemin classique de modification
+                    de la base.                                               *)
 
 val piqi_empty_family :
   Geneweb.Config.config ->
