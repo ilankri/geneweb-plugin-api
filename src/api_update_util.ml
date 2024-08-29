@@ -445,7 +445,7 @@ let date_of_piqi_date conf date =
                               Date.OrYear {day2 = adef_dmy.day; month2 = adef_dmy.month; year2 = adef_dmy.year; delta2 = delta2}
                             | None -> Date.Sure
                           end
-                      | None -> Date.Sure (*OrYear {day2 = 0; month2 = 0; year2 = 0; delta2 = 0}*) (* erreur*))
+                      | None -> Date.Sure (* erreur*))
                   | Some `yearint ->
                       (match date.Api_saisie_write_piqi.Date.dmy2 with
                       | Some dmy ->
@@ -456,7 +456,7 @@ let date_of_piqi_date conf date =
                               Date.YearInt {day2 = adef_dmy.day; month2 = adef_dmy.month; year2 = adef_dmy.year; delta2 = delta2}
                             | None -> Date.Sure
                           end
-                      | None -> Date.Sure (*YearInt {day2 = 0; month2 = 0; year2 = 0; delta2 = 0}*) (* erreur*))
+                      | None -> Date.Sure (* erreur*))
                   | _ -> Date.Sure
                 in
                 let dmy =
@@ -946,10 +946,6 @@ let pers_to_piqi_person_search_info conf base p =
            if not mother_auth && (Geneweb.Util.is_hide_names conf mother) then "x x"
            else Gwdb.p_first_name base mother ^ " " ^ Gwdb.p_surname base mother
          in
-         (*
-         let husband = pers_to_piqi_simple_person conf base father in
-         let wife = pers_to_piqi_simple_person conf base mother in
-         *)
          Api_saisie_write_piqi.Was_witness.({
            husband = husband;
            wife = wife;
