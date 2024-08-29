@@ -264,7 +264,6 @@ let check_family_conflict base sfam scpl sdes =
 
 
 (* ************************************************************************ *)
-(*  [Fonc] piqi_date_of_date : def.date -> piqi_date                        *)
 (** [Description] : Converti une date en date piqi
     [Args] :
       - date : la date a convertir
@@ -272,7 +271,7 @@ let check_family_conflict base sfam scpl sdes =
       - piqi date : date du module Api_saisie_write_piqi.
     [Rem] : Non exporté en clair hors de ce module.                         *)
 (* ************************************************************************ *)
-let piqi_date_of_date date =
+let piqi_date_of_date (date : Date.date) : Api_saisie_write_piqi.date =
   match date with
   | Date.Dgreg (dmy, cal) ->
       let (cal, dmy) =
@@ -553,8 +552,6 @@ let husband_wife conf base p =
 
 
 (* ************************************************************************** *)
-(*  [Fonc] pers_to_piqi_simple_person :
-             config -> base -> person -> SimplePerson                         *)
 (** [Description] : Retourne à partir d'une person (gwdb) une SimplePerson
                     (piqi).
     [Args] :
@@ -565,7 +562,7 @@ let husband_wife conf base p =
       - Person : Retourne une personne dont tous les champs sont complétés.
     [Rem] : Non exporté en clair hors de ce module.                           *)
 (* ************************************************************************** *)
-let pers_to_piqi_simple_person conf base p =
+let pers_to_piqi_simple_person (conf : Geneweb.Config.config) (base : Gwdb.base) (p : Gwdb.person) : Api_saisie_write_piqi.simple_person =
   let index = Int32.of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p) in
   let sex =
     match Gwdb.get_sex p with
