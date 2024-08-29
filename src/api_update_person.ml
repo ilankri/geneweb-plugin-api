@@ -79,10 +79,10 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
       let name =
         match evt.Api_saisie_write_piqi.Pevent.event_perso with
         | Some n -> Def.Epers_Name (Geneweb.Util.only_printable n)
-        | _ ->
+        | None ->
           match evt.Api_saisie_write_piqi.Pevent.pevent_type with
           | Some x -> Api_piqi_util.pevent_name_of_piqi_pevent_name x
-          | _ -> Def.Epers_Name ""
+          | None -> Def.Epers_Name ""
       in
       let date =
         match evt.Api_saisie_write_piqi.Pevent.date with
@@ -123,7 +123,7 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
     match death with
     | DontKnowIfDead ->
       Geneweb.Update.infer_death_bb conf (Date.od_of_cdate birth) (Date.od_of_cdate baptism)
-    | _ -> death
+    | NotDead | Death _ | DeadYoung | DeadDontKnowWhen | OfCourseDead -> death
   in
   ( original_pevents
   , { Def.first_name ; surname ; occ ; sex ; access
@@ -153,7 +153,7 @@ let reconstitute_person conf base mod_p
       let fn = mod_p.Api_saisie_write_piqi.Person.firstname in
       let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
       Api_update_util.api_find_free_occ base fn sn
-    | _ ->
+    | `create_default_occ | `link ->
       (* Cas par défaut, i.e. modifier personne sans changer le occ. *)
       Option.fold ~none:0 ~some:Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
   in
@@ -174,7 +174,7 @@ let reconstitute_person conf base mod_p
         let (r_fath, r_moth) =
           match person.Api_saisie_write_piqi.Person_link.sex with
           | `female -> (None, Some (Api_update_util.reconstitute_somebody base person))
-          | _ -> (Some (Api_update_util.reconstitute_somebody base person), None)
+          | `male | `unknown -> (Some (Api_update_util.reconstitute_somebody base person), None)
         in
         let r_sources =
           match r.Api_saisie_write_piqi.Relation_parent.source with
@@ -231,7 +231,7 @@ let reconstitute_person conf base mod_p
           (Some (f, s, o, create, var), None)
         | (None, Some (f, s, o, create, var, _)) ->
           (None, Some (f, s, o, create, var))
-        | _ -> failwith "rparents_gw"
+        | None, None | Some _, Some _ -> failwith "rparents_gw"
       in
       { r  with Def.r_fath ; r_moth }
     end p.rparents
