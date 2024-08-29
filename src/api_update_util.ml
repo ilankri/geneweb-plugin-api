@@ -334,7 +334,6 @@ let piqi_date_of_date (date : Date.date) : Api_saisie_write_piqi.date =
 
 
 (* ************************************************************************ *)
-(*  [Fonc] date_of_piqi_date : piqi_date -> option def.date                 *)
 (** [Description] : Converti date piqi en date
     [Args] :
       - date : date du module Api_saisie_write_piqi
@@ -635,8 +634,6 @@ let pers_to_piqi_simple_person (conf : Geneweb.Config.config) (base : Gwdb.base)
 
 
 (* ************************************************************************** *)
-(*  [Fonc] pers_to_piqi_person_search :
-             config -> base -> person -> PersonSearchLink                     *)
 (** [Description] : Retourne une personne qui sert lors de la recherche pour
                     relier un individu dans la saisie.
     [Args] :
@@ -683,8 +680,6 @@ let pers_to_piqi_person_search conf base p =
 
 
 (* ************************************************************************** *)
-(*  [Fonc] pers_to_piqi_person_search_info :
-             config -> base -> person -> PersonSearchInfo                     *)
 (** [Description] : Retourne une personne qui sert lors de la recherche pour
                     relier un individu dans la saisie (affichage des
                     informations détaillées).
@@ -977,8 +972,6 @@ let pers_to_piqi_person_search_info conf base p =
 
 
 (* ************************************************************************** *)
-(*  [Fonc] pers_to_piqi_person_link :
-             config -> base -> person -> PersonSearchLink                     *)
 (** [Description] : Retourne une personne qui sert lors de la recherche pour
                     relier un individu dans la saisie.
     [Args] :
@@ -1018,7 +1011,6 @@ let pers_to_piqi_person_link conf base p =
 
 
 (* ************************************************************************* *)
-(*  [Fonc] pers_to_piqi_mod_person : config -> base -> person -> piqi person *)
 (** [Description] : Converti une personne en personne piqi.
     [Args] :
       - conf : configuration de la base
@@ -1360,8 +1352,6 @@ let pers_to_piqi_mod_person conf base p =
   }
 
 (* ************************************************************************ *)
-(*  [Fonc] fam_to_piqi_mod_family :
-             config -> base -> ip -> family -> piqi family                  *)
 (** [Description] : Converti une personne en personne piqi.
     [Args] :
       - conf : configuration de la base
@@ -1460,8 +1450,6 @@ let fam_to_piqi_mod_family conf base ifam fam =
 
 
 (* ************************************************************************** *)
-(*  [Fonc] piqi_mod_person_of_person_start :
-             config -> base -> Person_start -> Person                         *)
 (** [Description] : Converti une personne start pour la première saisie en
                     Person afin de suivre le chemin classique de modification
                     de la base.
