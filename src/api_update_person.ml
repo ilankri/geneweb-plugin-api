@@ -358,7 +358,7 @@ let print_mod ?(no_check_name = false) ?(fexclude = []) conf base mod_p =
 
 
 (* Comme on n'a pas de base, on va garder une hashtbl des occurrences. *)
-let ht_occ = Hashtbl.create 7 ;;
+let ht_occ = Hashtbl.create 7
 
 let find_free_occ_nobase fn sn =
   let key = Name.lower fn ^ " #@# " ^ Name.lower sn in
