@@ -1,5 +1,3 @@
-module Mwrite = Api_saisie_write_piqi
-
 type created_person = {
   n : string;
   p : string;

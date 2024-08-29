@@ -1,7 +1,3 @@
-module M = Api_piqi
-
-module Mwrite = Api_saisie_write_piqi
-
 (**/**) (* Misc *)
 
 let new_gutil_find_free_occ base f s i =
@@ -95,11 +91,11 @@ let created_person_is_unnamed cp =
 type update_base_status =
   | UpdateSuccess of Geneweb.CheckItem.base_warning list * Geneweb.CheckItem.base_misc list * (unit -> unit) list * created_person option
   | UpdateError of Geneweb.Update.update_error
-  | UpdateErrorConflict of Mwrite.Create_conflict.t
+  | UpdateErrorConflict of Api_saisie_write_piqi.Create_conflict.t
 
 
 (* Exception qui gère les conflits de création de personnes. *)
-exception ModErrApiConflict of Mwrite.Create_conflict.t ;;
+exception ModErrApiConflict of Api_saisie_write_piqi.Create_conflict.t ;;
 
 let error_conflict_person_link base created (f, s, o, create, _, force_create) =
   let k = (f, s, o) in
@@ -131,7 +127,7 @@ let check_person_conflict base original_pevents sp =
       match Gwdb.person_of_key base sp.Def.first_name sp.Def.surname sp.Def.occ with
       | Some p' when p' <> sp.Def.key_index ->
         let conflict =
-          { Mwrite.Create_conflict.form = Some `person_form1
+          { Api_saisie_write_piqi.Create_conflict.form = Some `person_form1
           ; witness = false
           ; rparents = false
           ; event = false
@@ -154,7 +150,7 @@ let check_person_conflict base original_pevents sp =
         begin match error_conflict_person_link base created (f, s, o, create, var, force_create) with
           | true, _ ->
             let conflict =
-              { Mwrite.Create_conflict.form = Some `person_form1
+              { Api_saisie_write_piqi.Create_conflict.form = Some `person_form1
               ; witness = false
               ; rparents = true
               ; event = false
@@ -181,7 +177,7 @@ let check_person_conflict base original_pevents sp =
         | true, _ ->
           let pos = Mutil.list_index evt original_pevents in
           let conflict =
-            { Mwrite.Create_conflict.form = Some `person_form1
+            { Api_saisie_write_piqi.Create_conflict.form = Some `person_form1
             ; witness = true
             ; rparents = false
             ; event = true
@@ -205,7 +201,7 @@ let check_family_conflict base sfam scpl sdes =
       match error_conflict_person_link base created (f, s, o, create, var, force_create) with
       | true, _ ->
         let conflict =
-          { Mwrite.Create_conflict.form = if i = 0 then Some `person_form1 else Some `person_form2
+          { Api_saisie_write_piqi.Create_conflict.form = if i = 0 then Some `person_form1 else Some `person_form2
           ; witness = false
           ; rparents = false
           ; event = false
@@ -227,7 +223,7 @@ let check_family_conflict base sfam scpl sdes =
           match error_conflict_person_link base created (f, s, o, create, var, force_create) with
           | true, _ ->
             let conflict =
-              { Mwrite.Create_conflict.form = Some `family_form
+              { Api_saisie_write_piqi.Create_conflict.form = Some `family_form
               ; witness = true
               ; rparents = false
               ; event = true
@@ -250,7 +246,7 @@ let check_family_conflict base sfam scpl sdes =
     match error_conflict_person_link base created (f, s, o, create, var, force_create) with
     | true, _ ->
       let conflict =
-        { Mwrite.Create_conflict.form = Some `person_form1
+        { Api_saisie_write_piqi.Create_conflict.form = Some `person_form1
         ; witness = false
         ; rparents = false
         ; event = false
@@ -273,7 +269,7 @@ let check_family_conflict base sfam scpl sdes =
     [Args] :
       - date : la date a convertir
     [Retour] :
-      - piqi date : date du module Mwrite.
+      - piqi date : date du module Api_saisie_write_piqi.
     [Rem] : Non exporté en clair hors de ce module.                         *)
 (* ************************************************************************ *)
 let piqi_date_of_date date =
@@ -292,7 +288,7 @@ let piqi_date_of_date date =
         let m = Some (Int32.of_int dmy.month) in
         let y = Some (Int32.of_int dmy.year) in
         let delta = Some (Int32.of_int dmy.delta) in
-        let dmy1 = {Mwrite.Dmy.day = d; month = m; year = y; delta = delta;} in
+        let dmy1 = {Api_saisie_write_piqi.Dmy.day = d; month = m; year = y; delta = delta;} in
         let (prec, dmy2) =
           match dmy.prec with
           | Date.Sure -> (`sure, None)
@@ -306,7 +302,7 @@ let piqi_date_of_date date =
               let y = Some (Int32.of_int dmy2.year2) in
               let delta = Some (Int32.of_int dmy2.delta2) in
               let dmy2 =
-                {Mwrite.Dmy.day = d; month = m; year = y; delta = delta;}
+                {Api_saisie_write_piqi.Dmy.day = d; month = m; year = y; delta = delta;}
               in
               (`oryear, Some dmy2)
           | Date.YearInt dmy2 ->
@@ -315,14 +311,14 @@ let piqi_date_of_date date =
               let y = Some (Int32.of_int dmy2.year2) in
               let delta = Some (Int32.of_int dmy2.delta2) in
               let dmy2 =
-                {Mwrite.Dmy.day = d; month = m; year = y; delta = delta;}
+                {Api_saisie_write_piqi.Dmy.day = d; month = m; year = y; delta = delta;}
               in
               (`yearint, Some dmy2)
         in
         (prec, dmy1, dmy2)
       in
       {
-        Mwrite.Date.cal = cal;
+        Api_saisie_write_piqi.Date.cal = cal;
         prec = Some prec;
         dmy = Some dmy;
         dmy2 = dmy2;
@@ -330,7 +326,7 @@ let piqi_date_of_date date =
       }
   | Date.Dtext txt ->
       {
-        Mwrite.Date.cal = None;
+        Api_saisie_write_piqi.Date.cal = None;
         prec = None;
         dmy = None;
         dmy2 = None;
@@ -342,23 +338,23 @@ let piqi_date_of_date date =
 (*  [Fonc] date_of_piqi_date : piqi_date -> option def.date                 *)
 (** [Description] : Converti date piqi en date
     [Args] :
-      - date : date du module Mwrite
+      - date : date du module Api_saisie_write_piqi
     [Retour] :
       - date : date
     [Rem] : Non exporté en clair hors de ce module.                         *)
 (* ************************************************************************ *)
 let date_of_piqi_date conf date =
-  match date.Mwrite.Date.text with
+  match date.Api_saisie_write_piqi.Date.text with
   | Some txt -> Some (Date.Dtext txt)
   | _ ->
       (* Si on a une année, on a une date. *)
-      match date.Mwrite.Date.dmy with
+      match date.Api_saisie_write_piqi.Date.dmy with
       | Some dmy ->
           begin
-            match dmy.Mwrite.Dmy.year with
+            match dmy.Api_saisie_write_piqi.Dmy.year with
             | Some _ ->
                 let cal =
-                  match date.Mwrite.Date.cal with
+                  match date.Api_saisie_write_piqi.Date.cal with
                   | Some `julian -> Date.Djulian
                   | Some `french -> Date.Dfrench
                   | Some `hebrew -> Date.Dhebrew
@@ -366,22 +362,22 @@ let date_of_piqi_date conf date =
                 in
                 let get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal prec =
                   let day =
-                    match dmy.Mwrite.Dmy.day with
+                    match dmy.Api_saisie_write_piqi.Dmy.day with
                     | Some day -> Int32.to_int day
                     | None -> 0
                   in
                   let month =
-                    match dmy.Mwrite.Dmy.month with
+                    match dmy.Api_saisie_write_piqi.Dmy.month with
                     | Some month -> Int32.to_int month
                     | None -> 0
                   in
                   let year =
-                    match dmy.Mwrite.Dmy.year with
+                    match dmy.Api_saisie_write_piqi.Dmy.year with
                     | Some year -> Int32.to_int year
                     | None -> 0
                   in
                   let delta =
-                    match dmy.Mwrite.Dmy.delta with
+                    match dmy.Api_saisie_write_piqi.Dmy.delta with
                     | Some delta -> Int32.to_int delta
                     | None -> 0
                   in
@@ -434,16 +430,16 @@ let date_of_piqi_date conf date =
                 in
                 let delta2 = 0 in
                 let prec =
-                  match date.Mwrite.Date.prec with
+                  match date.Api_saisie_write_piqi.Date.prec with
                   | Some `about -> Date.About
                   | Some `maybe -> Date.Maybe
                   | Some `before -> Date.Before
                   | Some `after -> Date.After
                   | Some `oryear ->
-                      (match date.Mwrite.Date.dmy2 with
+                      (match date.Api_saisie_write_piqi.Date.dmy2 with
                       | Some dmy ->
                           begin
-                            match dmy.Mwrite.Dmy.year with
+                            match dmy.Api_saisie_write_piqi.Dmy.year with
                             | Some _ ->
                               let adef_dmy = get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal Date.Sure in
                               Date.OrYear {day2 = adef_dmy.day; month2 = adef_dmy.month; year2 = adef_dmy.year; delta2 = delta2}
@@ -451,10 +447,10 @@ let date_of_piqi_date conf date =
                           end
                       | None -> Date.Sure (*OrYear {day2 = 0; month2 = 0; year2 = 0; delta2 = 0}*) (* erreur*))
                   | Some `yearint ->
-                      (match date.Mwrite.Date.dmy2 with
+                      (match date.Api_saisie_write_piqi.Date.dmy2 with
                       | Some dmy ->
                           begin
-                            match dmy.Mwrite.Dmy.year with
+                            match dmy.Api_saisie_write_piqi.Dmy.year with
                             | Some _ ->
                               let adef_dmy = get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal Date.Sure in
                               Date.YearInt {day2 = adef_dmy.day; month2 = adef_dmy.month; year2 = adef_dmy.year; delta2 = delta2}
@@ -464,7 +460,7 @@ let date_of_piqi_date conf date =
                   | _ -> Date.Sure
                 in
                 let dmy =
-                  match date.Mwrite.Date.dmy with
+                  match date.Api_saisie_write_piqi.Date.dmy with
                   | Some dmy ->
                       get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal prec
                   | None -> (* erreur*)
@@ -628,7 +624,7 @@ let pers_to_piqi_simple_person conf base p =
   in
   let image = Api_util.get_portrait conf base p in
   {
-    Mwrite.Simple_person.index = index;
+    Api_saisie_write_piqi.Simple_person.index = index;
     sex = sex;
     lastname = surname;
     firstname = first_name;
@@ -678,7 +674,7 @@ let pers_to_piqi_person_search conf base p =
     else child_of_parent conf base p
   in
   {
-    Mwrite.Person_search.index = index;
+    Api_saisie_write_piqi.Person_search.index = index;
     sex = sex;
     lastname = surname;
     firstname = first_name;
@@ -771,11 +767,11 @@ let pers_to_piqi_person_search_info conf base p =
                let witness = pers_to_piqi_simple_person conf base @@ Gwdb.poi base ip in
               let witness_note = Gwdb.sou base wnote in
               let witness_note = if witness_note = "" then None else Some witness_note in
-              Mwrite.Witness_event.{ witness_type ; witness ; witness_note})
+              Api_saisie_write_piqi.Witness_event.{ witness_type ; witness ; witness_note})
             (Geneweb.Event.get_witnesses_and_notes evt)
         in
         {
-          Mwrite.Event.name = name;
+          Api_saisie_write_piqi.Event.name = name;
           date = if date = "" then None else Some date;
           date_conv = if date_conv = "" then None else Some date_conv;
           date_cal = date_cal;
@@ -855,7 +851,7 @@ let pers_to_piqi_person_search_info conf base p =
           | FosterParent -> `rchild_foster_parent
         in
         {
-          Mwrite.Relation_person.r_type = r_type;
+          Api_saisie_write_piqi.Relation_person.r_type = r_type;
           person = p;
         } )
       list
@@ -878,7 +874,7 @@ let pers_to_piqi_person_search_info conf base p =
               let p = pers_to_piqi_simple_person conf base p in
               let p =
                 {
-                  Mwrite.Relation_person.r_type = r_type;
+                  Api_saisie_write_piqi.Relation_person.r_type = r_type;
                   person = p;
                 }
               in
@@ -891,7 +887,7 @@ let pers_to_piqi_person_search_info conf base p =
           let p = pers_to_piqi_simple_person conf base p in
           let p =
             {
-              Mwrite.Relation_person.r_type = r_type;
+              Api_saisie_write_piqi.Relation_person.r_type = r_type;
               person = p;
             }
           in
@@ -954,14 +950,14 @@ let pers_to_piqi_person_search_info conf base p =
          let husband = pers_to_piqi_simple_person conf base father in
          let wife = pers_to_piqi_simple_person conf base mother in
          *)
-         Mwrite.Was_witness.({
+         Api_saisie_write_piqi.Was_witness.({
            husband = husband;
            wife = wife;
          }) )
       list
   in
   {
-    Mwrite.Person_search_info.index = index;
+    Api_saisie_write_piqi.Person_search_info.index = index;
     sex = sex;
     lastname = surname;
     firstname = first_name;
@@ -1018,7 +1014,7 @@ let pers_to_piqi_person_link conf base p =
     else Some ("(" ^ dates ^ ")")
   in
   {
-    Mwrite.Person_link.create_link = create_link;
+    Api_saisie_write_piqi.Person_link.create_link = create_link;
     index = index;
     sex = sex;
     lastname = surname;
@@ -1036,7 +1032,7 @@ let pers_to_piqi_person_link conf base p =
       - base : base de donnée
       - p    : person
     [Retour] :
-      - piqi person : person du module Mwrite.
+      - piqi person : person du module Api_saisie_write_piqi.
     [Rem] : Non exporté en clair hors de ce module.                          *)
 (* ************************************************************************* *)
 let pers_to_piqi_mod_person conf base p =
@@ -1094,7 +1090,7 @@ let pers_to_piqi_mod_person conf base p =
           | None -> None
         in
         let nth = Some (Int32.of_int t.t_nth) in
-        Mwrite.Title.({
+        Api_saisie_write_piqi.Title.({
           name = if name = "" then None else Some name;
           title = if title = "" then None else Some title;
           fief = if fief = "" then None else Some fief;
@@ -1178,11 +1174,11 @@ let pers_to_piqi_mod_person conf base p =
                 let person_link = pers_to_piqi_person_link conf base p in
                 let witness_note = Gwdb.sou base wnote in
                 let witness_note = if witness_note = "" then None else Some witness_note in
-                Mwrite.Witness.{ witness_type ; person = Some person_link; witness_note })
+                Api_saisie_write_piqi.Witness.{ witness_type ; person = Some person_link; witness_note })
              (Gwdb.get_pevent_witnesses_and_notes evt)
          in
          {
-           Mwrite.Pevent.pevent_type = pevent_type;
+           Api_saisie_write_piqi.Pevent.pevent_type = pevent_type;
            date = date;
            place = if place = "" then None else Some place;
            reason = reason;
@@ -1204,7 +1200,7 @@ let pers_to_piqi_mod_person conf base p =
       begin
         let birth =
           {
-            Mwrite.Pevent.pevent_type = Some `epers_birth;
+            Api_saisie_write_piqi.Pevent.pevent_type = Some `epers_birth;
             date = None;
             place = None;
             reason = None;
@@ -1218,7 +1214,7 @@ let pers_to_piqi_mod_person conf base p =
         if Gwdb.get_iper p <> Gwdb.dummy_iper && death_type != `not_dead then
           let death =
             {
-              Mwrite.Pevent.pevent_type = Some `epers_death;
+              Api_saisie_write_piqi.Pevent.pevent_type = Some `epers_death;
               date = None;
               place = None;
               reason = None;
@@ -1245,7 +1241,7 @@ let pers_to_piqi_mod_person conf base p =
           begin
             let birth =
               {
-                Mwrite.Pevent.pevent_type = Some `epers_birth;
+                Api_saisie_write_piqi.Pevent.pevent_type = Some `epers_birth;
                 date = None;
                 place = None;
                 reason = None;
@@ -1263,7 +1259,7 @@ let pers_to_piqi_mod_person conf base p =
         begin
           let death =
             {
-              Mwrite.Pevent.pevent_type = Some `epers_death;
+              Api_saisie_write_piqi.Pevent.pevent_type = Some `epers_death;
               date = None;
               place = None;
               reason = None;
@@ -1295,7 +1291,7 @@ let pers_to_piqi_mod_person conf base p =
                 | FosterParent -> `rpt_foster_parent_father
               in
               let r =
-                Mwrite.Relation_parent.({
+                Api_saisie_write_piqi.Relation_parent.({
                   rpt_type = rpt_type;
                   person = Some father;
                   source = if source = "" then None else Some source;
@@ -1317,7 +1313,7 @@ let pers_to_piqi_mod_person conf base p =
             | FosterParent -> `rpt_foster_parent_mother
           in
           let r =
-            Mwrite.Relation_parent.({
+            Api_saisie_write_piqi.Relation_parent.({
                 rpt_type = rpt_type;
                 person = Some mother;
                 source = if source = "" then None else Some source;
@@ -1343,7 +1339,7 @@ let pers_to_piqi_mod_person conf base p =
   in
   let is_contemporary = Geneweb.GWPARAM.is_contemporary conf base p in
   {
-    Mwrite.Person.digest = digest;
+    Api_saisie_write_piqi.Person.digest = digest;
     index = index;
     sex = sex;
     lastname = surname;
@@ -1379,7 +1375,7 @@ let pers_to_piqi_mod_person conf base p =
       - base : base de donnée
       - p    : person
     [Retour] :
-      - piqi person : person du module Mwrite.
+      - piqi person : person du module Api_saisie_write_piqi.
     [Rem] : Non exporté en clair hors de ce module.                         *)
 (* ************************************************************************ *)
 let fam_to_piqi_mod_family conf base ifam fam =
@@ -1421,11 +1417,11 @@ let fam_to_piqi_mod_family conf base ifam fam =
                 let person_link = pers_to_piqi_person_link conf base p in
                 let witness_note = Gwdb.sou base wnote in
                 let witness_note = if witness_note = "" then None else Some witness_note in
-                Mwrite.Witness.{ witness_type; person = Some person_link ; witness_note})
+                Api_saisie_write_piqi.Witness.{ witness_type; person = Some person_link ; witness_note})
              (Gwdb.get_fevent_witnesses_and_notes evt)
          in
          {
-           Mwrite.Fevent.fevent_type = fevent_type;
+           Api_saisie_write_piqi.Fevent.fevent_type = fevent_type;
            date = date;
            place = if place = "" then None else Some place;
            reason = reason;
@@ -1457,7 +1453,7 @@ let fam_to_piqi_mod_family conf base ifam fam =
     Mutil.array_to_list_map (fun x -> Int32.of_string @@ Gwdb.string_of_iper x) (Gwdb.get_witnesses fam)
   in
   {
-    Mwrite.Family.digest = digest;
+    Api_saisie_write_piqi.Family.digest = digest;
     index = index;
     fevents = fevents;
     fsources = if fsources = "" then None else Some fsources;
@@ -1487,21 +1483,21 @@ let piqi_mod_person_of_person_start conf base start_p =
   let p = Gwdb.empty_person base (Gwdb.dummy_iper) in
   let mod_p = pers_to_piqi_mod_person conf base p in
   (* Les index négatifs ne marchent pas. *)
-  mod_p.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-  mod_p.Mwrite.Person.lastname <- start_p.M.Person_start.lastname;
-  mod_p.Mwrite.Person.firstname <- start_p.M.Person_start.firstname;
-  mod_p.Mwrite.Person.sex <- start_p.M.Person_start.sex;
+  mod_p.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+  mod_p.Api_saisie_write_piqi.Person.lastname <- start_p.Api_piqi.Person_start.lastname;
+  mod_p.Api_saisie_write_piqi.Person.firstname <- start_p.Api_piqi.Person_start.firstname;
+  mod_p.Api_saisie_write_piqi.Person.sex <- start_p.Api_piqi.Person_start.sex;
   (* Par défaut, les access sont en Private, on passe en Iftitles. *)
-  mod_p.Mwrite.Person.access <- `access_iftitles;
+  mod_p.Api_saisie_write_piqi.Person.access <- `access_iftitles;
   let birth_date =
-    match start_p.M.Person_start.birth_date_year with
+    match start_p.Api_piqi.Person_start.birth_date_year with
     | Some y ->
         let y = Int32.to_int y in
         if y > 0 then
-          (match start_p.M.Person_start.birth_date_month with
+          (match start_p.Api_piqi.Person_start.birth_date_month with
            | Some m ->
                let m = Int32.to_int m in
-               (match start_p.M.Person_start.birth_date_day with
+               (match start_p.Api_piqi.Person_start.birth_date_day with
                | Some d ->
                    let d = Int32.to_int d in
                    let dmy =
@@ -1529,7 +1525,7 @@ let piqi_mod_person_of_person_start conf base start_p =
   in
   let birth =
     {
-      Mwrite.Pevent.pevent_type = Some `epers_birth;
+      Api_saisie_write_piqi.Pevent.pevent_type = Some `epers_birth;
       date = birth_date;
       place = None;
       reason = None;
@@ -1539,7 +1535,7 @@ let piqi_mod_person_of_person_start conf base start_p =
       event_perso = None;
     }
   in
-  mod_p.Mwrite.Person.pevents <- [birth];
+  mod_p.Api_saisie_write_piqi.Person.pevents <- [birth];
   mod_p
 
 
@@ -1552,15 +1548,15 @@ let piqi_empty_family conf base ifam =
   let father = pers_to_piqi_mod_person conf base father in
   let mother = pers_to_piqi_mod_person conf base mother in
   (* Les index négatifs ne marchent pas ! *)
-  father.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
-  mother.Mwrite.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+  father.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
+  mother.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper Gwdb.dummy_iper;
   (* Par défaut, les access sont en Private, on passe en Iftitles. *)
-  father.Mwrite.Person.access <- `access_iftitles;
-  mother.Mwrite.Person.access <- `access_iftitles;
+  father.Api_saisie_write_piqi.Person.access <- `access_iftitles;
+  mother.Api_saisie_write_piqi.Person.access <- `access_iftitles;
   let fevents =
     let evt =
       {
-        Mwrite.Fevent.fevent_type = Some `efam_marriage;
+        Api_saisie_write_piqi.Fevent.fevent_type = Some `efam_marriage;
         date = None;
         place = None;
         reason = None;
@@ -1573,7 +1569,7 @@ let piqi_empty_family conf base ifam =
     [evt]
   in
   {
-    Mwrite.Family.digest = "";
+    Api_saisie_write_piqi.Family.digest = "";
     index = Int32.of_string (Gwdb.string_of_ifam ifam);
     fevents = fevents;
     fsources = None;
@@ -1586,10 +1582,10 @@ let piqi_empty_family conf base ifam =
   }
 
 let reconstitute_somebody base person =
-  let create_link = person.Mwrite.Person_link.create_link in
+  let create_link = person.Api_saisie_write_piqi.Person_link.create_link in
   let (fn, sn, occ, create, var, force_create) = match create_link with
     | `link ->
-      let ip = Gwdb.iper_of_string @@ Int32.to_string person.Mwrite.Person_link.index in
+      let ip = Gwdb.iper_of_string @@ Int32.to_string person.Api_saisie_write_piqi.Person_link.index in
       let p = Gwdb.poi base ip in
       let fn = Gwdb.sou base (Gwdb.get_first_name p) in
       let sn = Gwdb.sou base (Gwdb.get_surname p) in
@@ -1597,24 +1593,24 @@ let reconstitute_somebody base person =
       (fn, sn, occ, Geneweb.Update.Link, "", false)
     | _ ->
       let sex =
-        match person.Mwrite.Person_link.sex with
+        match person.Api_saisie_write_piqi.Person_link.sex with
           | `male -> Def.Male
           | `female -> Def.Female
           | `unknown -> Def.Neuter
       in
-      let fn = person.Mwrite.Person_link.firstname in
-      let sn = person.Mwrite.Person_link.lastname in
+      let fn = person.Api_saisie_write_piqi.Person_link.firstname in
+      let sn = person.Api_saisie_write_piqi.Person_link.lastname in
       let (occ, force_create) = match create_link with
         | `create_default_occ ->
-          (match person.Mwrite.Person_link.occ with
+          (match person.Api_saisie_write_piqi.Person_link.occ with
             | Some occ -> (Int32.to_int occ, false)
             | None -> (0, false))
         | `create ->
           let occ = api_find_free_occ base fn sn in
           (* Update the person because if we want to find it, we have to know its occ. *)
           let () =
-            if occ = 0 then person.Mwrite.Person_link.occ <- None
-            else person.Mwrite.Person_link.occ <- Some (Int32.of_int occ)
+            if occ = 0 then person.Api_saisie_write_piqi.Person_link.occ <- None
+            else person.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int occ)
           in
           (occ, true)
         | _ -> (0, false) (* Should not happen. *)
