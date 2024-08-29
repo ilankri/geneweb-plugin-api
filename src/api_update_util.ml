@@ -328,7 +328,7 @@ let piqi_date_of_date (date : Date.date) : Api_saisie_write_piqi.date =
 let date_of_piqi_date conf date =
   match date.Api_saisie_write_piqi.Date.text with
   | Some txt -> Some (Date.Dtext txt)
-  | _ ->
+  | None ->
       (* Si on a une année, on a une date. *)
       match date.Api_saisie_write_piqi.Date.dmy with
       | Some dmy ->
@@ -340,7 +340,7 @@ let date_of_piqi_date conf date =
                   | Some `julian -> Date.Djulian
                   | Some `french -> Date.Dfrench
                   | Some `hebrew -> Date.Dhebrew
-                  | _ -> Date.Dgregorian
+                  | Some `gregorian | None -> Date.Dgregorian
                 in
                 let get_adef_dmy_from_saisie_write_dmy_if_valid conf dmy cal prec =
                   let day =
@@ -439,7 +439,7 @@ let date_of_piqi_date conf date =
                             | None -> Date.Sure
                           end
                       | None -> Date.Sure (* erreur*))
-                  | _ -> Date.Sure
+                  | Some `sure | None -> Date.Sure
                 in
                 let dmy =
                   match date.Api_saisie_write_piqi.Date.dmy with
@@ -504,7 +504,7 @@ let child_of_parent conf base p =
             print_father fath
             ^^^ " " ^<^ Geneweb.Util.transl_nth conf "and" 0 ^<^ " "
             ^<^ Geneweb.Util.gen_person_text ~escape:false ~html:false conf base moth
-        | _ -> Adef.safe ""
+        | None, None -> Adef.safe ""
       in
       let is = Geneweb.Util.index_of_sex (Gwdb.get_sex p) in
       Geneweb.Util.translate_eval
@@ -683,7 +683,7 @@ let pers_to_piqi_person_search_info conf base p =
         let (date, _, date_conv, _, date_cal) =
           match Date.od_of_cdate (Geneweb.Event.get_date evt) with
           | Some d -> Api_saisie_read.string_of_date_and_conv conf d
-          | _ -> ("", "", "", "", None)
+          | None -> ("", "", "", "", None)
         in
         let place =
           let open Api_util in
@@ -780,7 +780,7 @@ let pers_to_piqi_person_search_info conf base p =
            in
            match (d1, d2) with
            |(Some d1, Some d2) -> Date.compare_date d1 d2
-           | _ -> -1 )
+           | Some _, None | None, (None | Some _) -> -1 )
       (List.rev list)
     in
     List.map
@@ -871,7 +871,7 @@ let pers_to_piqi_person_search_info conf base p =
               Date.od_of_cdate (Gwdb.get_marriage fam2))
            with
            | (Some d1, Some d2) -> Date.compare_date d1 d2
-           | _ -> 0 )
+           | Some _, None | None, (None | Some _) -> 0 )
         list
     in
     List.map
@@ -1077,7 +1077,7 @@ let pers_to_piqi_mod_person conf base p =
          let date =
            match Date.od_of_cdate (Gwdb.get_pevent_date evt) with
            | Some d -> Some (piqi_date_of_date d)
-           | _ -> None
+           | None -> None
          in
          let place = Gwdb.sou base (Gwdb.get_pevent_place evt) in
          let reason = None in
@@ -1308,7 +1308,7 @@ let fam_to_piqi_mod_family conf base ifam fam =
          let date =
            match Date.od_of_cdate (Gwdb.get_fevent_date evt) with
            | Some d -> Some (piqi_date_of_date d)
-           | _ -> None
+           | None -> None
          in
          let place = Gwdb.sou base (Gwdb.get_fevent_place evt) in
          let reason = None in
@@ -1413,7 +1413,7 @@ let piqi_mod_person_of_person_start conf base start_p =
   let birth_date =
     match birth_date with
     | Some d -> Some (piqi_date_of_date d)
-    | _ -> None
+    | None -> None
   in
   let birth =
     {
@@ -1483,7 +1483,7 @@ let reconstitute_somebody base person =
       let sn = Gwdb.sou base (Gwdb.get_surname p) in
       let occ = Gwdb.get_occ p in
       (fn, sn, occ, Geneweb.Update.Link, "", false)
-    | _ ->
+    | `create | `create_default_occ ->
       let sex =
         match person.Api_saisie_write_piqi.Person_link.sex with
           | `male -> Def.Male
@@ -1505,7 +1505,7 @@ let reconstitute_somebody base person =
             else person.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int occ)
           in
           (occ, true)
-        | _ -> (0, false) (* Should not happen. *)
+        | `link -> (0, false) (* Should not happen. *)
       in
       (fn, sn, occ, Geneweb.Update.Create (sex, None), "", force_create)
   in
