@@ -40,21 +40,17 @@ let ht_free_occ = Hashtbl.create 33
 let api_find_free_occ base fn sn =
   let key = Name.lower (fn ^ " " ^ sn) in
   try
-    begin
-      let free_occ = Hashtbl.find ht_free_occ key in
-      let free_occ = succ free_occ in
-      let base_free_occ = new_gutil_find_free_occ base fn sn free_occ in
-      let occ = max free_occ base_free_occ in
-      Hashtbl.add ht_free_occ key occ;
-      occ
-    end
+    let free_occ = Hashtbl.find ht_free_occ key in
+    let free_occ = succ free_occ in
+    let base_free_occ = new_gutil_find_free_occ base fn sn free_occ in
+    let occ = max free_occ base_free_occ in
+    Hashtbl.add ht_free_occ key occ;
+    occ
   with Not_found ->
-    begin
-      (* On regarde dans la base quelle est le occ dispo. *)
-      let free_occ = Gutil.find_free_occ base fn sn in
-      Hashtbl.add ht_free_occ key free_occ;
-      free_occ
-    end
+    (* On regarde dans la base quelle est le occ dispo. *)
+    let free_occ = Gutil.find_free_occ base fn sn in
+    Hashtbl.add ht_free_occ key free_occ;
+    free_occ
 
 
 (**/**) (* Type de retour de modification. *)

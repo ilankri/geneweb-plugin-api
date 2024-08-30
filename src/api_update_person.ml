@@ -378,11 +378,9 @@ let find_free_occ_nobase fn sn =
     Hashtbl.replace ht_occ key (succ occ);
     occ
   with Not_found ->
-    begin
-      let occ = 0 in
-      Hashtbl.add ht_occ key (succ occ);
-      occ
-    end
+    let occ = 0 in
+    Hashtbl.add ht_occ key (succ occ);
+    occ
 
 let reconstitute_person_nobase conf mod_p =
   let fn_occ mod_p =
