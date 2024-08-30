@@ -26,7 +26,7 @@ let get_local_occurrence_numbers, reserve_occurrence_number =
   in
   (get_occurrence_numbers, reserve_occurrence_number)
 
-let api_find_free_occ ~base ~first_name ~surname =
+let find_free_occ ~base ~first_name ~surname =
   let occ =
     let local_occurrence_numbers =
       get_local_occurrence_numbers ~first_name ~surname
@@ -1497,7 +1497,7 @@ let reconstitute_somebody base person =
             | Some occ -> (Int32.to_int occ, false)
             | None -> (0, false))
         | `create ->
-          let occ = api_find_free_occ ~base ~first_name:fn ~surname:sn in
+          let occ = find_free_occ ~base ~first_name:fn ~surname:sn in
           (occ, true)
       in
       (* Update the person because if we want to find it, we have to know its occ. *)
