@@ -373,14 +373,14 @@ let ht_occ = Hashtbl.create 7
 
 let find_free_occ_nobase fn sn =
   let key = Name.lower fn ^ " #@# " ^ Name.lower sn in
-  try
-    let occ = Hashtbl.find ht_occ key in
-    Hashtbl.replace ht_occ key (succ occ);
-    occ
-  with Not_found ->
-    let occ = 0 in
-    Hashtbl.add ht_occ key (succ occ);
-    occ
+  match Hashtbl.find_opt ht_occ key with
+  | Some occ ->
+     Hashtbl.replace ht_occ key (succ occ);
+     occ
+  | None ->
+     let occ = 0 in
+     Hashtbl.add ht_occ key (succ occ);
+     occ
 
 let reconstitute_person_nobase conf mod_p =
   let fn_occ mod_p =
