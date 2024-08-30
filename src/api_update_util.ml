@@ -8,49 +8,26 @@ type person_update = {
     force : bool;
   }
 
-let new_gutil_find_free_occ base f s i =
-  let ipl = Gwdb.persons_of_name base (f ^ " " ^ s) in
-  let first_name = Name.lower f in
-  let surname = Name.lower s in
-  let list_occ =
-    let rec loop list =
-      function
-      | ip :: ipl ->
-          let p = Gwdb.poi base ip in
-          if not (List.mem (Gwdb.get_occ p) list) &&
-             first_name = Name.lower (Gwdb.p_first_name base p) &&
-             surname = Name.lower (Gwdb.p_surname base p) then
-            loop (Gwdb.get_occ p :: list) ipl
-          else loop list ipl
-      | [] -> list
-    in
-    loop [] ipl
-  in
-  let list_occ = List.sort compare list_occ in
-  let rec loop cnt1 =
-    function
-    | cnt2 :: list ->
-        if cnt2 <= i || cnt1 = cnt2 then loop (cnt2 + 1) list
-        else loop cnt1 list
-    | [] -> cnt1
-  in
-  loop 0 list_occ
-
-let ht_free_occ = Hashtbl.create 33
+let occurrence_numbers = Hashtbl.create 33
 let api_find_free_occ base fn sn =
   let key = Name.lower (fn ^ " " ^ sn) in
-  match Hashtbl.find_opt ht_free_occ key with
-  | Some free_occ ->
-    let free_occ = succ free_occ in
-    let base_free_occ = new_gutil_find_free_occ base fn sn free_occ in
-    let occ = max free_occ base_free_occ in
-    Hashtbl.add ht_free_occ key occ;
-    occ
-  | None ->
-    (* On regarde dans la base quelle est le occ dispo. *)
-    let free_occ = Gutil.find_free_occ base fn sn in
-    Hashtbl.add ht_free_occ key free_occ;
-    free_occ
+  let local_occurrence_numbers =
+    Option.value
+      ~default:Ext_int.Set.empty (Hashtbl.find_opt occurrence_numbers key)
+  in
+  let base_occurrence_numbers =
+    Gutil.get_all_occurrence_numbers ~base ~first_name:fn ~surname:sn
+  in
+  let occ =
+    let occurrence_numbers =
+      Ext_int.Set.union local_occurrence_numbers base_occurrence_numbers
+    in
+    Occurrence_number.smallest_free occurrence_numbers
+
+  in
+  Hashtbl.add
+    occurrence_numbers key (Ext_int.Set.add occ local_occurrence_numbers);
+  occ
 
 
 (**/**) (* Type de retour de modification. *)

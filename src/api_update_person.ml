@@ -369,18 +369,18 @@ let print_mod ?(no_check_name = false) ?(fexclude = []) conf base mod_p =
 
 
 (* Comme on n'a pas de base, on va garder une hashtbl des occurrences. *)
-let ht_occ = Hashtbl.create 7
+let occurrence_numbers = Hashtbl.create 7
 
 let find_free_occ_nobase fn sn =
   let key = Name.lower fn ^ " #@# " ^ Name.lower sn in
-  match Hashtbl.find_opt ht_occ key with
-  | Some occ ->
-     Hashtbl.replace ht_occ key (succ occ);
-     occ
-  | None ->
-     let occ = 0 in
-     Hashtbl.add ht_occ key (succ occ);
-     occ
+  let occurrence_numbers_for_key =
+    Option.value
+      ~default:Ext_int.Set.empty (Hashtbl.find_opt occurrence_numbers key)
+  in
+  let occ = Occurrence_number.smallest_free occurrence_numbers_for_key in
+  Hashtbl.add
+    occurrence_numbers key (Ext_int.Set.add occ occurrence_numbers_for_key);
+  occ
 
 let reconstitute_person_nobase conf mod_p =
   let fn_occ mod_p =
