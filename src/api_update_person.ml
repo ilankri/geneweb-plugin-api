@@ -172,7 +172,7 @@ let reconstitute_person conf base mod_p
     | `create ->
       let fn = mod_p.Api_saisie_write_piqi.Person.firstname in
       let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
-      Api_update_util.api_find_free_occ ~base ~first_name:fn ~surname:sn
+      Api_update_util.find_free_occ ~base ~first_name:fn ~surname:sn
     | `create_default_occ | `link ->
       (* Cas par défaut, i.e. modifier personne sans changer le occ. *)
       Option.fold ~none:0 ~some:Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ

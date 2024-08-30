@@ -8,7 +8,7 @@ type person_update = {
     force : bool;
   }
 
-let api_find_free_occ =
+let find_free_occ =
   let occurrence_numbers = Hashtbl.create 33 in
   fun ~base ~first_name ~surname ->
   let key = Name.lower (first_name ^ " " ^ surname) in
@@ -1487,7 +1487,7 @@ let reconstitute_somebody base person =
             | Some occ -> (Int32.to_int occ, false)
             | None -> (0, false))
         | `create ->
-          let occ = api_find_free_occ ~base ~first_name:fn ~surname:sn in
+          let occ = find_free_occ ~base ~first_name:fn ~surname:sn in
           (occ, true)
       in
       (* Update the person because if we want to find it, we have to know its occ. *)
