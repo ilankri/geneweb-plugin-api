@@ -26,18 +26,18 @@ let get_local_occurrence_numbers, reserve_occurrence_number =
   in
   (get_occurrence_numbers, reserve_occurrence_number)
 
-let api_find_free_occ base fn sn =
+let api_find_free_occ ~base ~first_name ~surname =
   let occ =
     let local_occurrence_numbers =
-      get_local_occurrence_numbers ~first_name:fn ~surname:sn
+      get_local_occurrence_numbers ~first_name ~surname
     in
     let base_occurrence_numbers =
-      Gutil.get_all_occurrence_numbers ~base ~first_name:fn ~surname:sn
+      Gutil.get_all_occurrence_numbers ~base ~first_name ~surname
     in
     Occurrence_number.smallest_free
       (Ext_int.Set.union local_occurrence_numbers base_occurrence_numbers)
   in
-  reserve_occurrence_number ~first_name:fn ~surname:sn occ;
+  reserve_occurrence_number ~first_name ~surname occ;
   occ
 
 
@@ -1497,7 +1497,7 @@ let reconstitute_somebody base person =
             | Some occ -> (Int32.to_int occ, false)
             | None -> (0, false))
         | `create ->
-          let occ = api_find_free_occ base fn sn in
+          let occ = api_find_free_occ ~base ~first_name:fn ~surname:sn in
           (occ, true)
       in
       (* Update the person because if we want to find it, we have to know its occ. *)

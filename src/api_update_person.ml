@@ -172,7 +172,7 @@ let reconstitute_person conf base mod_p
     | `create ->
       let fn = mod_p.Api_saisie_write_piqi.Person.firstname in
       let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
-      Api_update_util.api_find_free_occ base fn sn
+      Api_update_util.api_find_free_occ ~base ~first_name:fn ~surname:sn
     | `create_default_occ | `link ->
       (* Cas par défaut, i.e. modifier personne sans changer le occ. *)
       Option.fold ~none:0 ~some:Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
@@ -371,8 +371,8 @@ let print_mod ?(no_check_name = false) ?(fexclude = []) conf base mod_p =
 let find_free_occ_nobase =
   (* Comme on n'a pas de base, on va garder une hashtbl des occurrences. *)
   let ht_occ = Hashtbl.create 7 in
-  fun fn sn ->
-  let key = Name.lower fn ^ " #@# " ^ Name.lower sn in
+  fun ~first_name ~surname ->
+  let key = Name.lower first_name ^ " #@# " ^ Name.lower surname in
   let occurrence_numbers_for_key =
     Option.value
       ~default:Ext_int.Set.empty (Hashtbl.find_opt ht_occ key)
@@ -388,7 +388,7 @@ let reconstitute_person_nobase conf mod_p =
     | `create_default_occ ->
       let fn = mod_p.Api_saisie_write_piqi.Person.firstname in
       let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
-      find_free_occ_nobase fn sn
+      find_free_occ_nobase ~first_name:fn ~surname:sn
     | `create ->
       begin match mod_p.Api_saisie_write_piqi.Person.occ with
         | Some occ -> Int32.to_int occ
