@@ -10,14 +10,14 @@ type person_update = {
 
 let api_find_free_occ =
   let occurrence_numbers = Hashtbl.create 33 in
-  fun base fn sn ->
-  let key = Name.lower (fn ^ " " ^ sn) in
+  fun ~base ~first_name ~surname ->
+  let key = Name.lower (first_name ^ " " ^ surname) in
   let local_occurrence_numbers =
     Option.value
       ~default:Ext_int.Set.empty (Hashtbl.find_opt occurrence_numbers key)
   in
   let base_occurrence_numbers =
-    Gutil.get_all_occurrence_numbers ~base ~first_name:fn ~surname:sn
+    Gutil.get_all_occurrence_numbers ~base ~first_name ~surname
   in
   let occ =
     let occurrence_numbers =
@@ -1487,7 +1487,7 @@ let reconstitute_somebody base person =
             | Some occ -> (Int32.to_int occ, false)
             | None -> (0, false))
         | `create ->
-          let occ = api_find_free_occ base fn sn in
+          let occ = api_find_free_occ ~base ~first_name:fn ~surname:sn in
           (occ, true)
       in
       (* Update the person because if we want to find it, we have to know its occ. *)
