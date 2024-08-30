@@ -1482,7 +1482,7 @@ let reconstitute_somebody base person =
       let sn = Gwdb.sou base (Gwdb.get_surname p) in
       let occ = Gwdb.get_occ p in
       (fn, sn, occ, Geneweb.Update.Link, false)
-    | `create | `create_default_occ ->
+    | `create | `create_default_occ as create_link ->
       let sex =
         match person.Api_saisie_write_piqi.Person_link.sex with
           | `male -> Def.Male
@@ -1499,7 +1499,6 @@ let reconstitute_somebody base person =
         | `create ->
           let occ = api_find_free_occ base fn sn in
           (occ, true)
-        | `link -> (0, false) (* Should not happen. *)
       in
       (* Update the person because if we want to find it, we have to know its occ. *)
       let () =
