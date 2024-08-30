@@ -8,9 +8,8 @@ type person_update = {
     force : bool;
   }
 
-let ht_free_occ = Hashtbl.create 33
-
 let get_local_occurrence_numbers, reserve_occurrence_number =
+  let ht_free_occ = Hashtbl.create 33 in
   let key ~first_name ~surname = Name.lower (first_name ^ " " ^ surname) in
   let get_occurrence_numbers ~first_name ~surname =
     Option.value
