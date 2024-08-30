@@ -369,9 +369,9 @@ let print_mod ?(no_check_name = false) ?(fexclude = []) conf base mod_p =
 
 
 (* Comme on n'a pas de base, on va garder une hashtbl des occurrences. *)
-let occurrence_numbers = Hashtbl.create 7
-
-let find_free_occ_nobase fn sn =
+let find_free_occ_nobase =
+  let occurrence_numbers = Hashtbl.create 7 in
+  fun fn sn ->
   let key = Name.lower fn ^ " #@# " ^ Name.lower sn in
   let occurrence_numbers_for_key =
     Option.value
