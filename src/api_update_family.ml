@@ -234,11 +234,11 @@ let reconstitute_family conf base mod_f =
   in
   (* => pour l'instant, CheckItem ne vérifie pas le sex des parents. *)
   let fam =
-    {Def.marriage = marriage; marriage_place = marriage_place;
-     marriage_note = marriage_note; marriage_src = marriage_src;
-     fevents = fevents; witnesses = Array.of_list witnesses;
-     relation = relation; divorce = divorce; comment = comment;
-     origin_file = origin_file; fsources = fsources; fam_index = fam_index}
+    {Def.marriage; marriage_place;
+     marriage_note; marriage_src;
+     fevents; witnesses = Array.of_list witnesses;
+     relation; divorce; comment;
+     origin_file; fsources; fam_index}
   and cpl = Futil.parent conf.multi_parents (Array.of_list parents)
   and des = {Def.children = Array.of_list children} in
   (* On vérifie s'il y a des conflits de personne. *)
