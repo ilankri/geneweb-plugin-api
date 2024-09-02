@@ -234,23 +234,15 @@ let reconstitute_person conf base mod_p
         ; epers_date
         }
         when epers_date = Date.cdate_None && p.death = DontKnowIfDead -> None
-      | e ->
-        Some { e
-               with epers_witnesses =
-                      Array.map begin fun ((f, s, o, create, _), wk, wnote) ->
-                        ((f, s, o, create), wk, wnote)
-                      end e.Def.epers_witnesses
-             }
+      | e -> Some e
     end p.pevents
   in
   let rparents =
     List.map begin fun r ->
       let (r_fath, r_moth) =
         match (r.Def.r_fath, r.Def.r_moth) with
-        | (Some (f, s, o, create, _), None) ->
-          (Some (f, s, o, create), None)
-        | (None, Some (f, s, o, create, _)) ->
-          (None, Some (f, s, o, create))
+        | (Some person_update, None) -> (Some person_update, None)
+        | (None, Some person_update) -> (None, Some person_update)
         | None, None | Some _, Some _ -> failwith "rparents_gw"
       in
       { r  with Def.r_fath ; r_moth }

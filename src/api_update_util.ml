@@ -1,5 +1,13 @@
 (**/**) (* Misc *)
 
+type person_update = {
+    first_name : string;
+    surname : string;
+    occurrence_number : int;
+    kind : Geneweb.Update.create;
+    force : bool;
+  }
+
 let new_gutil_find_free_occ base f s i =
   let ipl = Gwdb.persons_of_name base (f ^ " " ^ s) in
   let first_name = Name.lower f in
@@ -97,7 +105,14 @@ type update_base_status =
 (* Exception qui gère les conflits de création de personnes. *)
 exception ModErrApiConflict of Api_saisie_write_piqi.Create_conflict.t
 
-let error_conflict_person_link base created (f, s, o, create, force_create) =
+let error_conflict_person_link
+      base
+      created
+      {first_name = f;
+       surname = s;
+       occurrence_number = o;
+       kind = create;
+       force = force_create} =
   let k = (f, s, o) in
   let exists () =
     Gwdb.person_of_key base f s o <> None || List.exists (Mutil.eq_key k) created
@@ -145,9 +160,9 @@ let check_person_conflict base original_pevents sp =
   let _, created =
     List.fold_left begin fun (i, created) r ->
       match (r.Def.r_fath, r.Def.r_moth) with
-      | (Some (f, s, o, create, force_create), None)
-      | (None, Some (f, s, o, create, force_create)) ->
-        begin match error_conflict_person_link base created (f, s, o, create, force_create) with
+      | (Some person_update, None)
+      | (None, Some person_update) ->
+        begin match error_conflict_person_link base created person_update with
           | true, _ ->
             let conflict =
               { Api_saisie_write_piqi.Create_conflict.form = Some `person_form1
@@ -156,8 +171,8 @@ let check_person_conflict base original_pevents sp =
               ; event = false
               ; pos = Some (Int32.of_int i)
               ; pos_witness = None
-              ; lastname = s
-              ; firstname = f
+              ; lastname = person_update.surname
+              ; firstname = person_update.first_name
               }
             in
             raise (ModErrApiConflict conflict)
@@ -172,8 +187,8 @@ let check_person_conflict base original_pevents sp =
   ignore @@
   List.fold_left begin fun created evt ->
     let _, created =
-      Array.fold_left begin fun (j, created) ((f, s, o, create, force_create), _, _) ->
-        match error_conflict_person_link base created (f, s, o, create, force_create) with
+      Array.fold_left begin fun (j, created) (person_update, _, _) ->
+        match error_conflict_person_link base created person_update with
         | true, _ ->
           let pos = Ext_list.index evt original_pevents in
           let conflict =
@@ -183,8 +198,8 @@ let check_person_conflict base original_pevents sp =
             ; event = true
             ; pos = Some (Int32.of_int pos)
             ; pos_witness = Some (Int32.of_int j)
-            ; lastname = s
-            ; firstname = f
+            ; lastname = person_update.surname
+            ; firstname = person_update.first_name
             }
           in
           raise (ModErrApiConflict conflict)
@@ -197,8 +212,8 @@ let check_family_conflict base sfam scpl sdes =
   let created = [] in
   let _, created =
     (* Vérification des parents. *)
-    Array.fold_left begin fun (i, created) (f, s, o, create, force_create) ->
-      match error_conflict_person_link base created (f, s, o, create, force_create) with
+    Array.fold_left begin fun (i, created) person_update ->
+      match error_conflict_person_link base created person_update with
       | true, _ ->
         let conflict =
           { Api_saisie_write_piqi.Create_conflict.form = if i = 0 then Some `person_form1 else Some `person_form2
@@ -207,8 +222,8 @@ let check_family_conflict base sfam scpl sdes =
           ; event = false
           ; pos = None
           ; pos_witness = None
-          ; lastname = s
-          ; firstname = f
+          ; lastname = person_update.surname
+          ; firstname = person_update.first_name
           }
         in
         raise (ModErrApiConflict conflict)
@@ -219,8 +234,8 @@ let check_family_conflict base sfam scpl sdes =
     (* Vérification des fevents. *)
     List.fold_left begin fun (i, created) evt ->
       let _, created =
-        Array.fold_left begin fun (j, created) ((f, s, o, create, force_create), _wkind, _wnote) ->
-          match error_conflict_person_link base created (f, s, o, create, force_create) with
+        Array.fold_left begin fun (j, created) (person_update, _wkind, _wnote) ->
+          match error_conflict_person_link base created person_update with
           | true, _ ->
             let conflict =
               { Api_saisie_write_piqi.Create_conflict.form = Some `family_form
@@ -229,8 +244,8 @@ let check_family_conflict base sfam scpl sdes =
               ; event = true
               ; pos = Some (Int32.of_int i)
               ; pos_witness = Some (Int32.of_int j)
-              ; lastname = s
-              ; firstname = f
+              ; lastname = person_update.surname
+              ; firstname = person_update.first_name
               }
             in
             raise (ModErrApiConflict conflict)
@@ -242,8 +257,8 @@ let check_family_conflict base sfam scpl sdes =
   in
   (* Vérification des enfants. *)
   ignore @@
-  Array.fold_left begin fun created (f, s, o, create, force_create) ->
-    match error_conflict_person_link base created (f, s, o, create, force_create) with
+  Array.fold_left begin fun created person_update ->
+    match error_conflict_person_link base created person_update with
     | true, _ ->
       let conflict =
         { Api_saisie_write_piqi.Create_conflict.form = Some `person_form1
@@ -252,8 +267,8 @@ let check_family_conflict base sfam scpl sdes =
         ; event = false
         ; pos = None
         ; pos_witness = None
-        ; lastname = s
-        ; firstname = f
+        ; lastname = person_update.surname
+        ; firstname = person_update.first_name
         }
       in
       raise (ModErrApiConflict conflict)
@@ -1518,7 +1533,15 @@ let reconstitute_somebody base person =
     then (Name.purge fn, Name.purge sn)
     else (fn, sn)
   in
-  (fn, sn, occ, create, force_create)
+  {first_name = fn;
+   surname = sn;
+   occurrence_number = occ;
+   kind = create;
+   force = force_create}
 
-let to_update_key (first_name, surname, occurrence_number, update_kind) =
-  (first_name, surname, occurrence_number, update_kind, "")
+let to_update_key person_update =
+  (person_update.first_name,
+   person_update.surname,
+   person_update.occurrence_number,
+   person_update.kind,
+   "")
