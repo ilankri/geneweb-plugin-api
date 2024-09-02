@@ -28,24 +28,24 @@ val api_find_free_occ : Gwdb.base -> string -> string -> int
 
 val check_person_conflict :
   Gwdb.base ->
-  ( string * string * int * Geneweb.Update.create * 'a * bool,
+  ( string * string * int * Geneweb.Update.create * bool,
     string )
   Def.gen_pers_event
   list ->
   ( Gwdb.iper,
-    string * string * int * Geneweb.Update.create * 'a * bool,
+    string * string * int * Geneweb.Update.create * bool,
     string )
   Def.gen_person ->
   unit
 
 val check_family_conflict :
   Gwdb.base ->
-  ( string * string * int * Geneweb.Update.create * _ * bool,
+  ( string * string * int * Geneweb.Update.create * bool,
     _,
     _ )
   Def.gen_family ->
-  (string * string * int * Geneweb.Update.create * _ * bool) Def.gen_couple ->
-  (string * string * int * Geneweb.Update.create * _ * bool) Def.gen_descend ->
+  (string * string * int * Geneweb.Update.create * bool) Def.gen_couple ->
+  (string * string * int * Geneweb.Update.create * bool) Def.gen_descend ->
   unit
 
 val date_of_piqi_date :
@@ -107,4 +107,7 @@ val piqi_empty_family :
 val reconstitute_somebody :
   Gwdb.base ->
   Api_saisie_write_piqi.person_link ->
-  string * string * int * Geneweb.Update.create * string * bool
+  string * string * int * Geneweb.Update.create * bool
+
+val to_update_key :
+  string * string * int * Geneweb.Update.create -> Geneweb.Update.key

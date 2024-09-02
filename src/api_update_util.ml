@@ -97,7 +97,7 @@ type update_base_status =
 (* Exception qui gère les conflits de création de personnes. *)
 exception ModErrApiConflict of Api_saisie_write_piqi.Create_conflict.t
 
-let error_conflict_person_link base created (f, s, o, create, _, force_create) =
+let error_conflict_person_link base created (f, s, o, create, force_create) =
   let k = (f, s, o) in
   let exists () =
     Gwdb.person_of_key base f s o <> None || List.exists (Mutil.eq_key k) created
@@ -145,9 +145,9 @@ let check_person_conflict base original_pevents sp =
   let _, created =
     List.fold_left begin fun (i, created) r ->
       match (r.Def.r_fath, r.Def.r_moth) with
-      | (Some (f, s, o, create, var, force_create), None)
-      | (None, Some (f, s, o, create, var, force_create)) ->
-        begin match error_conflict_person_link base created (f, s, o, create, var, force_create) with
+      | (Some (f, s, o, create, force_create), None)
+      | (None, Some (f, s, o, create, force_create)) ->
+        begin match error_conflict_person_link base created (f, s, o, create, force_create) with
           | true, _ ->
             let conflict =
               { Api_saisie_write_piqi.Create_conflict.form = Some `person_form1
@@ -172,8 +172,8 @@ let check_person_conflict base original_pevents sp =
   ignore @@
   List.fold_left begin fun created evt ->
     let _, created =
-      Array.fold_left begin fun (j, created) ((f, s, o, create, var, force_create), _, _) ->
-        match error_conflict_person_link base created (f, s, o, create, var, force_create) with
+      Array.fold_left begin fun (j, created) ((f, s, o, create, force_create), _, _) ->
+        match error_conflict_person_link base created (f, s, o, create, force_create) with
         | true, _ ->
           let pos = Mutil.list_index evt original_pevents in
           let conflict =
@@ -197,8 +197,8 @@ let check_family_conflict base sfam scpl sdes =
   let created = [] in
   let _, created =
     (* Vérification des parents. *)
-    Array.fold_left begin fun (i, created) (f, s, o, create, var, force_create) ->
-      match error_conflict_person_link base created (f, s, o, create, var, force_create) with
+    Array.fold_left begin fun (i, created) (f, s, o, create, force_create) ->
+      match error_conflict_person_link base created (f, s, o, create, force_create) with
       | true, _ ->
         let conflict =
           { Api_saisie_write_piqi.Create_conflict.form = if i = 0 then Some `person_form1 else Some `person_form2
@@ -219,8 +219,8 @@ let check_family_conflict base sfam scpl sdes =
     (* Vérification des fevents. *)
     List.fold_left begin fun (i, created) evt ->
       let _, created =
-        Array.fold_left begin fun (j, created) ((f, s, o, create, var, force_create), _wkind, _wnote) ->
-          match error_conflict_person_link base created (f, s, o, create, var, force_create) with
+        Array.fold_left begin fun (j, created) ((f, s, o, create, force_create), _wkind, _wnote) ->
+          match error_conflict_person_link base created (f, s, o, create, force_create) with
           | true, _ ->
             let conflict =
               { Api_saisie_write_piqi.Create_conflict.form = Some `family_form
@@ -242,8 +242,8 @@ let check_family_conflict base sfam scpl sdes =
   in
   (* Vérification des enfants. *)
   ignore @@
-  Array.fold_left begin fun created (f, s, o, create, var, force_create) ->
-    match error_conflict_person_link base created (f, s, o, create, var, force_create) with
+  Array.fold_left begin fun created (f, s, o, create, force_create) ->
+    match error_conflict_person_link base created (f, s, o, create, force_create) with
     | true, _ ->
       let conflict =
         { Api_saisie_write_piqi.Create_conflict.form = Some `person_form1
@@ -1475,14 +1475,14 @@ let piqi_empty_family conf base ifam =
 
 let reconstitute_somebody base person =
   let create_link = person.Api_saisie_write_piqi.Person_link.create_link in
-  let (fn, sn, occ, create, var, force_create) = match create_link with
+  let (fn, sn, occ, create, force_create) = match create_link with
     | `link ->
       let ip = Gwdb.iper_of_string @@ Int32.to_string person.Api_saisie_write_piqi.Person_link.index in
       let p = Gwdb.poi base ip in
       let fn = Gwdb.sou base (Gwdb.get_first_name p) in
       let sn = Gwdb.sou base (Gwdb.get_surname p) in
       let occ = Gwdb.get_occ p in
-      (fn, sn, occ, Geneweb.Update.Link, "", false)
+      (fn, sn, occ, Geneweb.Update.Link, false)
     | `create | `create_default_occ ->
       let sex =
         match person.Api_saisie_write_piqi.Person_link.sex with
@@ -1507,7 +1507,7 @@ let reconstitute_somebody base person =
           (occ, true)
         | `link -> (0, false) (* Should not happen. *)
       in
-      (fn, sn, occ, Geneweb.Update.Create (sex, None), "", force_create)
+      (fn, sn, occ, Geneweb.Update.Create (sex, None), force_create)
   in
   let (fn, sn) =
     (* If there are forbidden characters, delete them. *)
@@ -1518,4 +1518,7 @@ let reconstitute_somebody base person =
     then (Name.purge fn, Name.purge sn)
     else (fn, sn)
   in
-  (fn, sn, occ, create, var, force_create)
+  (fn, sn, occ, create, force_create)
+
+let to_update_key (first_name, surname, occurrence_number, update_kind) =
+  (first_name, surname, occurrence_number, update_kind, "")

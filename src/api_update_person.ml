@@ -145,6 +145,26 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
     }
   )
 
+let to_person_with_update_key (p : _ Def.gen_person) :
+      (Gwdb.iper, Geneweb.Update.key, string) Def.gen_person =
+  let to_relation_with_update_key (relation : _ Def.gen_relation) =
+    let r_fath = Option.map Api_update_util.to_update_key relation.r_fath in
+    let r_moth = Option.map Api_update_util.to_update_key relation.r_moth in
+    {relation with r_fath; r_moth}
+  in
+  let to_event_with_update_key (event : _ Def.gen_pers_event) =
+    let to_witness_with_update_key (person, kind, note) =
+      (Api_update_util.to_update_key person, kind, note)
+    in
+    {event with
+      epers_witnesses =
+        Array.map to_witness_with_update_key event.epers_witnesses}
+  in
+  {p with
+    rparents = List.map to_relation_with_update_key p.rparents;
+    related = List.map Api_update_util.to_update_key p.related;
+    pevents = List.map to_event_with_update_key p.pevents}
+
 let reconstitute_person conf base mod_p
   : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person =
   let fn_occ mod_p =
@@ -217,8 +237,8 @@ let reconstitute_person conf base mod_p
       | e ->
         Some { e
                with epers_witnesses =
-                      Array.map begin fun ((f, s, o, create, var, _), wk, wnote) ->
-                        ((f, s, o, create, var), wk, wnote)
+                      Array.map begin fun ((f, s, o, create, _), wk, wnote) ->
+                        ((f, s, o, create), wk, wnote)
                       end e.Def.epers_witnesses
              }
     end p.pevents
@@ -227,16 +247,16 @@ let reconstitute_person conf base mod_p
     List.map begin fun r ->
       let (r_fath, r_moth) =
         match (r.Def.r_fath, r.Def.r_moth) with
-        | (Some (f, s, o, create, var, _), None) ->
-          (Some (f, s, o, create, var), None)
-        | (None, Some (f, s, o, create, var, _)) ->
-          (None, Some (f, s, o, create, var))
+        | (Some (f, s, o, create, _), None) ->
+          (Some (f, s, o, create), None)
+        | (None, Some (f, s, o, create, _)) ->
+          (None, Some (f, s, o, create))
         | None, None | Some _, Some _ -> failwith "rparents_gw"
       in
       { r  with Def.r_fath ; r_moth }
     end p.rparents
   in
-  { p with Def.rparents ; pevents ; related = [] }
+  to_person_with_update_key { p with Def.rparents ; pevents ; related = [] }
 
 (**/**)
 
