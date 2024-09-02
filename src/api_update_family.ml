@@ -216,12 +216,10 @@ let reconstitute_family conf base mod_f =
   in
   (* Attention, surtout pas les witnesses, parce que si on en créé un, *)
   (* on le créé aussi dans witness et on ne pourra jamais valider.     *)
-  let (marr, div, _) =
+  let ((relation, marriage, marriage_place, marriage_note, marriage_src),
+       divorce,
+       _) =
     Geneweb.UpdateFamOk.reconstitute_from_fevents (Geneweb.Util.p_getenv conf.env "nsck" = Some "on") "" fevents
-  in
-  let (relation, marriage, marriage_place,
-       marriage_note, marriage_src) =
-    marr
   in
   (* Si parents de même sex ... *)
   let relation =
@@ -235,7 +233,6 @@ let reconstitute_family conf base mod_f =
     | _ -> relation
   in
   (* => pour l'instant, CheckItem ne vérifie pas le sex des parents. *)
-  let divorce = div in
   let fam =
     {Def.marriage = marriage; marriage_place = marriage_place;
      marriage_note = marriage_note; marriage_src = marriage_src;
