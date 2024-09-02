@@ -1,3 +1,11 @@
+type person_update = {
+    first_name : string;
+    surname : string;
+    occurrence_number : int;
+    kind : Geneweb.Update.create;
+    force : bool;
+  }
+
 type created_person = {
   n : string;
   p : string;
@@ -28,24 +36,24 @@ val api_find_free_occ : Gwdb.base -> string -> string -> int
 
 val check_person_conflict :
   Gwdb.base ->
-  ( string * string * int * Geneweb.Update.create * bool,
+  ( person_update,
     string )
   Def.gen_pers_event
   list ->
   ( Gwdb.iper,
-    string * string * int * Geneweb.Update.create * bool,
+    person_update,
     string )
   Def.gen_person ->
   unit
 
 val check_family_conflict :
   Gwdb.base ->
-  ( string * string * int * Geneweb.Update.create * bool,
+  ( person_update,
     _,
     _ )
   Def.gen_family ->
-  (string * string * int * Geneweb.Update.create * bool) Def.gen_couple ->
-  (string * string * int * Geneweb.Update.create * bool) Def.gen_descend ->
+  person_update Def.gen_couple ->
+  person_update Def.gen_descend ->
   unit
 
 val date_of_piqi_date :
@@ -105,9 +113,6 @@ val piqi_empty_family :
   Api_saisie_write_piqi.family
 
 val reconstitute_somebody :
-  Gwdb.base ->
-  Api_saisie_write_piqi.person_link ->
-  string * string * int * Geneweb.Update.create * bool
+  Gwdb.base -> Api_saisie_write_piqi.person_link -> person_update
 
-val to_update_key :
-  string * string * int * Geneweb.Update.create -> Geneweb.Update.key
+val to_update_key : person_update -> Geneweb.Update.key
