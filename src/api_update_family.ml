@@ -1,5 +1,4 @@
 open Geneweb
-open Config
 open Gwdb
 open Def
 open Util
