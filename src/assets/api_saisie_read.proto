@@ -356,6 +356,7 @@ message Person {
   repeated Event events = 47;
   repeated EventWitness events_witnesses = 48;
   required string baseprefix = 49;
+  required bool is_contemporary = 50;
 }
 
 message FichePerson {
