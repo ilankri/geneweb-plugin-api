@@ -226,14 +226,14 @@ let reconstitute_family conf base mod_f =
     List.map
       (fun modified_child ->
         let child =
+         let sex =
+           match modified_child.Api_saisie_write_piqi.Person_link.sex with
+           | `male -> Def.Male
+           | `female -> Def.Female
+           | `unknown -> Def.Neuter
+         in
          match modified_child.Api_saisie_write_piqi.Person_link.create_link with
          | `create_default_occ ->
-             let sex =
-               match modified_child.Api_saisie_write_piqi.Person_link.sex with
-               | `male -> Def.Male
-               | `female -> Def.Female
-               | `unknown -> Def.Neuter
-             in
              let fn = modified_child.Api_saisie_write_piqi.Person_link.firstname in
              let sn = modified_child.Api_saisie_write_piqi.Person_link.lastname in
              let occ =
@@ -247,12 +247,6 @@ let reconstitute_family conf base mod_f =
               kind = Geneweb.Update.Create (sex, None);
               force = false}
          | `create ->
-             let sex =
-               match modified_child.Api_saisie_write_piqi.Person_link.sex with
-               | `male -> Def.Male
-               | `female -> Def.Female
-               | `unknown -> Def.Neuter
-             in
              let fn = modified_child.Api_saisie_write_piqi.Person_link.firstname in
              let sn = modified_child.Api_saisie_write_piqi.Person_link.lastname in
              let occ = Api_update_util.api_find_free_occ base fn sn in
