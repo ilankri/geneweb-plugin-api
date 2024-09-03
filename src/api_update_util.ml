@@ -95,6 +95,9 @@ let error_conflict_person_link
   let exists () =
     Gwdb.person_of_key base f s o <> None || List.exists (Mutil.eq_key k) created
   in
+  let has_existing_homonym () =
+    Gutil.homonyms ~base ~first_name:f ~surname:s <> []
+  in
   let f = if f = "" then "?" else f in
   let s = if s = "" then "?" else s in
   match create with
@@ -105,7 +108,7 @@ let error_conflict_person_link
         if exists ()
         then failwith "error_conflict_person_link"
         else false, k :: created
-      else if exists () then true, created
+      else if has_existing_homonym () then true, created
       else false, k :: created
     else false, k :: created
   | Link -> false, created
@@ -1466,15 +1469,39 @@ let piqi_empty_family conf base ifam =
     old_witnesses = [];
   }
 
+let person_identity_has_changed
+      ~base ~id ~new_first_name ~new_surname ~new_occurrence_number =
+  let person = Gwdb.poi base id in
+  Gwdb.p_first_name base person <> new_first_name
+  || Gwdb.p_surname base person <> new_surname
+  || Gwdb.get_occ person <> new_occurrence_number
+
 let reconstitute_somebody base person =
   let create_link = person.Api_saisie_write_piqi.Person_link.create_link in
   let (fn, sn, occ, create, force_create) = match create_link with
     | `link ->
       let ip = Gwdb.iper_of_string @@ Int32.to_string person.Api_saisie_write_piqi.Person_link.index in
-      let p = Gwdb.poi base ip in
-      let fn = Gwdb.sou base (Gwdb.get_first_name p) in
-      let sn = Gwdb.sou base (Gwdb.get_surname p) in
-      let occ = Gwdb.get_occ p in
+      let fn = person.Api_saisie_write_piqi.Person_link.firstname in
+      let sn = person.Api_saisie_write_piqi.Person_link.lastname in
+      let occ =
+        let wanted_occurrence_number =
+          Option.fold
+            ~none:0
+            ~some:Int32.to_int
+            person.Api_saisie_write_piqi.Person_link.occ
+        in
+        if
+          person_identity_has_changed
+            ~base
+            ~id:ip
+            ~new_first_name:fn
+            ~new_surname:sn
+            ~new_occurrence_number:wanted_occurrence_number
+        then
+          find_free_occ
+            ~base ~first_name:fn ~surname:sn ~wanted_occurrence_number ()
+        else wanted_occurrence_number
+      in
       (fn, sn, occ, Geneweb.Update.Link, false)
     | `create | `create_default_occ as create_link ->
       let sex =
@@ -1487,9 +1514,14 @@ let reconstitute_somebody base person =
       let sn = person.Api_saisie_write_piqi.Person_link.lastname in
       let (occ, force_create) = match create_link with
         | `create_default_occ ->
-          (match person.Api_saisie_write_piqi.Person_link.occ with
-            | Some occ -> (Int32.to_int occ, false)
-            | None -> (0, false))
+           let wanted_occurrence_number =
+             Option.map
+               Int32.to_int
+               person.Api_saisie_write_piqi.Person_link.occ
+           in
+           (find_free_occ
+              ?wanted_occurrence_number ~base ~first_name:fn ~surname:sn (),
+            false)
         | `create ->
            let occ =
              find_free_occ ~base ~first_name:fn ~surname:sn ()
@@ -1498,11 +1530,7 @@ let reconstitute_somebody base person =
       in
       (* Update the person because if we want to find it, we have to know its occ. *)
       let () =
-        match create_link with
-        | `create_default_occ | `link -> ()
-        | `create ->
-           if occ = 0 then person.Api_saisie_write_piqi.Person_link.occ <- None
-           else person.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int occ)
+        person.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int occ)
       in
       (fn, sn, occ, Geneweb.Update.Create (sex, None), force_create)
   in

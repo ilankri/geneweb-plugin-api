@@ -173,9 +173,41 @@ let reconstitute_person conf base mod_p
       let fn = mod_p.Api_saisie_write_piqi.Person.firstname in
       let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
       Api_update_util.find_free_occ ~base ~first_name:fn ~surname:sn ()
-    | `create_default_occ | `link ->
-      (* Cas par défaut, i.e. modifier personne sans changer le occ. *)
-      Option.fold ~none:0 ~some:Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
+    | `create_default_occ ->
+      let wanted_occurrence_number =
+        Option.map Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
+      in
+      Api_update_util.find_free_occ
+        ?wanted_occurrence_number
+        ~base
+        ~first_name:mod_p.Api_saisie_write_piqi.Person.firstname
+        ~surname:mod_p.Api_saisie_write_piqi.Person.lastname
+        ()
+    | `link ->
+      let id =
+        mod_p.Api_saisie_write_piqi.Person.index
+        |> Int32.to_string
+        |> Gwdb.iper_of_string
+      in
+      let wanted_occurrence_number =
+        Option.fold
+          ~none:0 ~some:Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
+      in
+      if
+        Api_update_util.person_identity_has_changed
+          ~base
+          ~id
+          ~new_first_name:mod_p.Api_saisie_write_piqi.Person.firstname
+          ~new_surname:mod_p.Api_saisie_write_piqi.Person.lastname
+          ~new_occurrence_number:wanted_occurrence_number
+      then
+        Api_update_util.find_free_occ
+          ~base
+          ~first_name:mod_p.Api_saisie_write_piqi.Person.firstname
+          ~surname:mod_p.Api_saisie_write_piqi.Person.lastname
+          ~wanted_occurrence_number
+          ()
+      else wanted_occurrence_number
   in
   let fn_rparents mod_p =
     List.fold_right begin fun r accu ->
@@ -257,7 +289,7 @@ let print_add conf base mod_p =
     let sp : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person = reconstitute_person conf base mod_p in
     let sp = {(sp) with key_index = Gwdb.dummy_iper} in
     (* On met à jour les occ. *)
-    if sp.occ <> 0 then mod_p.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int sp.occ);
+    mod_p.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int sp.occ);
     let sp : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person = Geneweb.UpdateIndOk.strip_person sp in
     match Geneweb.UpdateIndOk.check_person conf base (sp : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person) with
     | Some err ->
@@ -281,6 +313,7 @@ let print_mod_aux conf base no_check_name mod_p callback =
     let p : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person =
       reconstitute_person conf base mod_p
     in
+    let () = mod_p.occ <- Some (Int32.of_int p.occ) in
     let p = Geneweb.UpdateIndOk.strip_person p in
     let ini_ps = Geneweb.UpdateInd.string_person_of base (Gwdb.poi base p.key_index) in
     let digest = Geneweb.Update.digest_person ini_ps in
@@ -392,15 +425,19 @@ let find_free_occ_nobase =
 let reconstitute_person_nobase conf mod_p =
   let fn_occ mod_p =
     match mod_p.Api_saisie_write_piqi.Person.create_link with
-    | `create_default_occ ->
+    | `create ->
       let fn = mod_p.Api_saisie_write_piqi.Person.firstname in
       let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
       find_free_occ_nobase ~first_name:fn ~surname:sn ()
-    | `create ->
-      begin match mod_p.Api_saisie_write_piqi.Person.occ with
-        | Some occ -> Int32.to_int occ
-        | None -> 0
-      end
+    | `create_default_occ ->
+      let wanted_occurrence_number =
+        Option.map Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
+      in
+      find_free_occ_nobase
+        ?wanted_occurrence_number
+        ~first_name:mod_p.Api_saisie_write_piqi.Person.firstname
+        ~surname:mod_p.Api_saisie_write_piqi.Person.lastname
+        ()
     | `link ->
       failwith "ErrorAddPersonNoBase"
   in
@@ -423,7 +460,7 @@ let print_add_nobase conf mod_p =
     let sp = reconstitute_person_nobase conf mod_p in
     let sp = {(sp) with key_index = Gwdb.dummy_iper} in
     (* On met à jour les occ. *)
-    if sp.occ <> 0 then mod_p.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int sp.occ);
+    mod_p.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int sp.occ);
     let _sp = Geneweb.UpdateIndOk.strip_person sp in
     (* On ne vérifie pas ici si le prénom de la personne est vide, mais *)
     (* on le fait plus haut, pour savoir si c'est un oubli ou si l'on   *)

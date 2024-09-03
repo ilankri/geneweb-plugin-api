@@ -33,18 +33,23 @@ type person_update_kind =
   | Create_default_occ of {
       first_name : string;
       surname : string;
-      occurrence_number : int option;
+      wanted_occurrence_number : int option;
       sex : Def.sex
     }
   | Create of {first_name : string; surname : string; sex : Def.sex}
   | Link of Gwdb.iper
+  | Update of {
+      id : Gwdb.iper;
+      new_first_name : string;
+      new_surname : string;
+      wanted_occurrence_number : int option;
+    }
 
 let make_person_update ~base = function
-  | Create_default_occ {first_name; surname; occurrence_number; sex} ->
+  | Create_default_occ {first_name; surname; wanted_occurrence_number; sex} ->
      let occ =
-       match occurrence_number with
-       | Some occ -> occ
-       | None -> 0
+       Api_update_util.find_free_occ
+         ?wanted_occurrence_number ~base ~first_name ~surname ()
      in
      {Api_update_util.first_name;
       surname;
@@ -64,14 +69,36 @@ let make_person_update ~base = function
      let p = Gwdb.poi base person_id in
      let fn = Gwdb.sou base (Gwdb.get_first_name p) in
      let sn = Gwdb.sou base (Gwdb.get_surname p) in
-     let occ =
-       if fn = "?" || sn = "?"
-       then int_of_string @@ Gwdb.string_of_iper (Gwdb.get_iper p)
-       else Gwdb.get_occ p
-     in
+     let occ = Gwdb.get_occ p in
      {Api_update_util.first_name = fn;
       surname = sn;
       occurrence_number = occ;
+      kind = Geneweb.Update.Link;
+      force = false}
+  | Update {id; new_first_name; new_surname; wanted_occurrence_number} ->
+     let occurrence_number =
+       let wanted_occurrence_number =
+         Option.value ~default:0 wanted_occurrence_number
+       in
+       if
+         Api_update_util.person_identity_has_changed
+           ~base
+           ~id
+           ~new_first_name
+           ~new_surname
+           ~new_occurrence_number:wanted_occurrence_number
+       then
+         Api_update_util.find_free_occ
+           ~base
+           ~first_name:new_first_name
+           ~surname:new_surname
+           ~wanted_occurrence_number
+           ()
+       else wanted_occurrence_number
+     in
+     {Api_update_util.first_name = new_first_name;
+      surname = new_surname;
+      occurrence_number;
       kind = Geneweb.Update.Link;
       force = false}
 
@@ -157,7 +184,7 @@ let reconstitute_family conf base mod_f =
             {first_name =
                modified_father.Api_saisie_write_piqi.Person.firstname;
              surname = modified_father.Api_saisie_write_piqi.Person.lastname;
-             occurrence_number =
+             wanted_occurrence_number =
                Option.map
                  Int32.to_int modified_father.Api_saisie_write_piqi.Person.occ;
              sex}
@@ -169,17 +196,21 @@ let reconstitute_family conf base mod_f =
              sex}
       | `link ->
           let ip = Gwdb.iper_of_string @@ Int32.to_string modified_father.Api_saisie_write_piqi.Person.index in
-          Link ip
+          Update
+            {id = ip;
+             new_first_name =
+               modified_father.Api_saisie_write_piqi.Person.firstname;
+             new_surname =
+               modified_father.Api_saisie_write_piqi.Person.lastname;
+             wanted_occurrence_number =
+               Option.map
+                 Int32.to_int modified_father.Api_saisie_write_piqi.Person.occ}
     in
     let father = make_person_update ~base father_update_kind in
     let () =
-      match modified_father.Api_saisie_write_piqi.Person.create_link with
-      | `create_default_occ | `link -> ()
-      | `create ->
-         (* On met à jour parce que si on veut le rechercher, *)
-         (* il faut qu'on connaisse son occ.                  *)
-         if father.occurrence_number = 0 then modified_father.Api_saisie_write_piqi.Person.occ <- None
-         else modified_father.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int father.occurrence_number)
+      (* On met à jour parce que si on veut le rechercher, *)
+      (* il faut qu'on connaisse son occ.                  *)
+      modified_father.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int father.occurrence_number)
     in
     let modified_mother = mod_f.Api_saisie_write_piqi.Family.mother in
     let sex =
@@ -195,7 +226,7 @@ let reconstitute_family conf base mod_f =
             {first_name =
                modified_mother.Api_saisie_write_piqi.Person.firstname;
              surname = modified_mother.Api_saisie_write_piqi.Person.lastname;
-             occurrence_number =
+             wanted_occurrence_number =
                Option.map
                  Int32.to_int modified_mother.Api_saisie_write_piqi.Person.occ;
              sex}
@@ -207,17 +238,21 @@ let reconstitute_family conf base mod_f =
              sex}
       | `link ->
           let ip = Gwdb.iper_of_string @@ Int32.to_string modified_mother.Api_saisie_write_piqi.Person.index in
-          Link ip
+          Update
+            {id = ip;
+             new_first_name =
+               modified_mother.Api_saisie_write_piqi.Person.firstname;
+             new_surname =
+               modified_mother.Api_saisie_write_piqi.Person.lastname;
+             wanted_occurrence_number =
+               Option.map
+                 Int32.to_int modified_mother.Api_saisie_write_piqi.Person.occ}
     in
     let mother = make_person_update ~base mother_update_kind in
     let () =
-      match modified_mother.Api_saisie_write_piqi.Person.create_link with
-      | `create_default_occ | `link -> ()
-      | `create ->
-         (* On met à jour parce que si on veut le rechercher, *)
-         (* il faut qu'on connaisse son occ.                  *)
-         if mother.occurrence_number = 0 then modified_mother.Api_saisie_write_piqi.Person.occ <- None
-         else modified_mother.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int mother.occurrence_number)
+      (* On met à jour parce que si on veut le rechercher, *)
+      (* il faut qu'on connaisse son occ.                  *)
+      modified_mother.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int mother.occurrence_number)
     in
     [father; mother]
   in
@@ -239,7 +274,7 @@ let reconstitute_family conf base mod_f =
                     modified_child.Api_saisie_write_piqi.Person_link.firstname;
                   surname =
                     modified_child.Api_saisie_write_piqi.Person_link.lastname;
-                  occurrence_number =
+                  wanted_occurrence_number =
                     Option.map
                       Int32.to_int
                       modified_child.Api_saisie_write_piqi.Person_link.occ;
@@ -253,18 +288,23 @@ let reconstitute_family conf base mod_f =
                   sex}
            | `link ->
                let ip = Gwdb.iper_of_string @@ Int32.to_string modified_child.Api_saisie_write_piqi.Person_link.index in
-               Link ip
+               Update
+                 {id = ip;
+                  new_first_name =
+                    modified_child.Api_saisie_write_piqi.Person_link.firstname;
+                  new_surname =
+                    modified_child.Api_saisie_write_piqi.Person_link.lastname;
+                  wanted_occurrence_number =
+                    Option.map
+                      Int32.to_int
+                      modified_child.Api_saisie_write_piqi.Person_link.occ}
          in
          make_person_update ~base child_update_kind
         in
         let () =
-          match modified_child.Api_saisie_write_piqi.Person_link.create_link with
-          | `create_default_occ | `link -> ()
-          | `create ->
-             (* On met à jour parce que si on veut le rechercher, *)
-             (* il faut qu'on connaisse son occ.                  *)
-             if child.occurrence_number = 0 then modified_child.Api_saisie_write_piqi.Person_link.occ <- None
-             else modified_child.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int child.occurrence_number)
+          (* On met à jour parce que si on veut le rechercher, *)
+          (* il faut qu'on connaisse son occ.                  *)
+          modified_child.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int child.occurrence_number)
         in
         child)
       mod_f.Api_saisie_write_piqi.Family.children
@@ -342,13 +382,13 @@ let print_add conf base mod_f mod_fath mod_moth =
               let fath_occ = Gwdb.get_occ father in
 
               mod_fath.Api_saisie_write_piqi.Person.occ <-
-                if fath_occ = 0 then None else Some (Int32.of_int fath_occ);
+                Some (Int32.of_int fath_occ);
               mod_moth.Api_saisie_write_piqi.Person.index <- Int32.of_string @@ Gwdb.string_of_iper imoth;
 
               let moth_occ = Gwdb.get_occ mother in
 
               mod_moth.Api_saisie_write_piqi.Person.occ <-
-                if moth_occ = 0 then None else Some (Int32.of_int moth_occ);
+                Some (Int32.of_int moth_occ);
               let digest_father =
                 Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base father)
               in

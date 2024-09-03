@@ -1143,7 +1143,7 @@ let compute_add_family_ok'
           then
             (all_wl, all_ml, all_hr, None)
           else
-            match Api_update_person.print_mod conf base mod_mother with
+            match Api_update_person.print_mod conf base {mod_mother with create_link = `link} with
             | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
             | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
             | Api_update_util.UpdateErrorConflict c ->
@@ -1181,7 +1181,7 @@ let compute_add_family_ok'
           then
             (all_wl, all_ml, all_hr, cp)
           else
-            match Api_update_person.print_mod conf base mod_father with
+            match Api_update_person.print_mod conf base {mod_father with create_link = `link} with
             | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
             | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
             | Api_update_util.UpdateErrorConflict c ->
@@ -1230,7 +1230,7 @@ let compute_add_family_ok'
         if mod_father.Api_saisie_write_piqi.Person.lastname = "" then mod_father.Api_saisie_write_piqi.Person.lastname <- "?";
         if mod_father.Api_saisie_write_piqi.Person.firstname = "" then mod_father.Api_saisie_write_piqi.Person.firstname <- "?";
         let (all_wl, all_ml, all_hr, _cp) =
-          match Api_update_person.print_mod conf base mod_father with
+          match Api_update_person.print_mod conf base {mod_father with create_link = `link} with
           | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
           | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
           | Api_update_util.UpdateErrorConflict c ->
@@ -1241,7 +1241,7 @@ let compute_add_family_ok'
         if mod_mother.Api_saisie_write_piqi.Person.lastname = "" then mod_mother.Api_saisie_write_piqi.Person.lastname <- "?";
         if mod_mother.Api_saisie_write_piqi.Person.firstname = "" then mod_mother.Api_saisie_write_piqi.Person.firstname <- "?";
         let (all_wl, all_ml, all_hr, cp) =
-          match Api_update_person.print_mod conf base mod_mother with
+          match Api_update_person.print_mod conf base {mod_mother with create_link = `link} with
           | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
           | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
           | Api_update_util.UpdateErrorConflict c ->
@@ -1717,7 +1717,7 @@ let print_add_parents_ok conf base =
         let aux p form (all_wl, all_ml, all_hr) =
           if p.Api_saisie_write_piqi.Person.firstname = "" then p.Api_saisie_write_piqi.Person.firstname <- "?" ;
           if p.Api_saisie_write_piqi.Person.lastname = "" then p.Api_saisie_write_piqi.Person.lastname <- "?" ;
-            match Api_update_person.print_mod ~no_check_name:true conf base p with
+            match Api_update_person.print_mod ~no_check_name:true conf base {p with create_link = `link} with
             | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
             | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
             | Api_update_util.UpdateErrorConflict c ->
@@ -1988,7 +1988,7 @@ let print_add_sibling_ok conf base =
                     let sibling = Gwdb.poi base ip_sibling in
                     let digest = Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base sibling) in
                     mod_c.Api_saisie_write_piqi.Person.digest <- digest;
-                    (match Api_update_person.print_mod conf base mod_c with
+                    (match Api_update_person.print_mod conf base {mod_c with create_link = `link} with
                     | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
                     | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
                     | Api_update_util.UpdateErrorConflict c -> raise (Api_update_util.ModErrApiConflict c))
@@ -2045,7 +2045,7 @@ let print_add_sibling_ok conf base =
                       let sibling = Gwdb.poi base ip_sibling in
                       let digest = Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base sibling) in
                       mod_c.Api_saisie_write_piqi.Person.digest <- digest;
-                      (match Api_update_person.print_mod conf base mod_c with
+                      (match Api_update_person.print_mod conf base {mod_c with create_link = `link} with
                        | Api_update_util.UpdateSuccess (wl, ml, hr, cp) -> (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
                        | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
                        | Api_update_util.UpdateErrorConflict c -> raise (Api_update_util.ModErrApiConflict c))
@@ -2392,7 +2392,7 @@ let print_add_first_fam_ok conf base =
                         Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base child)
                       in
                       mod_p.Api_saisie_write_piqi.Person.digest <- digest;
-                      (match Api_update_person.print_mod conf base mod_p with
+                      (match Api_update_person.print_mod conf base {mod_p with create_link = `link} with
                       | Api_update_util.UpdateSuccess (wl, ml, hr, cp) ->
                           (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
                       | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)
@@ -2521,7 +2521,7 @@ let print_add_first_fam_ok conf base =
                         Geneweb.Update.digest_person (Geneweb.UpdateInd.string_person_of base child)
                       in
                       mod_child.Api_saisie_write_piqi.Person.digest <- digest;
-                      (match Api_update_person.print_mod conf base mod_child with
+                      (match Api_update_person.print_mod conf base {mod_child with create_link = `link} with
                       | Api_update_util.UpdateSuccess (wl, ml, hr, cp) ->
                           (all_wl @ wl, all_ml @ ml, all_hr @ hr, cp)
                       | Api_update_util.UpdateError s -> raise (Geneweb.Update.ModErr s)

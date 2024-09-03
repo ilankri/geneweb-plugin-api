@@ -118,6 +118,14 @@ val piqi_empty_family :
   Gwdb.ifam ->
   Api_saisie_write_piqi.family
 
+val person_identity_has_changed :
+  base:Gwdb.base ->
+  id:Gwdb.iper ->
+  new_first_name:string ->
+  new_surname:string ->
+  new_occurrence_number:int ->
+  bool
+
 val reconstitute_somebody :
   Gwdb.base -> Api_saisie_write_piqi.person_link -> person_update
 
