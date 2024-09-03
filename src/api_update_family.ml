@@ -108,20 +108,20 @@ let reconstitute_family conf base mod_f =
   let origin_file = Option.value ~default:"" mod_f.Api_saisie_write_piqi.Family.origin_file in
   let fam_index = Gwdb.ifam_of_string @@ Int32.to_string mod_f.Api_saisie_write_piqi.Family.index in
   let parents =
-    let father = mod_f.Api_saisie_write_piqi.Family.father in
+    let modified_father = mod_f.Api_saisie_write_piqi.Family.father in
     let sex =
-      match father.Api_saisie_write_piqi.Person.sex with
+      match modified_father.Api_saisie_write_piqi.Person.sex with
       | `male -> Def.Male
       | `female -> Def.Female
       | `unknown -> Def.Neuter
     in
     let father =
-      match father.Api_saisie_write_piqi.Person.create_link with
+      match modified_father.Api_saisie_write_piqi.Person.create_link with
       | `create_default_occ ->
-          let fn = father.Api_saisie_write_piqi.Person.firstname in
-          let sn = father.Api_saisie_write_piqi.Person.lastname in
+          let fn = modified_father.Api_saisie_write_piqi.Person.firstname in
+          let sn = modified_father.Api_saisie_write_piqi.Person.lastname in
           let occ =
-            match father.Api_saisie_write_piqi.Person.occ with
+            match modified_father.Api_saisie_write_piqi.Person.occ with
             | Some occ -> Int32.to_int occ
             | None -> 0
           in
@@ -131,14 +131,14 @@ let reconstitute_family conf base mod_f =
            kind = Geneweb.Update.Create (sex, None);
            force = false}
       | `create ->
-          let fn = father.Api_saisie_write_piqi.Person.firstname in
-          let sn = father.Api_saisie_write_piqi.Person.lastname in
+          let fn = modified_father.Api_saisie_write_piqi.Person.firstname in
+          let sn = modified_father.Api_saisie_write_piqi.Person.lastname in
           let occ = Api_update_util.api_find_free_occ base fn sn in
           (* On met à jour parce que si on veut le rechercher, *)
           (* il faut qu'on connaisse son occ.                  *)
           let () =
-            if occ = 0 then father.Api_saisie_write_piqi.Person.occ <- None
-            else father.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int occ)
+            if occ = 0 then modified_father.Api_saisie_write_piqi.Person.occ <- None
+            else modified_father.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int occ)
           in
           {Api_update_util.first_name = fn;
            surname = sn;
@@ -146,7 +146,7 @@ let reconstitute_family conf base mod_f =
            kind = Geneweb.Update.Create (sex, None);
            force = true}
       | `link ->
-          let ip = Gwdb.iper_of_string @@ Int32.to_string father.Api_saisie_write_piqi.Person.index in
+          let ip = Gwdb.iper_of_string @@ Int32.to_string modified_father.Api_saisie_write_piqi.Person.index in
           let p = Gwdb.poi base ip in
           let fn = Gwdb.sou base (Gwdb.get_first_name p) in
           let sn = Gwdb.sou base (Gwdb.get_surname p) in
@@ -161,20 +161,20 @@ let reconstitute_family conf base mod_f =
            kind = Geneweb.Update.Link;
            force = false}
     in
-    let mother = mod_f.Api_saisie_write_piqi.Family.mother in
+    let modified_mother = mod_f.Api_saisie_write_piqi.Family.mother in
     let sex =
-      match mother.Api_saisie_write_piqi.Person.sex with
+      match modified_mother.Api_saisie_write_piqi.Person.sex with
       | `male -> Def.Male
       | `female -> Def.Female
       | `unknown -> Def.Neuter
     in
     let mother =
-      match mother.Api_saisie_write_piqi.Person.create_link with
+      match modified_mother.Api_saisie_write_piqi.Person.create_link with
       | `create_default_occ ->
-          let fn = mother.Api_saisie_write_piqi.Person.firstname in
-          let sn = mother.Api_saisie_write_piqi.Person.lastname in
+          let fn = modified_mother.Api_saisie_write_piqi.Person.firstname in
+          let sn = modified_mother.Api_saisie_write_piqi.Person.lastname in
           let occ =
-            match mother.Api_saisie_write_piqi.Person.occ with
+            match modified_mother.Api_saisie_write_piqi.Person.occ with
             | Some occ -> Int32.to_int occ
             | None -> 0
           in
@@ -184,14 +184,14 @@ let reconstitute_family conf base mod_f =
            kind = Geneweb.Update.Create (sex, None);
            force = false}
       | `create ->
-          let fn = mother.Api_saisie_write_piqi.Person.firstname in
-          let sn = mother.Api_saisie_write_piqi.Person.lastname in
+          let fn = modified_mother.Api_saisie_write_piqi.Person.firstname in
+          let sn = modified_mother.Api_saisie_write_piqi.Person.lastname in
           let occ = Api_update_util.api_find_free_occ base fn sn in
           (* On met à jour parce que si on veut le rechercher, *)
           (* il faut qu'on connaisse son occ.                  *)
           let () =
-            if occ = 0 then mother.Api_saisie_write_piqi.Person.occ <- None
-            else mother.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int occ)
+            if occ = 0 then modified_mother.Api_saisie_write_piqi.Person.occ <- None
+            else modified_mother.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int occ)
           in
           {Api_update_util.first_name = fn;
            surname = sn;
@@ -199,7 +199,7 @@ let reconstitute_family conf base mod_f =
            kind = Geneweb.Update.Create (sex, None);
            force = true}
       | `link ->
-          let ip = Gwdb.iper_of_string @@ Int32.to_string mother.Api_saisie_write_piqi.Person.index in
+          let ip = Gwdb.iper_of_string @@ Int32.to_string modified_mother.Api_saisie_write_piqi.Person.index in
           let p = Gwdb.poi base ip in
           let fn = Gwdb.sou base (Gwdb.get_first_name p) in
           let sn = Gwdb.sou base (Gwdb.get_surname p) in
@@ -218,19 +218,19 @@ let reconstitute_family conf base mod_f =
   in
   let children =
     List.map
-      (fun child ->
-         match child.Api_saisie_write_piqi.Person_link.create_link with
+      (fun modified_child ->
+         match modified_child.Api_saisie_write_piqi.Person_link.create_link with
          | `create_default_occ ->
              let sex =
-               match child.Api_saisie_write_piqi.Person_link.sex with
+               match modified_child.Api_saisie_write_piqi.Person_link.sex with
                | `male -> Def.Male
                | `female -> Def.Female
                | `unknown -> Def.Neuter
              in
-             let fn = child.Api_saisie_write_piqi.Person_link.firstname in
-             let sn = child.Api_saisie_write_piqi.Person_link.lastname in
+             let fn = modified_child.Api_saisie_write_piqi.Person_link.firstname in
+             let sn = modified_child.Api_saisie_write_piqi.Person_link.lastname in
              let occ =
-               match child.Api_saisie_write_piqi.Person_link.occ with
+               match modified_child.Api_saisie_write_piqi.Person_link.occ with
                | Some occ -> Int32.to_int occ
                | None -> 0
              in
@@ -241,19 +241,19 @@ let reconstitute_family conf base mod_f =
               force = false}
          | `create ->
              let sex =
-               match child.Api_saisie_write_piqi.Person_link.sex with
+               match modified_child.Api_saisie_write_piqi.Person_link.sex with
                | `male -> Def.Male
                | `female -> Def.Female
                | `unknown -> Def.Neuter
              in
-             let fn = child.Api_saisie_write_piqi.Person_link.firstname in
-             let sn = child.Api_saisie_write_piqi.Person_link.lastname in
+             let fn = modified_child.Api_saisie_write_piqi.Person_link.firstname in
+             let sn = modified_child.Api_saisie_write_piqi.Person_link.lastname in
              let occ = Api_update_util.api_find_free_occ base fn sn in
              (* On met à jour parce que si on veut le rechercher, *)
              (* il faut qu'on connaisse son occ.                  *)
              let () =
-               if occ = 0 then child.Api_saisie_write_piqi.Person_link.occ <- None
-               else child.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int occ)
+               if occ = 0 then modified_child.Api_saisie_write_piqi.Person_link.occ <- None
+               else modified_child.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int occ)
              in
              {Api_update_util.first_name = fn;
               surname = sn;
@@ -261,7 +261,7 @@ let reconstitute_family conf base mod_f =
               kind = Geneweb.Update.Create (sex, None);
               force = true}
          | `link ->
-             let ip = Gwdb.iper_of_string @@ Int32.to_string child.Api_saisie_write_piqi.Person_link.index in
+             let ip = Gwdb.iper_of_string @@ Int32.to_string modified_child.Api_saisie_write_piqi.Person_link.index in
              let p = Gwdb.poi base ip in
              let fn = Gwdb.sou base (Gwdb.get_first_name p) in
              let sn = Gwdb.sou base (Gwdb.get_surname p) in
