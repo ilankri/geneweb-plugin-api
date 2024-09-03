@@ -1514,13 +1514,16 @@ let reconstitute_somebody base person =
             | None -> (0, false))
         | `create ->
           let occ = api_find_free_occ base fn sn in
-          (* Update the person because if we want to find it, we have to know its occ. *)
-          let () =
-            if occ = 0 then person.Api_saisie_write_piqi.Person_link.occ <- None
-            else person.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int occ)
-          in
           (occ, true)
         | `link -> (0, false) (* Should not happen. *)
+      in
+      (* Update the person because if we want to find it, we have to know its occ. *)
+      let () =
+        match create_link with
+        | `create_default_occ | `link -> ()
+        | `create ->
+           if occ = 0 then person.Api_saisie_write_piqi.Person_link.occ <- None
+           else person.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int occ)
       in
       (fn, sn, occ, Geneweb.Update.Create (sex, None), force_create)
   in

@@ -134,12 +134,6 @@ let reconstitute_family conf base mod_f =
           let fn = modified_father.Api_saisie_write_piqi.Person.firstname in
           let sn = modified_father.Api_saisie_write_piqi.Person.lastname in
           let occ = Api_update_util.api_find_free_occ base fn sn in
-          (* On met à jour parce que si on veut le rechercher, *)
-          (* il faut qu'on connaisse son occ.                  *)
-          let () =
-            if occ = 0 then modified_father.Api_saisie_write_piqi.Person.occ <- None
-            else modified_father.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int occ)
-          in
           {Api_update_util.first_name = fn;
            surname = sn;
            occurrence_number = occ;
@@ -160,6 +154,15 @@ let reconstitute_family conf base mod_f =
            occurrence_number = occ;
            kind = Geneweb.Update.Link;
            force = false}
+    in
+    let () =
+      match modified_father.Api_saisie_write_piqi.Person.create_link with
+      | `create_default_occ | `link -> ()
+      | `create ->
+         (* On met à jour parce que si on veut le rechercher, *)
+         (* il faut qu'on connaisse son occ.                  *)
+         if father.occurrence_number = 0 then modified_father.Api_saisie_write_piqi.Person.occ <- None
+         else modified_father.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int father.occurrence_number)
     in
     let modified_mother = mod_f.Api_saisie_write_piqi.Family.mother in
     let sex =
@@ -187,12 +190,6 @@ let reconstitute_family conf base mod_f =
           let fn = modified_mother.Api_saisie_write_piqi.Person.firstname in
           let sn = modified_mother.Api_saisie_write_piqi.Person.lastname in
           let occ = Api_update_util.api_find_free_occ base fn sn in
-          (* On met à jour parce que si on veut le rechercher, *)
-          (* il faut qu'on connaisse son occ.                  *)
-          let () =
-            if occ = 0 then modified_mother.Api_saisie_write_piqi.Person.occ <- None
-            else modified_mother.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int occ)
-          in
           {Api_update_util.first_name = fn;
            surname = sn;
            occurrence_number = occ;
@@ -214,11 +211,21 @@ let reconstitute_family conf base mod_f =
            kind = Geneweb.Update.Link;
            force = false}
     in
+    let () =
+      match modified_mother.Api_saisie_write_piqi.Person.create_link with
+      | `create_default_occ | `link -> ()
+      | `create ->
+         (* On met à jour parce que si on veut le rechercher, *)
+         (* il faut qu'on connaisse son occ.                  *)
+         if mother.occurrence_number = 0 then modified_mother.Api_saisie_write_piqi.Person.occ <- None
+         else modified_mother.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int mother.occurrence_number)
+    in
     [father; mother]
   in
   let children =
     List.map
       (fun modified_child ->
+        let child =
          match modified_child.Api_saisie_write_piqi.Person_link.create_link with
          | `create_default_occ ->
              let sex =
@@ -249,12 +256,6 @@ let reconstitute_family conf base mod_f =
              let fn = modified_child.Api_saisie_write_piqi.Person_link.firstname in
              let sn = modified_child.Api_saisie_write_piqi.Person_link.lastname in
              let occ = Api_update_util.api_find_free_occ base fn sn in
-             (* On met à jour parce que si on veut le rechercher, *)
-             (* il faut qu'on connaisse son occ.                  *)
-             let () =
-               if occ = 0 then modified_child.Api_saisie_write_piqi.Person_link.occ <- None
-               else modified_child.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int occ)
-             in
              {Api_update_util.first_name = fn;
               surname = sn;
               occurrence_number = occ;
@@ -274,7 +275,18 @@ let reconstitute_family conf base mod_f =
               surname = sn;
               occurrence_number = occ;
               kind = Geneweb.Update.Link;
-              force = false})
+              force = false}
+        in
+        let () =
+          match modified_child.Api_saisie_write_piqi.Person_link.create_link with
+          | `create_default_occ | `link -> ()
+          | `create ->
+             (* On met à jour parce que si on veut le rechercher, *)
+             (* il faut qu'on connaisse son occ.                  *)
+             if child.occurrence_number = 0 then modified_child.Api_saisie_write_piqi.Person_link.occ <- None
+             else modified_child.Api_saisie_write_piqi.Person_link.occ <- Some (Int32.of_int child.occurrence_number)
+        in
+        child)
       mod_f.Api_saisie_write_piqi.Family.children
   in
   (* Attention, surtout pas les witnesses, parce que si on en créé un, *)
