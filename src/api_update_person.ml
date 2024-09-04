@@ -241,8 +241,7 @@ let reconstitute_person conf base mod_p
     List.map begin fun r ->
       let (r_fath, r_moth) =
         match (r.Def.r_fath, r.Def.r_moth) with
-        | (Some person_update, None) -> (Some person_update, None)
-        | (None, Some person_update) -> (None, Some person_update)
+        | Some _, None | None, Some _ as parents -> parents
         | None, None | Some _, Some _ -> failwith "rparents_gw"
       in
       { r  with Def.r_fath ; r_moth }
