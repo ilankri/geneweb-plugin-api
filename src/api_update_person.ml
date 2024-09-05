@@ -276,7 +276,7 @@ let print_add conf base mod_p =
   | Geneweb.Update.ModErr s -> Api_update_util.UpdateError s
   | Api_update_util.ModErrApiConflict c -> Api_update_util.UpdateErrorConflict c
 
-let print_mod_aux conf base ncn mod_p callback =
+let print_mod_aux conf base no_check_name mod_p callback =
   try
     let p : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person =
       reconstitute_person conf base mod_p
@@ -285,7 +285,7 @@ let print_mod_aux conf base ncn mod_p callback =
     let ini_ps = Geneweb.UpdateInd.string_person_of base (Gwdb.poi base p.key_index) in
     let digest = Geneweb.Update.digest_person ini_ps in
     if digest = mod_p.Api_saisie_write_piqi.Person.digest then
-      match match if ncn then None else Geneweb.Update.check_missing_name base p with
+      match match if no_check_name then None else Geneweb.Update.check_missing_name base p with
         | Some _ as err -> err
         | None ->
           let missing_wit_names_o =
