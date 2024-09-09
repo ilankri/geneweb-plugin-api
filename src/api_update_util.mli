@@ -32,7 +32,13 @@ val created_person : n:string -> p:string -> oc:Int32.t -> created_person
 
 val created_person_is_unnamed : created_person -> bool
 
-val find_free_occ : base:Gwdb.base -> first_name:string -> surname:string -> int
+val find_free_occ :
+  ?wanted_occurrence_number:int ->
+  base:Gwdb.base ->
+  first_name:string ->
+  surname:string ->
+  unit ->
+  int
 
 val check_person_conflict :
   Gwdb.base ->

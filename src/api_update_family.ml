@@ -52,7 +52,9 @@ let make_person_update ~base = function
       kind = Geneweb.Update.Create (sex, None);
       force = false}
   | Create {first_name; surname; sex} ->
-     let occ = Api_update_util.find_free_occ ~base ~first_name ~surname in
+     let occ =
+       Api_update_util.find_free_occ ~base ~first_name ~surname ()
+     in
      {Api_update_util.first_name;
       surname;
       occurrence_number = occ;

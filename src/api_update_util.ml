@@ -10,7 +10,7 @@ type person_update = {
 
 let find_free_occ =
   let occurrence_numbers = Hashtbl.create 33 in
-  fun ~base ~first_name ~surname ->
+  fun ?(wanted_occurrence_number = 0) ~base ~first_name ~surname () ->
   let key = Name.lower (first_name ^ " " ^ surname) in
   let local_occurrence_numbers =
     Option.value
@@ -23,8 +23,12 @@ let find_free_occ =
     let occurrence_numbers =
       Ext_int.Set.union local_occurrence_numbers base_occurrence_numbers
     in
-    Occurrence_number.smallest_free occurrence_numbers
-
+    let is_free occurrence_number =
+      not @@ Ext_int.Set.mem occurrence_number occurrence_numbers
+    in
+    if is_free wanted_occurrence_number
+    then wanted_occurrence_number
+    else Occurrence_number.smallest_free occurrence_numbers
   in
   Hashtbl.add
     occurrence_numbers key (Ext_int.Set.add occ local_occurrence_numbers);
@@ -1487,7 +1491,9 @@ let reconstitute_somebody base person =
             | Some occ -> (Int32.to_int occ, false)
             | None -> (0, false))
         | `create ->
-          let occ = find_free_occ ~base ~first_name:fn ~surname:sn in
+           let occ =
+             find_free_occ ~base ~first_name:fn ~surname:sn ()
+           in
           (occ, true)
       in
       (* Update the person because if we want to find it, we have to know its occ. *)
