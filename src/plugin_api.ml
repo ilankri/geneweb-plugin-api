@@ -35,6 +35,10 @@ let w_base =
   in
   Gwd_lib.Request.w_base ~none
 
+let set_request_timeout () =
+  Wserver.set_on_timeout
+    (fun _ -> Wserver.request_timeout ())
+
 let () =
   let assets = !Gwd_lib.GwdPlugin.assets in
   let aux dico_type s lang =
@@ -60,6 +64,7 @@ let () =
     with _ -> ()
   end (Sys.readdir assets) ;
   let aux fn _assets conf base =
+    set_request_timeout ();
     fn { conf with Geneweb.Config.api_mode = true } base ; true
   in
   Gwd_lib.GwdPlugin.register ~ns:"api"
