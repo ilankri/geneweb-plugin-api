@@ -300,12 +300,12 @@ let reconstitute_family conf base mod_f =
 let print_add conf base mod_f mod_fath mod_moth =
   (try
     let (sfam, scpl, sdes) = reconstitute_family conf base mod_f in
-      (match UpdateFamOk.check_family conf sfam scpl with
-      | (Some err, _) | (_, Some err) ->
+      (match UpdateFamOk.check_family conf sfam scpl sdes with
+      | (Some err, _, _) | (_, Some err, _) | (_, _, Some err) ->
           (* Correspond au cas ou fn/sn = ""/"?" *)
           (* => ne devrait pas se produire       *)
           None, Api_update_util.UpdateError err
-      | (None, None) ->
+      | (None, None, None) ->
           begin
             let (sfam, sdes) = UpdateFamOk.strip_family sfam sdes in
             let (ifam, fam, cpl, des) =
@@ -397,12 +397,12 @@ let print_add conf base mod_f mod_fath mod_moth =
 let print_mod_aux conf base mod_f callback =
   try
     let (sfam, scpl, sdes) = reconstitute_family conf base mod_f in
-      match UpdateFamOk.check_family conf sfam scpl with
-      | (Some err, _) | (_, Some err) ->
+      match UpdateFamOk.check_family conf sfam scpl sdes with
+      | (Some err, _, _) | (_, Some err, _) | (_, _, Some err) ->
           (* Correspond au cas ou fn/sn = "" ou "?" *)
           (* => ne devrait pas se produire *)
           Api_update_util.UpdateError err
-      | (None, None) ->
+      | (None, None, None) ->
           let (sfam, sdes) = UpdateFamOk.strip_family sfam sdes in
           callback sfam scpl sdes
   with
