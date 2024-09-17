@@ -1977,8 +1977,8 @@ let print_add_sibling_ok conf base =
               let (all_wl, all_ml, all_hr, cp) =
                 let occ =
                   match create_sibling.Api_saisie_write_piqi.Person_link.occ with
-                  | None -> 0
-                  | Some occ -> Int32.to_int occ
+                  | None -> Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__; 0
+                  | Some occ -> Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__; Int32.to_int occ
                 in
                 match Gwdb.person_of_key base fn sn occ with
                 | Some ip_sibling ->
@@ -2034,8 +2034,8 @@ let print_add_sibling_ok conf base =
                 let (all_wl, all_ml, all_hr, cp) =
                   let occ =
                     match create_sibling.Api_saisie_write_piqi.Person_link.occ with
-                    | None -> 0
-                    | Some occ -> Int32.to_int occ
+                    | None -> Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__; 0
+                    | Some occ -> Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__; Int32.to_int occ
                   in
                   match Gwdb.person_of_key base fn sn occ with
                   | Some ip_sibling ->

@@ -10,7 +10,7 @@ type person_update = {
 
 let find_free_occ =
   let occurrence_numbers = Hashtbl.create 33 in
-  fun ?(wanted_occurrence_number = 0) ~base ~first_name ~surname () ->
+  fun ~__LOC__ ?(wanted_occurrence_number = 0) ~base ~first_name ~surname () ->
   let key = Name.lower (first_name ^ " " ^ surname) in
   let local_occurrence_numbers =
     Option.value
@@ -30,6 +30,7 @@ let find_free_occ =
     then wanted_occurrence_number
     else Occurrence_number.smallest_free occurrence_numbers
   in
+  Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: wanted_occurrence_number = %d occ = %d" __LOC__ wanted_occurrence_number occ;
   Hashtbl.add
     occurrence_numbers key (Ext_int.Set.add occ local_occurrence_numbers);
   occ
@@ -1498,7 +1499,7 @@ let reconstitute_somebody base person =
             ~new_surname:sn
             ~new_occurrence_number:wanted_occurrence_number
         then
-          find_free_occ
+          find_free_occ ~__LOC__
             ~base ~first_name:fn ~surname:sn ~wanted_occurrence_number ()
         else wanted_occurrence_number
       in
@@ -1519,12 +1520,12 @@ let reconstitute_somebody base person =
                Int32.to_int
                person.Api_saisie_write_piqi.Person_link.occ
            in
-           (find_free_occ
+           (find_free_occ ~__LOC__
               ?wanted_occurrence_number ~base ~first_name:fn ~surname:sn (),
             false)
         | `create ->
            let occ =
-             find_free_occ ~base ~first_name:fn ~surname:sn ()
+             find_free_occ ~__LOC__ ~base ~first_name:fn ~surname:sn ()
            in
           (occ, true)
       in

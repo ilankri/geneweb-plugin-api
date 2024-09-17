@@ -48,9 +48,10 @@ type person_update_kind =
 let make_person_update ~base = function
   | Create_default_occ {first_name; surname; wanted_occurrence_number; sex} ->
      let occ =
-       Api_update_util.find_free_occ
+       Api_update_util.find_free_occ ~__LOC__
          ?wanted_occurrence_number ~base ~first_name ~surname ()
      in
+     Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: occ = %d" __LOC__ occ;
      {Api_update_util.first_name;
       surname;
       occurrence_number = occ;
@@ -58,8 +59,9 @@ let make_person_update ~base = function
       force = false}
   | Create {first_name; surname; sex} ->
      let occ =
-       Api_update_util.find_free_occ ~base ~first_name ~surname ()
+       Api_update_util.find_free_occ ~__LOC__ ~base ~first_name ~surname ()
      in
+     Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: occ = %d" __LOC__ occ;
      {Api_update_util.first_name;
       surname;
       occurrence_number = occ;
@@ -70,6 +72,7 @@ let make_person_update ~base = function
      let fn = Gwdb.sou base (Gwdb.get_first_name p) in
      let sn = Gwdb.sou base (Gwdb.get_surname p) in
      let occ = Gwdb.get_occ p in
+     Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: person_id = %s occ = %d" __LOC__ (Gwdb.string_of_iper person_id) occ;
      {Api_update_util.first_name = fn;
       surname = sn;
       occurrence_number = occ;
@@ -88,7 +91,7 @@ let make_person_update ~base = function
            ~new_surname
            ~new_occurrence_number:wanted_occurrence_number
        then
-         Api_update_util.find_free_occ
+         Api_update_util.find_free_occ ~__LOC__
            ~base
            ~first_name:new_first_name
            ~surname:new_surname
@@ -180,6 +183,7 @@ let reconstitute_family conf base mod_f =
     let father_update_kind =
       match modified_father.Api_saisie_write_piqi.Person.create_link with
       | `create_default_occ ->
+         Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
           Create_default_occ
             {first_name =
                modified_father.Api_saisie_write_piqi.Person.firstname;
@@ -189,12 +193,14 @@ let reconstitute_family conf base mod_f =
                  Int32.to_int modified_father.Api_saisie_write_piqi.Person.occ;
              sex}
       | `create ->
+         Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
           Create
             {first_name =
                modified_father.Api_saisie_write_piqi.Person.firstname;
              surname = modified_father.Api_saisie_write_piqi.Person.lastname;
              sex}
       | `link ->
+         Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
           let ip = Gwdb.iper_of_string @@ Int32.to_string modified_father.Api_saisie_write_piqi.Person.index in
           Update
             {id = ip;
@@ -222,6 +228,7 @@ let reconstitute_family conf base mod_f =
     let mother_update_kind =
       match modified_mother.Api_saisie_write_piqi.Person.create_link with
       | `create_default_occ ->
+         Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
           Create_default_occ
             {first_name =
                modified_mother.Api_saisie_write_piqi.Person.firstname;
@@ -231,12 +238,14 @@ let reconstitute_family conf base mod_f =
                  Int32.to_int modified_mother.Api_saisie_write_piqi.Person.occ;
              sex}
       | `create ->
+         Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
           Create
             {first_name =
                modified_mother.Api_saisie_write_piqi.Person.firstname;
              surname = modified_mother.Api_saisie_write_piqi.Person.lastname;
              sex}
       | `link ->
+         Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
           let ip = Gwdb.iper_of_string @@ Int32.to_string modified_mother.Api_saisie_write_piqi.Person.index in
           Update
             {id = ip;
@@ -269,6 +278,7 @@ let reconstitute_family conf base mod_f =
          let child_update_kind =
            match modified_child.Api_saisie_write_piqi.Person_link.create_link with
            | `create_default_occ ->
+              Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
                Create_default_occ
                  {first_name =
                     modified_child.Api_saisie_write_piqi.Person_link.firstname;
@@ -280,6 +290,7 @@ let reconstitute_family conf base mod_f =
                       modified_child.Api_saisie_write_piqi.Person_link.occ;
                   sex}
            | `create ->
+              Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
                Create
                  {first_name =
                     modified_child.Api_saisie_write_piqi.Person_link.firstname;
@@ -287,6 +298,7 @@ let reconstitute_family conf base mod_f =
                     modified_child.Api_saisie_write_piqi.Person_link.lastname;
                   sex}
            | `link ->
+              Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
                let ip = Gwdb.iper_of_string @@ Int32.to_string modified_child.Api_saisie_write_piqi.Person_link.index in
                Update
                  {id = ip;

@@ -170,14 +170,16 @@ let reconstitute_person conf base mod_p
   let fn_occ mod_p =
     match mod_p.Api_saisie_write_piqi.Person.create_link with
     | `create ->
+       Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
       let fn = mod_p.Api_saisie_write_piqi.Person.firstname in
       let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
-      Api_update_util.find_free_occ ~base ~first_name:fn ~surname:sn ()
+      Api_update_util.find_free_occ ~__LOC__ ~base ~first_name:fn ~surname:sn ()
     | `create_default_occ ->
       let wanted_occurrence_number =
         Option.map Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
       in
-      Api_update_util.find_free_occ
+      Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: wanted_occurrence_number = %d" __LOC__ (Option.value ~default:(-1) wanted_occurrence_number);
+      Api_update_util.find_free_occ ~__LOC__
         ?wanted_occurrence_number
         ~base
         ~first_name:mod_p.Api_saisie_write_piqi.Person.firstname
@@ -201,7 +203,7 @@ let reconstitute_person conf base mod_p
           ~new_surname:mod_p.Api_saisie_write_piqi.Person.lastname
           ~new_occurrence_number:wanted_occurrence_number
       then
-        Api_update_util.find_free_occ
+        Api_update_util.find_free_occ ~__LOC__
           ~base
           ~first_name:mod_p.Api_saisie_write_piqi.Person.firstname
           ~surname:mod_p.Api_saisie_write_piqi.Person.lastname
@@ -286,8 +288,10 @@ let reconstitute_person conf base mod_p
 
 let print_add conf base mod_p =
   try
+    Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: occ = %ld" __LOC__ (Option.value ~default:(Int32.minus_one) mod_p.Api_saisie_write_piqi.Person.occ);
     let sp : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person = reconstitute_person conf base mod_p in
     let sp = {(sp) with key_index = Gwdb.dummy_iper} in
+    Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: occ = %d" __LOC__ sp.occ;
     (* On met à jour les occ. *)
     mod_p.Api_saisie_write_piqi.Person.occ <- Some (Int32.of_int sp.occ);
     let sp : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person = Geneweb.UpdateIndOk.strip_person sp in
@@ -310,11 +314,14 @@ let print_add conf base mod_p =
 
 let print_mod_aux conf base no_check_name mod_p callback =
   try
+        Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: occ = %ld" __LOC__ (Option.value ~default:(Int32.minus_one) mod_p.Api_saisie_write_piqi.Person.occ);
+
     let p : ('a, string * string * int * Geneweb.Update.create * string, string) Def.gen_person =
       reconstitute_person conf base mod_p
     in
     let () = mod_p.occ <- Some (Int32.of_int p.occ) in
     let p = Geneweb.UpdateIndOk.strip_person p in
+    Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: occ = %d" __LOC__ p.occ;
     let ini_ps = Geneweb.UpdateInd.string_person_of base (Gwdb.poi base p.key_index) in
     let digest = Geneweb.Update.digest_person ini_ps in
     if digest = mod_p.Api_saisie_write_piqi.Person.digest then
@@ -426,10 +433,12 @@ let reconstitute_person_nobase conf mod_p =
   let fn_occ mod_p =
     match mod_p.Api_saisie_write_piqi.Person.create_link with
     | `create ->
+      Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
       let fn = mod_p.Api_saisie_write_piqi.Person.firstname in
       let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
       find_free_occ_nobase ~first_name:fn ~surname:sn ()
     | `create_default_occ ->
+      Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
       let wanted_occurrence_number =
         Option.map Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
       in
@@ -439,6 +448,7 @@ let reconstitute_person_nobase conf mod_p =
         ~surname:mod_p.Api_saisie_write_piqi.Person.lastname
         ()
     | `link ->
+       Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
       failwith "ErrorAddPersonNoBase"
   in
   let fn_rparents _ = [] in
