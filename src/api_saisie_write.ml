@@ -194,7 +194,7 @@ let print_config conf =
           pos = pos;
           sval = !!(sval);
         }))
-      [ Def.Efam_Marriage; Def.Efam_NoMarriage; Def.Efam_Engage;
+      [ Def.Efam_Marriage; Def.Efam_NoMarriage; Def.Efam_NoMention; Def.Efam_Engage;
         Def.Efam_Divorce ; Def.Efam_Separated;
         Def.Efam_Annulation; Def.Efam_MarriageBann; Def.Efam_MarriageContract;
         Def.Efam_MarriageLicense; Def.Efam_PACS; Def.Efam_Residence ]
