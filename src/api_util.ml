@@ -755,6 +755,7 @@ let spouse_to_piqi_spouse conf base p fam compute_sosa =
     marriage_place = marriage_place;
     divorce_type = divorce_type;
     visible_for_visitors = get_visibility conf base p;
+    index = Int32.of_string (Gwdb.string_of_iper gen_p.key_index);
   }
 
 
