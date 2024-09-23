@@ -99,16 +99,17 @@ let error_conflict_person_link
   let has_existing_homonym () =
     Gutil.homonyms ~base ~first_name:f ~surname:s <> []
   in
+  Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: first_name = %s surname = %s occurrence_number = %d" __LOC__ f s o;
   match create with
   | Geneweb.Update.Create (_, _) ->
     if force_create then
       (* If we want to force, we need a free occ *)
       if exists ()
       then failwith "error_conflict_person_link"
-      else false, k :: created
-    else if has_existing_homonym () then true, created
-    else false, k :: created
-  | Link -> false, created
+      else (Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__; false, k :: created)
+    else if has_existing_homonym () then (Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__; true, created)
+    else (Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__; false, k :: created)
+  | Link -> (Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__; false, created)
 
 let check_person_conflict base original_pevents sp =
   let op = Gwdb.poi base (sp.Def.key_index) in
@@ -119,6 +120,7 @@ let check_person_conflict base original_pevents sp =
     if ofn <> sp.Def.first_name || osn <> sp.Def.surname || oocc <> sp.Def.occ then
       match Gwdb.person_of_key base sp.Def.first_name sp.Def.surname sp.Def.occ with
       | Some p' when p' <> sp.Def.key_index ->
+        Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__;
         let conflict =
           { Api_saisie_write_piqi.Create_conflict.form = Some `person_form1
           ; witness = false
@@ -131,8 +133,8 @@ let check_person_conflict base original_pevents sp =
           }
         in
         raise (ModErrApiConflict conflict)
-      | _ -> [ (sp.Def.first_name, sp.Def.surname, sp.Def.occ) ]
-    else []
+      | _ -> (Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__; [ (sp.Def.first_name, sp.Def.surname, sp.Def.occ) ])
+    else (Geneweb.GWPARAM.syslog `LOG_DEBUG __LOC__; [])
   in
   (* Vérification des rparents. *)
   let _, created =
