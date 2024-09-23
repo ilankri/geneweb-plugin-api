@@ -42,6 +42,7 @@ type person_update_kind =
       id : Gwdb.iper;
       new_first_name : string;
       new_surname : string;
+      new_sex : Def.sex;
       wanted_occurrence_number : int option;
     }
 
@@ -78,7 +79,8 @@ let make_person_update ~base = function
       occurrence_number = occ;
       kind = Geneweb.Update.Link;
       force = false}
-  | Update {id; new_first_name; new_surname; wanted_occurrence_number} ->
+  | Update
+      {id; new_first_name; new_surname; new_sex; wanted_occurrence_number} ->
      let occurrence_number =
        let wanted_occurrence_number =
          Option.value ~default:0 wanted_occurrence_number
@@ -102,7 +104,7 @@ let make_person_update ~base = function
      {Api_update_util.first_name = new_first_name;
       surname = new_surname;
       occurrence_number;
-      kind = Geneweb.Update.Link;
+      kind = Geneweb.Update.Create (new_sex, None);
       force = false}
 
 let reconstitute_family conf base mod_f =
@@ -208,6 +210,7 @@ let reconstitute_family conf base mod_f =
                modified_father.Api_saisie_write_piqi.Person.firstname;
              new_surname =
                modified_father.Api_saisie_write_piqi.Person.lastname;
+             new_sex = sex;
              wanted_occurrence_number =
                Option.map
                  Int32.to_int modified_father.Api_saisie_write_piqi.Person.occ}
@@ -253,6 +256,7 @@ let reconstitute_family conf base mod_f =
                modified_mother.Api_saisie_write_piqi.Person.firstname;
              new_surname =
                modified_mother.Api_saisie_write_piqi.Person.lastname;
+             new_sex = sex;
              wanted_occurrence_number =
                Option.map
                  Int32.to_int modified_mother.Api_saisie_write_piqi.Person.occ}
@@ -306,6 +310,7 @@ let reconstitute_family conf base mod_f =
                     modified_child.Api_saisie_write_piqi.Person_link.firstname;
                   new_surname =
                     modified_child.Api_saisie_write_piqi.Person_link.lastname;
+                  new_sex = sex;
                   wanted_occurrence_number =
                     Option.map
                       Int32.to_int

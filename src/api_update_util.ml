@@ -1506,7 +1506,7 @@ let reconstitute_somebody base person =
             ~base ~first_name:fn ~surname:sn ~wanted_occurrence_number ()
         else wanted_occurrence_number
       in
-      (fn, sn, occ, Geneweb.Update.Link, false)
+      (fn, sn, occ, Geneweb.Update.Create (sex, None), false)
     | `create | `create_default_occ as create_link ->
       let fn = person.Api_saisie_write_piqi.Person_link.firstname in
       let sn = person.Api_saisie_write_piqi.Person_link.lastname in
