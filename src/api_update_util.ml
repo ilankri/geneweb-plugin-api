@@ -1475,7 +1475,14 @@ let person_identity_has_changed
 
 let reconstitute_somebody base person =
   let create_link = person.Api_saisie_write_piqi.Person_link.create_link in
-  let (fn, sn, occ, create, force_create) = match create_link with
+  let (fn, sn, occ, create, force_create) =
+    let sex =
+      match person.Api_saisie_write_piqi.Person_link.sex with
+      | `male -> Def.Male
+      | `female -> Def.Female
+      | `unknown -> Def.Neuter
+    in
+    match create_link with
     | `link ->
       let ip = Gwdb.iper_of_string @@ Int32.to_string person.Api_saisie_write_piqi.Person_link.index in
       let fn = person.Api_saisie_write_piqi.Person_link.firstname in
@@ -1501,12 +1508,6 @@ let reconstitute_somebody base person =
       in
       (fn, sn, occ, Geneweb.Update.Link, false)
     | `create | `create_default_occ as create_link ->
-      let sex =
-        match person.Api_saisie_write_piqi.Person_link.sex with
-          | `male -> Def.Male
-          | `female -> Def.Female
-          | `unknown -> Def.Neuter
-      in
       let fn = person.Api_saisie_write_piqi.Person_link.firstname in
       let sn = person.Api_saisie_write_piqi.Person_link.lastname in
       let (occ, force_create) = match create_link with
