@@ -99,18 +99,14 @@ let error_conflict_person_link
   let has_existing_homonym () =
     Gutil.homonyms ~base ~first_name:f ~surname:s <> []
   in
-  let f = if f = "" then "?" else f in
-  let s = if s = "" then "?" else s in
   match create with
   | Geneweb.Update.Create (_, _) ->
-    if f <> "?" && s <> "?" then
-      if force_create then
-        (* If we want to force, we need a free occ *)
-        if exists ()
-        then failwith "error_conflict_person_link"
-        else false, k :: created
-      else if has_existing_homonym () then true, created
+    if force_create then
+      (* If we want to force, we need a free occ *)
+      if exists ()
+      then failwith "error_conflict_person_link"
       else false, k :: created
+    else if has_existing_homonym () then true, created
     else false, k :: created
   | Link -> false, created
 
