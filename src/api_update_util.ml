@@ -97,7 +97,12 @@ let error_conflict_person_link
     Gwdb.person_of_key base f s o <> None || List.exists (Mutil.eq_key k) created
   in
   let has_existing_homonym () =
-    Gutil.homonyms ~base ~first_name:f ~surname:s <> []
+    List.exists
+      (fun id ->
+        let person = Gwdb.poi base id in
+        not (Geneweb.Util.is_empty_person person)
+        && not (Geneweb.Util.is_empty_name person))
+      (Gutil.homonyms ~base ~first_name:f ~surname:s)
   in
   Geneweb.GWPARAM.syslog `LOG_DEBUG @@ Printf.sprintf "%s: first_name = %s surname = %s occurrence_number = %d" __LOC__ f s o;
   match create with
