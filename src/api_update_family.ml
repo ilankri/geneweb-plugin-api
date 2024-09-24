@@ -46,6 +46,7 @@ let make_person_update ~base = function
        | Some occ -> occ
        | None -> 0
      in
+     Api_update_util.reserve_occurrence_number ~first_name ~surname occ;
      {Api_update_util.first_name;
       surname;
       occurrence_number = occ;

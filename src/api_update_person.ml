@@ -174,8 +174,15 @@ let reconstitute_person conf base mod_p
       let sn = mod_p.Api_saisie_write_piqi.Person.lastname in
       Api_update_util.find_free_occ ~base ~first_name:fn ~surname:sn
     | `create_default_occ | `link ->
-      (* Cas par défaut, i.e. modifier personne sans changer le occ. *)
-      Option.fold ~none:0 ~some:Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
+      let occurrence_number =
+        Option.fold
+          ~none:0 ~some:Int32.to_int mod_p.Api_saisie_write_piqi.Person.occ
+      in
+      Api_update_util.reserve_occurrence_number
+        ~first_name:mod_p.Api_saisie_write_piqi.Person.firstname
+        ~surname:mod_p.Api_saisie_write_piqi.Person.lastname
+        occurrence_number;
+      occurrence_number
   in
   let fn_rparents mod_p =
     List.fold_right begin fun r accu ->

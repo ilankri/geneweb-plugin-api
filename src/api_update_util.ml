@@ -1493,9 +1493,14 @@ let reconstitute_somebody base person =
       let sn = person.Api_saisie_write_piqi.Person_link.lastname in
       let (occ, force_create) = match create_link with
         | `create_default_occ ->
-          (match person.Api_saisie_write_piqi.Person_link.occ with
-            | Some occ -> (Int32.to_int occ, false)
-            | None -> (0, false))
+          let occurrence_number, force_create =
+            match person.Api_saisie_write_piqi.Person_link.occ with
+             | Some occ -> (Int32.to_int occ, false)
+             | None -> (0, false)
+          in
+          reserve_occurrence_number
+            ~first_name:fn ~surname:sn occurrence_number;
+          (occurrence_number, force_create)
         | `create ->
           let occ = find_free_occ ~base ~first_name:fn ~surname:sn in
           (occ, true)
