@@ -123,6 +123,7 @@ message Spouse {
   required string marriage_place = 20;
   required DivorceType divorce_type = 21;
   required Visibility visible_for_visitors = 22;
+  required int32 index = 23;
 }
 
 message Person {
