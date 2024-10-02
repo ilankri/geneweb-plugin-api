@@ -210,7 +210,7 @@ let reconstitute_person conf base mod_p
   ignore @@ Api_update_util.check_person_conflict base original_pevents p ;
   (* Now, trim and format events *)
   let pevents =
-    Mutil.filter_map begin function
+    List.filter_map begin function
       | { epers_name = Epers_Death
         ; epers_place = ""
         ; epers_reason = ""

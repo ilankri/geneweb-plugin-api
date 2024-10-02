@@ -187,7 +187,7 @@ let check_person_conflict base original_pevents sp =
       Array.fold_left begin fun (j, created) ((f, s, o, create, var, force_create), _, _) ->
         match error_conflict_person_link base created (f, s, o, create, var, force_create) with
         | true, _ ->
-          let pos = Mutil.list_index evt original_pevents in
+          let pos = Ext_list.index evt original_pevents in
           let conflict =
             { Mwrite.Create_conflict.form = Some `person_form1
             ; witness = true
