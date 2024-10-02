@@ -1738,11 +1738,11 @@ let search_index conf base an search_order =
         | _ -> None
       end
     | Surname::le ->
-      if Some.search_surname conf base an = []
+      if Search_name_display.search_surname conf base an = []
       then loop le
       else None
     | FirstName::le ->
-      if Some.search_first_name conf base an = []
+      if Search_name_display.search_first_name conf base an = []
       then loop le
       else None
     | ApproxKey::le ->
