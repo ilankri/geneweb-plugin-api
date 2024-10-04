@@ -1,7 +1,7 @@
 let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
   let key_index = Gwdb.iper_of_string @@ Int32.to_string mod_p.Api_saisie_write_piqi.Person.index in
-  let first_name = Geneweb.Util.only_printable mod_p.Api_saisie_write_piqi.Person.firstname in
-  let surname = Geneweb.Util.only_printable mod_p.Api_saisie_write_piqi.Person.lastname in
+  let first_name = Ext_string.only_printable mod_p.Api_saisie_write_piqi.Person.firstname in
+  let surname = Ext_string.only_printable mod_p.Api_saisie_write_piqi.Person.lastname in
   (* S'il y a des caractères interdits, on les supprime *)
   let (first_name, surname) =
     let contain_fn = String.contains first_name in
@@ -12,11 +12,11 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
     else (first_name, surname)
   in
   let occ = fn_occ mod_p in
-  let image = Option.fold ~none:"" ~some:Geneweb.Util.only_printable mod_p.Api_saisie_write_piqi.Person.image in
-  let strings_aux = List.map Geneweb.Util.only_printable in
+  let image = Option.fold ~none:"" ~some:Ext_string.only_printable mod_p.Api_saisie_write_piqi.Person.image in
+  let strings_aux = List.map Ext_string.only_printable in
   let first_names_aliases = strings_aux mod_p.Api_saisie_write_piqi.Person.firstname_aliases in
   let surnames_aliases = strings_aux mod_p.Api_saisie_write_piqi.Person.surname_aliases in
-  let public_name = Option.value ~default:"" mod_p.Api_saisie_write_piqi.Person.public_name |> Geneweb.Util.only_printable in
+  let public_name = Option.value ~default:"" mod_p.Api_saisie_write_piqi.Person.public_name |> Ext_string.only_printable in
   let qualifiers = strings_aux mod_p.Api_saisie_write_piqi.Person.qualifiers in
   let aliases = strings_aux mod_p.Api_saisie_write_piqi.Person.aliases in
   let titles =
@@ -51,7 +51,7 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
   in
   let rparents = fn_rparents mod_p in
   let access = Api_piqi_util.piqi_access_to_access mod_p.Api_saisie_write_piqi.Person.access in
-  let occupation = Option.fold ~none:"" ~some:Geneweb.Util.only_printable mod_p.Api_saisie_write_piqi.Person.occupation in
+  let occupation = Option.fold ~none:"" ~some:Ext_string.only_printable mod_p.Api_saisie_write_piqi.Person.occupation in
   let sex =
     match mod_p.Api_saisie_write_piqi.Person.sex with
     | `male -> Def.Male
@@ -67,10 +67,10 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
     | `dont_know_if_dead -> Def.DontKnowIfDead
     | `of_course_dead -> Def.OfCourseDead
   in
-  let psources = Option.fold ~none:"" ~some:Geneweb.Util.only_printable mod_p.Api_saisie_write_piqi.Person.psources in
+  let psources = Option.fold ~none:"" ~some:Ext_string.only_printable mod_p.Api_saisie_write_piqi.Person.psources in
   let notes =
     Option.fold ~none:""
-      ~some:(fun s -> Geneweb.Util.only_printable_or_nl (Mutil.strip_all_trailing_spaces s))
+      ~some:(fun s -> Ext_string.only_printable_or_nl (Ext_string.strip_all_trailing_spaces s))
       mod_p.Api_saisie_write_piqi.Person.notes
   in
   let original_pevents =
@@ -78,7 +78,7 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
     List.map begin fun evt ->
       let name =
         match evt.Api_saisie_write_piqi.Pevent.event_perso with
-        | Some n -> Def.Epers_Name (Geneweb.Util.only_printable n)
+        | Some n -> Def.Epers_Name (Ext_string.only_printable n)
         | None ->
           match evt.Api_saisie_write_piqi.Pevent.pevent_type with
           | Some x -> Api_piqi_util.pevent_name_of_piqi_pevent_name x
@@ -89,14 +89,14 @@ let reconstitute_person_aux conf fn_occ fn_rparents fn_pevt_witnesses mod_p =
         | Some date -> Api_update_util.date_of_piqi_date conf date
         | None -> None
       in
-      let place = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_saisie_write_piqi.Pevent.place in
-      let reason = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_saisie_write_piqi.Pevent.reason in
+      let place = Option.fold ~none:"" ~some:Ext_string.only_printable evt.Api_saisie_write_piqi.Pevent.place in
+      let reason = Option.fold ~none:"" ~some:Ext_string.only_printable evt.Api_saisie_write_piqi.Pevent.reason in
       let note =
         Option.fold
-          ~none:"" ~some:(fun n -> Geneweb.Util.only_printable_or_nl (Mutil.strip_all_trailing_spaces n))
+          ~none:"" ~some:(fun n -> Ext_string.only_printable_or_nl (Ext_string.strip_all_trailing_spaces n))
           evt.Api_saisie_write_piqi.Pevent.note
       in
-      let src = Option.fold ~none:"" ~some:Geneweb.Util.only_printable evt.Api_saisie_write_piqi.Pevent.src in
+      let src = Option.fold ~none:"" ~some:Ext_string.only_printable evt.Api_saisie_write_piqi.Pevent.src in
       let witnesses = fn_pevt_witnesses evt in
       { Def.epers_name = name; epers_date = Date.cdate_of_od date;
         epers_place = place; epers_reason = reason; epers_note = note;

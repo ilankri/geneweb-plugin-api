@@ -1,9 +1,9 @@
 let opt_only_printable = function
-  | Some s -> Geneweb.Util.only_printable s
+  | Some s -> Ext_string.only_printable s
   | None -> ""
 
 let opt_only_printable_or_nl_stripped = function
-  | Some x -> Geneweb.Util.only_printable_or_nl (Mutil.strip_all_trailing_spaces x)
+  | Some x -> Ext_string.only_printable_or_nl (Ext_string.strip_all_trailing_spaces x)
   | None -> ""
 
 let to_event_with_update_key (event : _ Def.gen_fam_event) =
@@ -91,7 +91,7 @@ let reconstitute_family conf base mod_f =
       (fun evt ->
         let name =
           match evt.Api_saisie_write_piqi.Fevent.event_perso with
-          | Some n -> Def.Efam_Name (Geneweb.Util.only_printable n)
+          | Some n -> Def.Efam_Name (Ext_string.only_printable n)
           | _ ->
               match evt.Api_saisie_write_piqi.Fevent.fevent_type with
               | Some `efam_marriage -> Def.Efam_Marriage

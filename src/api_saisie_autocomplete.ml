@@ -54,7 +54,7 @@ let create_cache base mode cache_file =
       (match mode with
        | `place -> Geneweb.Place.compare_places
        | `firstname | `lastname | `source | `occupation ->
-          Gutil.alphabetic_order)
+          Utf8.alphabetic_order)
       cache
   in
   let oc = Secure.open_out_bin cache_file in
@@ -79,15 +79,15 @@ let rec get_list_from_cache ?(retry = true) conf base mode max_res s =
     let ic = Secure.open_in_bin cache_file in
     try
       let cache : string list = Marshal.from_channel ic in
-      let ini = Name.lower @@ Mutil.tr '_' ' ' s in
+      let ini = Name.lower @@ Ext_string.tr '_' ' ' s in
       (* optim : on sait que la liste est triée. *)
       let rec loop list accu nb_res =
         match list with
         | [] -> List.rev accu
         | name :: l ->
-          let k = Mutil.tr '_' ' ' name in
+          let k = Ext_string.tr '_' ' ' name in
           let (accu, nb_res) =
-            if Mutil.start_with_wildcard ini 0 (Name.lower k)
+            if Utf8.start_with_wildcard ini 0 (Name.lower k)
             then name :: accu, nb_res + 1
             else accu, nb_res
           in
