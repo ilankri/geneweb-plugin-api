@@ -8,53 +8,37 @@ type person_update = {
     force : bool;
   }
 
-let new_gutil_find_free_occ base f s i =
-  let ipl = Gwdb.persons_of_name base (f ^ " " ^ s) in
-  let first_name = Name.lower f in
-  let surname = Name.lower s in
-  let list_occ =
-    let rec loop list =
-      function
-      | ip :: ipl ->
-          let p = Gwdb.poi base ip in
-          if not (List.mem (Gwdb.get_occ p) list) &&
-             first_name = Name.lower (Gwdb.p_first_name base p) &&
-             surname = Name.lower (Gwdb.p_surname base p) then
-            loop (Gwdb.get_occ p :: list) ipl
-          else loop list ipl
-      | [] -> list
-    in
-    loop [] ipl
+let get_local_occurrence_numbers, reserve_occurrence_number =
+  let ht_free_occ = Hashtbl.create 33 in
+  let key ~first_name ~surname = Name.lower (first_name ^ " " ^ surname) in
+  let get_occurrence_numbers ~first_name ~surname =
+    Option.value
+      ~default:Ext_int.Set.empty
+      (Hashtbl.find_opt ht_free_occ (key ~first_name ~surname))
   in
-  let list_occ = List.sort compare list_occ in
-  let rec loop cnt1 =
-    function
-    | cnt2 :: list ->
-        if cnt2 <= i || cnt1 = cnt2 then loop (cnt2 + 1) list
-        else loop cnt1 list
-    | [] -> cnt1
+  let reserve_occurrence_number ~first_name ~surname occurrence_number =
+    Hashtbl.replace
+      ht_free_occ
+      (key ~first_name ~surname)
+      (Ext_int.Set.add
+         occurrence_number
+         (get_occurrence_numbers ~first_name ~surname))
   in
-  loop 0 list_occ
+  (get_occurrence_numbers, reserve_occurrence_number)
 
-let ht_free_occ = Hashtbl.create 33
-let api_find_free_occ base fn sn =
-  let key = Name.lower (fn ^ " " ^ sn) in
-  try
-    begin
-      let free_occ = Hashtbl.find ht_free_occ key in
-      let free_occ = succ free_occ in
-      let base_free_occ = new_gutil_find_free_occ base fn sn free_occ in
-      let occ = max free_occ base_free_occ in
-      Hashtbl.add ht_free_occ key occ;
-      occ
-    end
-  with Not_found ->
-    begin
-      (* On regarde dans la base quelle est le occ dispo. *)
-      let free_occ = Gutil.find_free_occ base fn sn in
-      Hashtbl.add ht_free_occ key free_occ;
-      free_occ
-    end
+let find_free_occ ~base ~first_name ~surname =
+  let occ =
+    let local_occurrence_numbers =
+      get_local_occurrence_numbers ~first_name ~surname
+    in
+    let base_occurrence_numbers =
+      Gutil.get_all_occurrence_numbers ~base ~first_name ~surname
+    in
+    Occurrence_number.smallest_free
+      (Ext_int.Set.union local_occurrence_numbers base_occurrence_numbers)
+  in
+  reserve_occurrence_number ~first_name ~surname occ;
+  occ
 
 
 (**/**) (* Type de retour de modification. *)
@@ -1498,7 +1482,7 @@ let reconstitute_somebody base person =
       let sn = Gwdb.sou base (Gwdb.get_surname p) in
       let occ = Gwdb.get_occ p in
       (fn, sn, occ, Geneweb.Update.Link, false)
-    | `create | `create_default_occ ->
+    | `create | `create_default_occ as create_link ->
       let sex =
         match person.Api_saisie_write_piqi.Person_link.sex with
           | `male -> Def.Male
@@ -1509,13 +1493,17 @@ let reconstitute_somebody base person =
       let sn = person.Api_saisie_write_piqi.Person_link.lastname in
       let (occ, force_create) = match create_link with
         | `create_default_occ ->
-          (match person.Api_saisie_write_piqi.Person_link.occ with
-            | Some occ -> (Int32.to_int occ, false)
-            | None -> (0, false))
+          let occurrence_number, force_create =
+            match person.Api_saisie_write_piqi.Person_link.occ with
+             | Some occ -> (Int32.to_int occ, false)
+             | None -> (0, false)
+          in
+          reserve_occurrence_number
+            ~first_name:fn ~surname:sn occurrence_number;
+          (occurrence_number, force_create)
         | `create ->
-          let occ = api_find_free_occ base fn sn in
+          let occ = find_free_occ ~base ~first_name:fn ~surname:sn in
           (occ, true)
-        | `link -> (0, false) (* Should not happen. *)
       in
       (* Update the person because if we want to find it, we have to know its occ. *)
       let () =
