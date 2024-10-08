@@ -1895,7 +1895,7 @@ let print_add_sibling conf base =
           Geneweb.Update.infer_death_from_parents conf base fam in
       sibling.Api_saisie_write_piqi.Person.death_type <- death_status;
       if death_status = `of_course_dead then
-        sibling.Api_saisie_write_piqi.Person.pevents <- sibling.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ] ;
+        sibling.Api_saisie_write_piqi.Person.pevents <- sibling.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ]
   in
   (* On prend le nom du père *)
   let sibling_surname =
