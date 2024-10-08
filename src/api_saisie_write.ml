@@ -1547,7 +1547,7 @@ let print_add_parents conf base =
     let death_status = infer_death conf base p in
     father.Api_saisie_write_piqi.Person.death_type <- death_status;
     mother.Api_saisie_write_piqi.Person.death_type <- death_status;
-    begin if death_status = `of_course_dead then
+    if death_status = `of_course_dead then begin
       father.Api_saisie_write_piqi.Person.pevents <- father.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ];
       mother.Api_saisie_write_piqi.Person.pevents <- mother.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ]
     end
