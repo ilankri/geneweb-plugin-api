@@ -1023,9 +1023,8 @@ let set_parents_fields conf base p linked created =
   created.Api_saisie_write_piqi.Person.digest <- "";
   let death_status = infer_death conf base p in
   created.Api_saisie_write_piqi.Person.death_type <- death_status;
-  begin if death_status = `of_course_dead then
+  if death_status = `of_course_dead then
     created.Api_saisie_write_piqi.Person.pevents <- created.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ]
-  end
 
 (** [Description] : Permet la factorisation du code pour ajouter une famille
                     et ajouter un enfant à une nouvelle famille.
@@ -1842,17 +1841,15 @@ let print_add_child conf base =
         Api_util.piqi_death_type_of_death @@
           Geneweb.Update.infer_death_from_parents conf base (Gwdb.foi base fam) in
       child.Api_saisie_write_piqi.Person.death_type <- death_status;
-      begin if death_status = `of_course_dead then
+      if death_status = `of_course_dead then
         child.Api_saisie_write_piqi.Person.pevents <- child.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ]
-      end
     in
     match ifam_opt with
     | None ->
         (* if for some reason ifam is None
            we try with families (wich comes from get_family) *)
-        begin if Array.length families > 0 then
+        if Array.length families > 0 then
           make_death_status families.(0)
-        end
     | Some fam -> make_death_status fam
   in
   (* On prend le nom du père *)
@@ -1897,9 +1894,8 @@ let print_add_sibling conf base =
         Api_util.piqi_death_type_of_death @@
           Geneweb.Update.infer_death_from_parents conf base fam in
       sibling.Api_saisie_write_piqi.Person.death_type <- death_status;
-      begin if death_status = `of_course_dead then
+      if death_status = `of_course_dead then
         sibling.Api_saisie_write_piqi.Person.pevents <- sibling.Api_saisie_write_piqi.Person.pevents @ [ empty_death_pevent () ] ;
-      end
   in
   (* On prend le nom du père *)
   let sibling_surname =
