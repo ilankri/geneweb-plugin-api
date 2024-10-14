@@ -1,7 +1,7 @@
 let append l1 l2 =
   List.fold_left (fun l hd -> hd :: l) l2 (List.rev l1)
 
-let string_start_with ini s = Mutil.start_with_wildcard ini 0 s
+let string_start_with ini s = Utf8.start_with_wildcard ini 0 s
 
 (* Algo de Knuth-Morris-Pratt *)
 let init_next p =
@@ -143,9 +143,9 @@ let select_start_with (conf : Geneweb.Config.config) (base : Gwdb.base) (ini_n :
   let start =
     if ini_n <> ""
     then
-      Mutil.tr '_' ' ' ini_n
+      Ext_string.tr '_' ' ' ini_n
     else
-      Mutil.tr '_' ' ' ini_p
+      Ext_string.tr '_' ' ' ini_p
   in
   let list_min =
     let letter = String.lowercase_ascii (String.sub start 0 1) in
@@ -266,11 +266,11 @@ let print_list conf base filters list =
         (fun p1 p2 ->
           let sn1 = Name.lower (Gwdb.p_surname base p1) in
           let sn2 = Name.lower (Gwdb.p_surname base p2) in
-          let comp = Gutil.alphabetic_order sn1 sn2 in
+          let comp = Utf8.alphabetic_order sn1 sn2 in
           if comp = 0 then
             let fn1 = Name.lower (Gwdb.p_first_name base p1) in
             let fn2 = Name.lower (Gwdb.p_first_name base p2) in
-            Gutil.alphabetic_order fn1 fn2
+            Utf8.alphabetic_order fn1 fn2
           else comp)
         person_l
   in
@@ -406,7 +406,7 @@ let matching_nameset base stop max_res istr name_f name first_letter =
     if n < max_res && (stop && String.sub k 0 1 = first_letter || not stop) then
       let n, set =
         if string_incl_start_with (Name.lower name) (Name.lower k) then
-          n + 1, Mutil.StrSet.add s set
+          n + 1, Ext_string.Set.add s set
         else n, set
       in
       match Gwdb.spi_next name_f istr with
@@ -414,15 +414,15 @@ let matching_nameset base stop max_res istr name_f name first_letter =
       | istr -> aux n istr set
     else n, set
   in
-  aux 0 istr Mutil.StrSet.empty
+  aux 0 istr Ext_string.Set.empty
 
 let matching_nameset' base stop max_res name_f name first_letter =
   match Gwdb.spi_first name_f first_letter with
-  | exception Not_found -> 0, Mutil.StrSet.empty
+  | exception Not_found -> 0, Ext_string.Set.empty
   | istr -> matching_nameset base stop max_res istr name_f name first_letter
 
 let matching_nameset_of_input base stop uppercase name_f max_res name =
-  let name' = Mutil.tr '_' ' ' name in
+  let name' = Ext_string.tr '_' ' ' name in
   let first_letter = String.sub name' 0 1 in
   let first_letter =
     if uppercase then String.uppercase_ascii first_letter
@@ -448,7 +448,7 @@ let select_start_with_auto_complete base mode max_res input =
       let nb_res, maj_set = matching_nameset_of_input base true true name_f max_res name in
       (* lowercase *)
       let _, min_set = matching_nameset_of_input base true false name_f (max_res - nb_res) name in
-      Mutil.StrSet.union maj_set min_set
+      Ext_string.Set.union maj_set min_set
     end
   else
     begin
@@ -459,8 +459,8 @@ let select_start_with_auto_complete base mode max_res input =
 
 let select_start_with_auto_complete base mode max_res ini =
   let s = select_start_with_auto_complete base mode max_res ini in
-  let l = Mutil.StrSet.elements s in
-  List.sort Gutil.alphabetic_order l
+  let l = Ext_string.Set.elements s in
+  List.sort Utf8.alphabetic_order l
 
 type dico = string array
 
@@ -496,7 +496,7 @@ let complete_with_dico assets conf nb max mode ini list =
       else
         let hd = Array.unsafe_get list i in
         let acc =
-          let k =  Mutil.tr '_' ' ' hd in
+          let k =  Ext_string.tr '_' ' ' hd in
           let k =
             match mode with
             | `area_code | `country | `county | `region | `town ->
@@ -570,7 +570,7 @@ let complete_with_dico assets conf nb max mode ini list =
      in
      dictionary
      |> reduce_dico `profession list []
-     |> List.sort Gutil.alphabetic_order
+     |> List.sort Utf8.alphabetic_order
      |> append list
   | None
     | Some (#Api_saisie_write_piqi.auto_complete_place_field | `profession) ->
@@ -593,7 +593,7 @@ type query = {kind : kind; limit : int; term : string}
 let is_completion_suggestion ~query:{kind; term} candidate =
   match kind with
   | Source | Occupation ->
-     string_start_with term (Name.lower @@ Mutil.tr '_' ' ' candidate)
+     string_start_with term (Name.lower @@ Ext_string.tr '_' ' ' candidate)
   | Place {field} ->
      let hd' =
        match field with
@@ -601,14 +601,14 @@ let is_completion_suggestion ~query:{kind; term} candidate =
           Geneweb.Place.without_suburb candidate
        | Some `subdivision -> candidate
      in
-     Mutil.start_with_wildcard term 0 @@ Name.lower @@ Mutil.tr '_' ' ' hd'
+     Utf8.start_with_wildcard term 0 @@ Name.lower @@ Ext_string.tr '_' ' ' hd'
 
 let complete_with_db ~conf ~base ~nb query =
   let list =
     let data, compare =
       match query.kind with
-      | Source -> "src", Gutil.alphabetic_order
-      | Occupation -> "occu", Gutil.alphabetic_order
+      | Source -> "src", Utf8.alphabetic_order
+      | Occupation -> "occu", Utf8.alphabetic_order
       | Place _ -> "place", Geneweb.Place.compare_places
     in
     get_all_data_from_db conf base data compare
@@ -631,7 +631,7 @@ let search_auto_complete assets conf base mode place_mode max term =
 
   | `place ->
     let nb = ref 0 in
-    let ini = Name.lower @@ Mutil.tr '_' ' ' term in
+    let ini = Name.lower @@ Ext_string.tr '_' ' ' term in
     let reduced_list =
       let field =
         (place_mode :> Api_saisie_write_piqi.auto_complete_place_field option)
@@ -643,7 +643,7 @@ let search_auto_complete assets conf base mode place_mode max term =
 
   | `source ->
     let nb = ref 0 in
-    let ini = Name.lower @@ Mutil.tr '_' ' ' term in
+    let ini = Name.lower @@ Ext_string.tr '_' ' ' term in
     let query = {kind = Source; limit = max; term = ini} in
     complete_with_db ~conf ~base ~nb query
 
@@ -654,7 +654,7 @@ let search_auto_complete assets conf base mode place_mode max term =
 
   | `occupation ->
     let nb = ref 0 in
-    let term = Name.lower @@ Mutil.tr '_' ' ' term in
+    let term = Name.lower @@ Ext_string.tr '_' ' ' term in
     let suggestions_from_db =
       complete_with_db ~conf ~base ~nb {kind = Occupation; limit = max; term}
     in
