@@ -1,14 +1,6 @@
 module M = Api_piqi
 module Mext = Api_piqi_ext
 
-open Geneweb
-open Config
-open Def
-open Gwdb
-open Util
-open Api_def
-open Api_util
-
 (**/**) (* Services disponibles. *)
 
 (* ******************************************************************** *)
@@ -23,19 +15,19 @@ open Api_util
 (* ******************************************************************** *)
 let print_info_base conf base =
   let (sosa_p, sosa) =
-     match Util.find_sosa_ref conf base with
-     | Some p -> (Some p, Some (person_to_reference_person base p))
+     match Geneweb.Util.find_sosa_ref conf base with
+     | Some p -> (Some p, Some (Api_util.person_to_reference_person base p))
      | None -> (None, None)
   in
   let last_modified_person =
-    let default () = Option.map (fun p -> Gwdb.string_of_iper (get_iper p)) sosa_p in
+    let default () = Option.map (fun p -> Gwdb.string_of_iper (Gwdb.get_iper p)) sosa_p in
     try
-      let ic = Secure.open_in_bin (History.file_name conf) in
+      let ic = Secure.open_in_bin (Geneweb.History.file_name conf) in
       let (_, pos, wiz) = (1, in_channel_length ic, "") in
       let vv = (ref (Bytes.create 0), ref 0) in
       let last_modified_person =
         let (line, _) = Mutil.rev_input_line ic pos vv in
-        match History.line_fields line with
+        match Geneweb.History.line_fields line with
         | Some (_, user, action, keyo) ->
           if wiz = "" || user = wiz then
             match keyo with
@@ -54,7 +46,7 @@ let print_info_base conf base =
       last_modified_person
     with Sys_error _ | _ -> default ()
   in
-  let has_ignored_duplicates = Some (GWPARAM.has_ignored_duplicates conf base) in
+  let has_ignored_duplicates = Some (Geneweb.GWPARAM.has_ignored_duplicates conf base) in
   let info_base =
     M.Infos_base.({
       nb_persons = Int64.of_int (Gwdb.nb_of_persons base);
@@ -66,7 +58,7 @@ let print_info_base conf base =
     })
   in
   let data = Mext.gen_infos_base info_base in
-  print_result conf data
+  Api_util.print_result conf data
 
 
 
@@ -75,29 +67,29 @@ let print_info_base conf base =
     Otherwise, print a dummy (empty) person instead. **)
 let print_loop conf base =
   let (base_loop, pers) =
-    (ref false, ref (poi base (Gwdb.dummy_iper)))
+    (ref false, ref (Gwdb.poi base (Gwdb.dummy_iper)))
   in
-  (* On ne fait pas un Util.create_topological_sort conf base qui est certe *)
+  (* On ne fait pas un Geneweb.Util.create_topological_sort conf base qui est certe *)
   (* plus rapide, mais qui dans de rare cas, n'est pas capable de remonter  *)
   (* la boucle (on ne check pas la base en entier). Avec cette méthode, on  *)
   (* n'a pas de ce problème.                                                *)
   let () =
-    load_ascends_array base ;
-    load_couples_array base ;
+    Gwdb.load_ascends_array base ;
+    Gwdb.load_couples_array base ;
     Consang.check_noloop base
       (function OwnAncestor p -> base_loop := true ; pers := p | _ -> () ) ;
-    clear_ascends_array base ;
-    clear_couples_array base
+    Gwdb.clear_ascends_array base ;
+    Gwdb.clear_couples_array base
   in
   let p =
     if !base_loop then
-      pers_to_piqi_person conf base !pers (fun _ -> Sosa.zero)
+      Api_util.pers_to_piqi_person conf base !pers (fun _ -> Sosa.zero)
     else
-      let ref_pers = empty_reference_person in
-      empty_piqi_person conf ref_pers
+      let ref_pers = Api_util.empty_reference_person in
+      Api_util.empty_piqi_person conf ref_pers
   in
-  let data = data_person p in
-  print_result conf data
+  let data = Api_util.data_person p in
+  Api_util.print_result conf data
 
 (* ******************************************************************** *)
 (*  [Fonc] print_info_ind : config -> base -> unit                      *)
@@ -111,8 +103,8 @@ let print_loop conf base =
     [Rem] : Non exporté en clair hors de ce module.                     *)
 (* ******************************************************************** *)
 let print_info_ind conf base =
-  let ref_person = get_params conf Mext.parse_reference_person in
-  let filters = get_filters conf in
+  let ref_person = Api_util.get_params conf Mext.parse_reference_person in
+  let filters = Api_util.get_filters conf in
   let compute_sosa = Api_util.compute_sosa conf base true in
   let sn = ref_person.M.Reference_person.n in
   let fn = ref_person.M.Reference_person.p in
@@ -120,15 +112,15 @@ let print_info_ind conf base =
   let p =
     match Gwdb.person_of_key base fn sn (Int32.to_int occ) with
     | Some ip ->
-        let p = pget conf base ip in
-        if apply_filters_p conf filters compute_sosa p then
-          pers_to_piqi_person conf base p compute_sosa
+        let p = Geneweb.Util.pget conf base ip in
+        if Api_util.apply_filters_p conf filters compute_sosa p then
+          Api_util.pers_to_piqi_person conf base p compute_sosa
         else
-          empty_piqi_person conf ref_person
-    | None -> empty_piqi_person conf ref_person
+          Api_util.empty_piqi_person conf ref_person
+    | None -> Api_util.empty_piqi_person conf ref_person
   in
-  let data = data_person p in
-  print_result conf data
+  let data = Api_util.data_person p in
+  Api_util.print_result conf data
 
 
 (* ******************************************************************** *)
@@ -143,8 +135,8 @@ let print_info_ind conf base =
     [Rem] : Non exporté en clair hors de ce module.                     *)
 (* ******************************************************************** *)
 let print_list_ref_person conf base =
-  let list_ref_person = get_params conf Mext.parse_list_reference_persons in
-  let filters = get_filters conf in
+  let list_ref_person = Api_util.get_params conf Mext.parse_list_reference_persons in
+  let filters = Api_util.get_filters conf in
   let pl =
     List.map
       (fun ref_p ->
@@ -153,15 +145,15 @@ let print_list_ref_person conf base =
         let occ = ref_p.M.Reference_person.oc in
         match Gwdb.person_of_key base fn sn (Int32.to_int occ) with
         | Some ip ->
-            let p  = pget conf base ip in
-            PFull p
-        | None -> PLight ref_p )
+            let p  = Geneweb.Util.pget conf base ip in
+            Api_def.PFull p
+        | None -> Api_def.PLight ref_p )
       list_ref_person.M.List_reference_persons.list_ref_persons
   in
   let data =
-    data_list_person_option conf base filters pl
+    Api_util.data_list_person_option conf base filters pl
   in
-  print_result conf data
+  Api_util.print_result conf data
 
 (* ******************************************************************** *)
 (*  [Fonc] print_ref_person_from_ip : config -> base -> unit            *)
@@ -174,11 +166,11 @@ let print_list_ref_person conf base =
     [Rem] : Non exporté en clair hors de ce module.                     *)
 (* ******************************************************************** *)
 let print_ref_person_from_ip conf base =
-  let id = get_params conf Mext.parse_index in
+  let id = Api_util.get_params conf Mext.parse_index in
   let ip = Gwdb.iper_of_string @@ Int32.to_string id.M.Index.index in
-  let ref_p = person_to_reference_person base @@ poi base ip in
+  let ref_p = Api_util.person_to_reference_person base @@ Gwdb.poi base ip in
   let data = Mext.gen_reference_person ref_p in
-  print_result conf data
+  Api_util.print_result conf data
 
 
 (**/**) (* API_FIRST_AVAILABLE_PERSON *)
@@ -194,21 +186,21 @@ let print_ref_person_from_ip conf base =
     [Rem] : Non exporté en clair hors de ce module.                         *)
 (* ************************************************************************ *)
 let print_first_available_person conf base =
-  let empty_ref = empty_reference_person in
+  let empty_ref = Api_util.empty_reference_person in
   let continue = ref true in
   let res = ref empty_ref in
   Gwdb.Collection.fold_until (fun () -> !continue) begin fun () p ->
-    if is_hide_names conf p || is_empty_or_quest_name p ||
-       not (authorized_age conf base p)
+    if Geneweb.Util.is_hide_names conf p || Api_util.is_empty_or_quest_name p ||
+       not (Geneweb.Util.authorized_age conf base p)
     then ()
     else
       begin
-        res := person_to_reference_person base p ;
+        res := Api_util.person_to_reference_person base p ;
         continue := false
       end
   end () (Gwdb.persons base) ;
   let data = Mext.gen_reference_person !res in
-  print_result conf data
+  Api_util.print_result conf data
 
 
 (**/**) (* API_SOSA *)
@@ -225,32 +217,32 @@ let print_first_available_person conf base =
     [Rem] : Non exporté en clair hors de ce module.                         *)
 (* ************************************************************************ *)
 let print_find_sosa conf base =
-  let ref_person = get_params conf Mext.parse_reference_person in
+  let ref_person = Api_util.get_params conf Mext.parse_reference_person in
   let n = ref_person.M.Reference_person.n in
   let p = ref_person.M.Reference_person.p in
   let oc = ref_person.M.Reference_person.oc in
   let ref_p =
     match Gwdb.person_of_key base p n (Int32.to_int oc) with
     | Some ip ->
-      let arr = get_family (poi base ip) in
+      let arr = Gwdb.get_family (Gwdb.poi base ip) in
       let len = Array.length arr in
       let rec loop i =
         if i < len
         then begin
-          let fam = foi base (Array.unsafe_get arr i) in
-          match get_children fam with
+          let fam = Gwdb.foi base (Array.unsafe_get arr i) in
+          match Gwdb.get_children fam with
           | [||] -> loop (i + 1)
           | arr ->
-            person_to_reference_person base @@ poi base @@ Array.unsafe_get arr 0
+            Api_util.person_to_reference_person base @@ Gwdb.poi base @@ Array.unsafe_get arr 0
         end else
           (* On reconstruit la ref_person pour être sûr des accents. *)
-          person_to_reference_person base @@ poi base ip
+          Api_util.person_to_reference_person base @@ Gwdb.poi base ip
       in
       loop 0
-    | None -> empty_reference_person
+    | None -> Api_util.empty_reference_person
   in
   let data = Mext.gen_reference_person ref_p in
-  print_result conf data
+  Api_util.print_result conf data
 
 
 (**/**) (* API_LAST_MODIFIED_PERSONS *)
@@ -268,8 +260,8 @@ let print_find_sosa conf base =
     [Rem] : Non exporté en clair hors de ce module.                     *)
 (* ******************************************************************** *)
 let print_last_modified_persons conf base =
-  let params = get_params conf Mext.parse_last_modifications in
-  let filters = get_filters conf in
+  let params = Api_util.get_params conf Mext.parse_last_modifications in
+  let filters = Api_util.get_filters conf in
   let wiz =
     match params.M.Last_modifications.wizard with
     | Some wiz -> wiz
@@ -314,7 +306,7 @@ let print_last_modified_persons conf base =
           in
           Some (Date.Dgreg (dmy, Dgregorian))
         in
-        is_date_included prec date date_begin date_end
+        Api_util.is_date_included prec date date_begin date_end
     | None -> true
   in
   let date_before_interval time =
@@ -331,7 +323,7 @@ let print_last_modified_persons conf base =
         Some (Date.Dgreg (dmy, Dgregorian))
       in
       let dmy_zero = Date.{ day = 1; month = 1; year = 1970; prec = Sure; delta = 0; } in
-      is_date_included prec date dmy_zero date_begin
+      Api_util.is_date_included prec date dmy_zero date_begin
     | None -> true
   in
   let p_mem ip list =
@@ -339,18 +331,18 @@ let print_last_modified_persons conf base =
       match list with
       | [] -> false
       | p :: list ->
-          if ip = get_iper p then true
+          if ip = Gwdb.get_iper p then true
           else loop list
     in
     loop list
   in
   let list =
     match
-      try Some (Secure.open_in_bin (History.file_name conf))
+      try Some (Secure.open_in_bin (Geneweb.History.file_name conf))
       with Sys_error _ -> None
     with
     | Some ic ->
-        let () = SosaCache.build_sosa_ht conf base in
+        let () = Geneweb.SosaCache.build_sosa_ht conf base in
         let pos = in_channel_length ic in
         let vv = (ref (Bytes.create 0), ref 0) in
         let rec loop list res pos =
@@ -361,7 +353,7 @@ let print_last_modified_persons conf base =
               with End_of_file -> None
             with
             | Some (line, pos) ->
-                (match History.line_fields line with
+                (match Geneweb.History.line_fields line with
                 | Some (time, user, action, keyo) ->
                     if (wiz = "" || user = wiz) then
                       if is_time_included time then
@@ -373,10 +365,10 @@ let print_last_modified_persons conf base =
                             | _ ->
                                 (match Gutil.person_ht_find_all base key with
                                 | [ip] ->
-                                    let p = poi base ip in
-                                    if not (is_empty_or_quest_name p) &&
-                                      apply_filters_p
-                                        conf filters (SosaCache.get_sosa_person) p &&
+                                    let p = Gwdb.poi base ip in
+                                    if not (Api_util.is_empty_or_quest_name p) &&
+                                      Api_util.apply_filters_p
+                                        conf filters (Geneweb.SosaCache.get_sosa_person) p &&
                                       not (p_mem ip list)
                                     then loop (p :: list) (res - 1) pos
                                     else loop list res pos
@@ -394,8 +386,8 @@ let print_last_modified_persons conf base =
         List.rev list
     | None -> []
   in
-  let data = conv_data_list_person conf base filters list in
-  print_result conf data
+  let data = Api_util.conv_data_list_person conf base filters list in
+  Api_util.print_result conf data
 
 
 (**/**) (* API_LAST_VISITED_PERSONS *)
@@ -412,27 +404,27 @@ let print_last_modified_persons conf base =
     [Rem] : Non exporté en clair hors de ce module.                         *)
 (* ************************************************************************ *)
 let print_last_visited_persons conf base =
-  let last_visits = get_params conf Mext.parse_last_visits in
+  let last_visits = Api_util.get_params conf Mext.parse_last_visits in
   let user = last_visits.M.Last_visits.user in
-  let filters = get_filters conf in
+  let filters = Api_util.get_filters conf in
   let list =
     if user = "" then []
-    else try Hashtbl.find (Util.read_visited conf) user with Not_found -> []
+    else try Hashtbl.find (Geneweb.Util.read_visited conf) user with Not_found -> []
   in
   (* On ne supprime pas le fichier de cache, même après un envoi Gendcom, *)
   (* donc on vérifie que les personnes existent toujours dans la base.    *)
   let list =
     List.fold_right begin fun (ip, _) acc ->
       if Gwdb.iper_exists base ip then
-        let p = poi base ip in
-        if apply_filters_p conf filters (SosaCache.get_single_sosa conf base) p
+        let p = Gwdb.poi base ip in
+        if Api_util.apply_filters_p conf filters (Geneweb.SosaCache.get_single_sosa conf base) p
         then p :: acc
         else acc
       else acc
     end list []
   in
-  let data = conv_data_list_person conf base filters list in
-  print_result conf data
+  let data = Api_util.conv_data_list_person conf base filters list in
+  Api_util.print_result conf data
 
 
 (**/**) (* API_MAX_ANCESTORS *)
@@ -449,12 +441,12 @@ let print_last_visited_persons conf base =
 let print_max_ancestors =
   fun conf base ->
   let ipers = Gwdb.ipers base in
-  let ancestors = Gwdb.iper_marker (Gwdb.ipers base) IperSet.empty in
+  let ancestors = Gwdb.iper_marker (Gwdb.ipers base) Geneweb.Util.IperSet.empty in
   let mark = Gwdb.iper_marker (Gwdb.ipers base) false in
   let has_children p =
     Array.exists
-      (fun ifam -> Array.length (get_children @@ foi base ifam) > 0)
-      (get_family p)
+      (fun ifam -> Array.length (Gwdb.get_children @@ Gwdb.foi base ifam) > 0)
+      (Gwdb.get_family p)
   in
 
   let rec nb_ancestors ip =
@@ -462,22 +454,22 @@ let print_max_ancestors =
     else
       begin
         let anc =
-          match get_parents (poi base ip) with
+          match Gwdb.get_parents (Gwdb.poi base ip) with
           | Some ifam ->
-              let cpl = foi base ifam in
+              let cpl = Gwdb.foi base ifam in
               let anc =
-                IperSet.add (get_father cpl) @@ Gwdb.Marker.get ancestors ip
+                Geneweb.Util.IperSet.add (Gwdb.get_father cpl) @@ Gwdb.Marker.get ancestors ip
               in
               let anc =
-                IperSet.add (get_mother cpl) anc
+                Geneweb.Util.IperSet.add (Gwdb.get_mother cpl) anc
               in
               let anc2 =
-                IperSet.union
-                  (nb_ancestors (get_father cpl))
-                  (nb_ancestors (get_mother cpl))
+                Geneweb.Util.IperSet.union
+                  (nb_ancestors (Gwdb.get_father cpl))
+                  (nb_ancestors (Gwdb.get_mother cpl))
               in
-              IperSet.union anc anc2
-          | None -> IperSet.empty
+              Geneweb.Util.IperSet.union anc anc2
+          | None -> Geneweb.Util.IperSet.empty
         in
         Gwdb.Marker.set ancestors ip anc;
         Gwdb.Marker.set mark ip true;
@@ -486,10 +478,10 @@ let print_max_ancestors =
   in
 
   Gwdb.Collection.iter begin fun p ->
-    if has_children p || Gwdb.Marker.get mark (get_iper p) then ()
+    if has_children p || Gwdb.Marker.get mark (Gwdb.get_iper p) then ()
     else
       begin
-        let i = get_iper p in
+        let i = Gwdb.get_iper p in
         let anc = nb_ancestors i in
         Gwdb.Marker.set ancestors i anc;
         Gwdb.Marker.set mark i true
@@ -499,44 +491,44 @@ let print_max_ancestors =
   (* ip, nb_anc *)
   let res = ref (Gwdb.dummy_iper, 0) in
   Gwdb.Collection.iter begin fun i ->
-    let nb = IperSet.cardinal @@ Gwdb.Marker.get ancestors i in
+    let nb = Geneweb.Util.IperSet.cardinal @@ Gwdb.Marker.get ancestors i in
     if nb > snd !res then res := (i, nb)
   end ipers ;
-  let ref_p = person_to_reference_person base @@ poi base (fst !res) in
+  let ref_p = Api_util.person_to_reference_person base @@ Gwdb.poi base (fst !res) in
   let data = Mext.gen_reference_person ref_p in
-  print_result conf data
+  Api_util.print_result conf data
 
 
 (**/**) (* API_IMAGE_ALL *)
 
 let print_img_all conf base =
-  let filters = get_filters conf in
+  let filters = Api_util.get_filters conf in
   let aux fp fl =
     let list =
       Gwdb.Collection.fold begin fun acc p ->
-          match Image.get_portrait conf base p with
-          | Some src -> fp p (Image.src_to_string src) :: acc
+          match Geneweb.Image.get_portrait conf base p with
+          | Some src -> fp p (Geneweb.Image.src_to_string src) :: acc
           | None -> acc
       end [] (Gwdb.persons base)
     in
     if filters.nb_results then
       let len = M.Internal_int32.({value = Int32.of_int (List.length list)}) in
       let data = Mext.gen_internal_int32 len in
-      print_result conf data
+      Api_util.print_result conf data
     else
-      print_result conf (fl list)
+      Api_util.print_result conf (fl list)
   in
   let compute_sosa = Api_util.compute_sosa conf base false in
-  if p_getenvbin conf.env "full_infos" = Some "1" then
+  if Api_util.p_getenvbin conf.env "full_infos" = Some "1" then
     aux
       (fun p img ->
-         let p = pers_to_piqi_person_full conf base p compute_sosa in
+         let p = Api_util.pers_to_piqi_person_full conf base p compute_sosa in
          M.Full_image.({person = p; img = img;}))
       (fun list -> Mext.gen_list_full_images @@ M.List_full_images.({images = list}) )
   else
     aux
       (fun p img ->
-         let p = pers_to_piqi_person_light conf base p compute_sosa in
+         let p = Api_util.pers_to_piqi_person_light conf base p compute_sosa in
          M.Image.({person = p; img}))
       (fun list ->
          Mext.gen_list_images @@ M.List_images.({list_images = list}))
@@ -544,20 +536,20 @@ let print_img_all conf base =
 (**/**) (* API_IMAGE_APP *)
 
 let print_img_person conf base =
-  let id = get_params conf Mext.parse_index in
+  let id = Api_util.get_params conf Mext.parse_index in
   let ip = Gwdb.iper_of_string @@ Int32.to_string id.M.Index.index in
-  let p = poi base ip in
-  let img_addr = get_portrait conf base p |> Option.value ~default:"" in
+  let p = Gwdb.poi base ip in
+  let img_addr = Api_util.get_portrait conf base p |> Option.value ~default:"" in
   let img_from_ip = M.Image_address.({img = img_addr}) in
   let data = Mext.gen_image_address img_from_ip in
-  print_result conf data
+  Api_util.print_result conf data
 
 
 
 (**/**) (* API_UPDT_IMAGE *)
 
 let print_updt_image conf base =
-  let pers_img_l = get_params conf Mext.parse_list_pers_img in
+  let pers_img_l = Api_util.get_params conf Mext.parse_list_pers_img in
   let pers_img_l = pers_img_l.M.List_pers_img.list_pers_img in
   List.iter
     (fun pers_img ->
@@ -568,20 +560,20 @@ let print_updt_image conf base =
       let img = pers_img.M.Pers_img.img in
       match Gwdb.person_of_key base fn sn (Int32.to_int occ) with
       | Some ip ->
-          let p = poi base ip in
+          let p = Gwdb.poi base ip in
           let p =
-            {(gen_person_of_person p) with image = Gwdb.insert_string base img}
+            {(Gwdb.gen_person_of_person p) with image = Gwdb.insert_string base img}
           in
-          patch_person base p.key_index p
+          Gwdb.patch_person base p.key_index p
       | None -> () )
     pers_img_l;
   Gwdb.commit_patches base;
-  print_result conf (fun _ -> "")
+  Api_util.print_result conf (fun _ -> "")
 
 exception WarningFound
 let table_contains_warning base tbl w =
   try Hashtbl.iter (fun w' _ ->
-          if CheckItem.eq_warning base w w'
+          if Geneweb.CheckItem.eq_warning base w w'
           then raise WarningFound) tbl;
       false
   with WarningFound -> true
@@ -590,12 +582,12 @@ let print_base_warnings conf base =
   Wserver.set_on_timeout (fun _ ->
       let empty = Api_warnings.empty in
       let data = Mext.gen_base_warnings empty in
-      print_result conf data
+      Api_util.print_result conf data
   );
-  let filters = get_filters conf in
+  let filters = Api_util.get_filters conf in
   let errors = ref [] in
   let warnings = Hashtbl.create 0 in
-  Check.check_base base
+  Geneweb.Check.check_base base
     (fun e -> errors := e :: !errors)
     (fun w ->
        if not @@ table_contains_warning base warnings w
@@ -615,16 +607,16 @@ let print_base_warnings conf base =
       in
       let result =
         (* Make the warning list uniq *)
-        Hashtbl.fold begin fun (x : CheckItem.base_warning) _ acc ->
+        Hashtbl.fold begin fun (x : Geneweb.CheckItem.base_warning) _ acc ->
           Api_warnings.add_warning_to_piqi_warning_list conf base acc x
         end warnings result
       in
       Mext.gen_base_warnings result
   in
-  print_result conf data
+  Api_util.print_result conf data
 
 let person_warnings conf base p =
-  let ws = CheckItem.person_warnings conf base p in
+  let ws = Geneweb.CheckItem.person_warnings conf base p in
   if List.length ws < 100 then
     List.fold_left begin fun acc x ->
       Api_warnings.add_warning_to_piqi_warning_list conf base acc x
@@ -647,7 +639,7 @@ let print_person_warnings conf base =
   with
   | None -> assert false
   | Some ip ->
-    Util.pget conf base ip
+    Geneweb.Util.pget conf base ip
     |> person_warnings conf base
     |> Api_piqi_ext.gen_base_warnings
     |> Api_util.print_result conf
@@ -655,31 +647,31 @@ let print_person_warnings conf base =
 (**/**) (* Récupération de toute une base. *)
 
 let print_all_persons conf base =
-  let params = get_params conf Mext.parse_all_persons_params in
-  let filters = get_filters conf in
+  let params = Api_util.get_params conf Mext.parse_all_persons_params in
+  let filters = Api_util.get_filters conf in
   let (from, until) =
     match (params.M.All_persons_params.from, params.M.All_persons_params.limit) with
-    | (Some f, Some l) -> (Int32.to_int f, min (nb_of_persons base - 1) (Int32.to_int f + Int32.to_int l))
-    | (Some f, None) -> (Int32.to_int f, nb_of_persons base - 1)
+    | (Some f, Some l) -> (Int32.to_int f, min (Gwdb.nb_of_persons base - 1) (Int32.to_int f + Int32.to_int l))
+    | (Some f, None) -> (Int32.to_int f, Gwdb.nb_of_persons base - 1)
     | (None, Some l) -> (0, Int32.to_int l)
-    | (None, None) -> (0, nb_of_persons base - 1)
+    | (None, None) -> (0, Gwdb.nb_of_persons base - 1)
   in
-  let () = SosaCache.build_sosa_ht conf base in
+  let () = Geneweb.SosaCache.build_sosa_ht conf base in
   let list =
     Gwdb.Collection.fold ~from ~until (fun acc i ->
-        let pass_filters = apply_filters_p conf filters SosaCache.get_sosa_person i in
+        let pass_filters = Api_util.apply_filters_p conf filters Geneweb.SosaCache.get_sosa_person i in
         if pass_filters then i :: acc else acc
       ) [] (Gwdb.persons base)
   in
-  let data = conv_data_list_person conf base filters list in
-  print_result conf data
+  let data = Api_util.conv_data_list_person conf base filters list in
+  Api_util.print_result conf data
 
 let print_all_families conf base =
-  let params = get_params conf Mext.parse_all_families_params in
-  let filters = get_filters conf in
+  let params = Api_util.get_params conf Mext.parse_all_families_params in
+  let filters = Api_util.get_filters conf in
   let from = params.M.All_families_params.from in
   let limit = params.M.All_families_params.limit in
-  let nb_families = nb_of_families base in
+  let nb_families = Gwdb.nb_of_families base in
   let (from, limit) =
     match (from, limit) with
     | (Some f, Some l) -> (Int32.to_int f, Int32.to_int f + Int32.to_int l)
@@ -687,7 +679,7 @@ let print_all_families conf base =
     | (None, Some l) -> (0, Int32.to_int l)
     | (None, None) -> (0, nb_families)
   in
-  let () = SosaCache.build_sosa_ht conf base in
+  let () = Geneweb.SosaCache.build_sosa_ht conf base in
   let len = limit - from in
   let list =
     Gwdb.Collection.fold_until
@@ -702,11 +694,11 @@ let print_all_families conf base =
       let len = M.Internal_int32.({value = Int32.of_int (List.length @@ fst list)}) in
       Mext.gen_internal_int32 len
     else
-      let list = List.map (fam_to_piqi_family conf base) (List.rev @@ fst list) in
+      let list = List.map (Api_util.fam_to_piqi_family conf base) (List.rev @@ fst list) in
       let list = M.List_full_families.({families = list}) in
       Mext.gen_list_full_families list
   in
-  print_result conf data
+  Api_util.print_result conf data
 
 
 module HistoryApi = struct
@@ -751,8 +743,8 @@ module HistoryApi = struct
   let person_of_key conf base s =
     let year_of_cdate d = Option.bind (Date.od_of_cdate d) Date.year_of_date in
     let has_history fn sn occ =
-      let person_file = HistoryDiff.history_file fn sn occ in
-      Sys.file_exists (HistoryDiff.history_path conf person_file)
+      let person_file = Geneweb.HistoryDiff.history_file fn sn occ in
+      Sys.file_exists (Geneweb.HistoryDiff.history_path conf person_file)
     in
     let history_person_of_iper ip =
       let pers = Gwdb.poi base ip in
@@ -829,7 +821,7 @@ module HistoryApi = struct
     let link_txt =
       if pg <> "" then
         Printf.sprintf {|[%s]|} pg
-      else transl_nth conf "note/notes" 1 in
+      else Geneweb.Util.transl_nth conf "note/notes" 1 in
     {
       M.History_note.link_parameters;
       link_txt;
@@ -873,14 +865,14 @@ module HistoryApi = struct
         ~filter
         ~f
     in
-    let total_elements = Int32.of_int (History.total_entries ~conf ~filter) in
+    let total_elements = Int32.of_int (Geneweb.History.total_entries ~conf ~filter) in
     Mext.gen_history {M.History.entries; page; total_elements}
 end
 
 let history conf base =
-  let params = get_params conf Mext.parse_history_request in
+  let params = Api_util.get_params conf Mext.parse_history_request in
   let page = params.M.History_request.page in
   let elements_per_page = params.M.History_request.elements_per_page in
   let filter_user = params.M.History_request.filter_user in
   let data = HistoryApi.history_list conf base page elements_per_page filter_user in
-  print_result conf data
+  Api_util.print_result conf data
