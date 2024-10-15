@@ -47,11 +47,6 @@ let print_info_base conf base =
   let data = Api_piqi_ext.gen_infos_base info_base in
   Api_util.print_result conf data
 
-
-
-(** [print_loop conf base]
-    If there is a loop in the base print a person being its own ancestor.
-    Otherwise, print a dummy (empty) person instead. **)
 let print_loop conf base =
   let (base_loop, pers) =
     (ref false, ref (Gwdb.poi base (Gwdb.dummy_iper)))
@@ -129,8 +124,6 @@ let print_ref_person_from_ip conf base =
 
 (**/**) (* API_FIRST_AVAILABLE_PERSON *)
 
-(** [Description] : Retourne la "première" personne accessible d'un arbre
-                    et visible. *)
 let print_first_available_person conf base =
   let empty_ref = Api_util.empty_reference_person in
   let continue = ref true in
@@ -185,9 +178,6 @@ let print_find_sosa conf base =
 
 (**/**) (* API_LAST_MODIFIED_PERSONS *)
 
-(** [Description] : Retourne la liste des dernières personnes modifiées
-                    par le magicien. Si aucun magicien n'est donné, alors
-                    c'est les dernières personnes. *)
 let print_last_modified_persons conf base =
   let params = Api_util.get_params conf Api_piqi_ext.parse_last_modifications in
   let filters = Api_util.get_filters conf in
@@ -321,8 +311,6 @@ let print_last_modified_persons conf base =
 
 (**/**) (* API_LAST_VISITED_PERSONS *)
 
-(** [Description] : Retourne la liste des dernières personnes visités
-                    par le user donné en paramètre. *)
 let print_last_visited_persons conf base =
   let last_visits = Api_util.get_params conf Api_piqi_ext.parse_last_visits in
   let user = last_visits.Api_piqi.Last_visits.user in
@@ -349,7 +337,6 @@ let print_last_visited_persons conf base =
 
 (**/**) (* API_MAX_ANCESTORS *)
 
-(** [Description] : Recherche la personne qui a le plus d'ancêtres. *)
 let print_max_ancestors =
   fun conf base ->
   let ipers = Gwdb.ipers base in
