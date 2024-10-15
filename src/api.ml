@@ -1,15 +1,5 @@
 (**/**) (* Services disponibles. *)
 
-(* ******************************************************************** *)
-(*  [Fonc] print_info_base : config -> base -> InfosBase                *)
-(** [Description] : Retourne les informations d'une base.
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-    [Retour] :
-      - string : Mets à jour les champs du type Infos_base.
-    [Rem] : Non exporté en clair hors de ce module.                     *)
-(* ******************************************************************** *)
 let print_info_base conf base =
   let (sosa_p, sosa) =
      match Geneweb.Util.find_sosa_ref conf base with
@@ -88,17 +78,6 @@ let print_loop conf base =
   let data = Api_util.data_person p in
   Api_util.print_result conf data
 
-(* ******************************************************************** *)
-(*  [Fonc] print_info_ind : config -> base -> unit                      *)
-(** [Description] : Renvoie à partir d'une référence person (piqi) une
-                    person (piqi).
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-    [Retour] :
-      - unit
-    [Rem] : Non exporté en clair hors de ce module.                     *)
-(* ******************************************************************** *)
 let print_info_ind conf base =
   let ref_person = Api_util.get_params conf Api_piqi_ext.parse_reference_person in
   let filters = Api_util.get_filters conf in
@@ -119,18 +98,6 @@ let print_info_ind conf base =
   let data = Api_util.data_person p in
   Api_util.print_result conf data
 
-
-(* ******************************************************************** *)
-(*  [Fonc] print_list_ref_person : config -> base -> unit               *)
-(** [Description] : Renvoie à partir d'une liste de référence person
-                    (piqi) une liste de persons (piqi).
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-    [Retour] :
-      - unit
-    [Rem] : Non exporté en clair hors de ce module.                     *)
-(* ******************************************************************** *)
 let print_list_ref_person conf base =
   let list_ref_person = Api_util.get_params conf Api_piqi_ext.parse_list_reference_persons in
   let filters = Api_util.get_filters conf in
@@ -152,16 +119,6 @@ let print_list_ref_person conf base =
   in
   Api_util.print_result conf data
 
-(* ******************************************************************** *)
-(*  [Fonc] print_ref_person_from_ip : config -> base -> unit            *)
-(** [Description] : Renvoie à partir de l'ip une référence personne.
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-    [Retour] :
-      - unit
-    [Rem] : Non exporté en clair hors de ce module.                     *)
-(* ******************************************************************** *)
 let print_ref_person_from_ip conf base =
   let id = Api_util.get_params conf Api_piqi_ext.parse_index in
   let ip = Gwdb.iper_of_string @@ Int32.to_string id.Api_piqi.Index.index in
@@ -172,16 +129,8 @@ let print_ref_person_from_ip conf base =
 
 (**/**) (* API_FIRST_AVAILABLE_PERSON *)
 
-(* ************************************************************************ *)
-(*  [Fonc] print_first_available_person : config -> base -> ReferencePerson *)
 (** [Description] : Retourne la "première" personne accessible d'un arbre
-                    et visible.
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-    [Retour] : ReferencePerson
-    [Rem] : Non exporté en clair hors de ce module.                         *)
-(* ************************************************************************ *)
+                    et visible. *)
 let print_first_available_person conf base =
   let empty_ref = Api_util.empty_reference_person in
   let continue = ref true in
@@ -202,17 +151,9 @@ let print_first_available_person conf base =
 
 (**/**) (* API_SOSA *)
 
-(* ************************************************************************ *)
-(*  [Fonc] print_find_sosa : config -> base -> ReferencePerson              *)
 (** [Description] : Cette fonction est utilisée pour la première saisie.
        Elle prend une référence_person et si elle a des enfants, alors on
-       renvoi le premier enfant, sinon on renvoi la même personne.
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-    [Retour] : ReferencePerson
-    [Rem] : Non exporté en clair hors de ce module.                         *)
-(* ************************************************************************ *)
+       renvoi le premier enfant, sinon on renvoi la même personne. *)
 let print_find_sosa conf base =
   let ref_person = Api_util.get_params conf Api_piqi_ext.parse_reference_person in
   let n = ref_person.Api_piqi.Reference_person.n in
@@ -244,18 +185,9 @@ let print_find_sosa conf base =
 
 (**/**) (* API_LAST_MODIFIED_PERSONS *)
 
-(* ******************************************************************** *)
-(*  [Fonc] print_last_modified_persons : config -> base -> persons list *)
 (** [Description] : Retourne la liste des dernières personnes modifiées
                     par le magicien. Si aucun magicien n'est donné, alors
-                    c'est les dernières personnes.
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-    [Retour] :
-      - persons list : List des personnes modifiées.
-    [Rem] : Non exporté en clair hors de ce module.                     *)
-(* ******************************************************************** *)
+                    c'est les dernières personnes. *)
 let print_last_modified_persons conf base =
   let params = Api_util.get_params conf Api_piqi_ext.parse_last_modifications in
   let filters = Api_util.get_filters conf in
@@ -389,17 +321,8 @@ let print_last_modified_persons conf base =
 
 (**/**) (* API_LAST_VISITED_PERSONS *)
 
-(* ************************************************************************ *)
-(*  [Fonc] print_last_visited_persons : config -> base -> persons list      *)
 (** [Description] : Retourne la liste des dernières personnes visités
-                    par le user donné en paramètre.
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-    [Retour] :
-      - persons list : Liste des personnes modifiées.
-    [Rem] : Non exporté en clair hors de ce module.                         *)
-(* ************************************************************************ *)
+                    par le user donné en paramètre. *)
 let print_last_visited_persons conf base =
   let last_visits = Api_util.get_params conf Api_piqi_ext.parse_last_visits in
   let user = last_visits.Api_piqi.Last_visits.user in
@@ -426,15 +349,7 @@ let print_last_visited_persons conf base =
 
 (**/**) (* API_MAX_ANCESTORS *)
 
-(* ************************************************************************ *)
-(*  [Fonc] print_max_ancestors : config -> base -> ReferencePerson          *)
-(** [Description] : Recherche la personne qui a le plus d'ancêtres.
-    [Args] :
-      - conf : configuration de la base
-      - base : base de donnée
-    [Retour] : ReferencePerson
-    [Rem] : Non exporté en clair hors de ce module.                         *)
-(* ************************************************************************ *)
+(** [Description] : Recherche la personne qui a le plus d'ancêtres. *)
 let print_max_ancestors =
   fun conf base ->
   let ipers = Gwdb.ipers base in
